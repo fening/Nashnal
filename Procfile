@@ -1,1 +1,1 @@
-web: gunicorn nst_timesheet.wsgi
+web: gunicorn nst_timesheet.wsgi --log-file -
