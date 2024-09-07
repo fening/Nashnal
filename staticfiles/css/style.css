@@ -1,0 +1,194 @@
+    body {
+        margin-top:20px;
+        font-family: Arial, sans-serif;
+        background-color: #f4f4f4;
+    }
+
+    .sidebar {
+        width: 250px;
+        background-color: #333;
+    }
+
+    .sidebar a {
+        color: white;
+        padding: 15px;
+        text-decoration: none;
+        display: block;
+    }
+
+    .container {
+        margin-left: 270px;
+        padding: 20px;
+    }
+
+    .header-container {
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+
+    .search-container {
+        margin-right: 20px;
+    }
+
+    .search-container input {
+        padding: 8px;
+        font-size: 14px;
+        width: 300px;
+    }
+
+    .sort-container form {
+        display: inline;
+    }
+    /* Style for the header container */
+    .header-container {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+
+    /* Search and Sort containers */
+    .search-container input {
+        padding: 8px;
+        font-size: 14px;
+        width: 300px;
+    }
+
+    .sort-container form {
+        display: inline;
+    }
+
+    /* Table styling */
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+        font-size: 14px;
+    }
+
+    thead {
+        background-color: #4CAF50;
+        color: white;
+    }
+
+    th, td {
+        padding: 12px;
+        border: 1px solid #ddd;
+        text-align: left;
+    }
+
+    th {
+        font-weight: bold;
+        background-color: #333633;
+        color: white;
+        text-align: center;
+    }
+
+    tbody tr:nth-child(even) {
+        background-color: #f9f9f9;
+    }
+
+    tbody tr:hover {
+        background-color: #f1f1f1;
+        cursor: pointer;
+    }
+
+    a {
+        color: #373f37;
+        text-decoration: none;
+    }
+
+    a:hover {
+        text-decoration: underline;
+    }
+
+    /* Center actions in the table */
+    td.actions {
+        text-align: center;
+    }
+
+    /* Style the search input similar to the dropdown with the dark color */
+    .search-container input {
+        padding: 12px 20px;
+        font-size: 16px;
+        border-radius: 6px;
+        border: 1px solid #ccc;
+        background-color: #f9f9f9;
+        color: #333;  /* Text color */
+        width: 250px;
+        transition: border-color 0.3s ease, background-color 0.3s ease;
+    }
+
+    .search-container input:focus {
+        border-color: #2C2C2C;  /* Dark color from image */
+        background-color: #fff;
+        outline: none;
+    }
+
+    .search-container input:hover {
+        border-color: #2C2C2C;  /* Dark color from image */
+    }
+
+    /* Style the dropdown */
+    select {
+        padding: 12px 20px;
+        font-size: 16px;
+        border-radius: 6px;
+        border: 1px solid #ccc;
+        background-color: #f9f9f9;
+        color: #333;
+        width: 250px;
+        appearance: none;
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg xmlns%3D%22http%3A//www.w3.org/2000/svg%22 width%3D%2216%22 height%3D%2216%22 fill%3D%22%232C2C2C%22%3E%3Cpath d%3D%22M8 10.5L4 6h8z%22/%3E%3C/svg%3E');  /* Custom arrow in dark color */
+        background-repeat: no-repeat;
+        background-position: right 15px center;
+        background-size: 12px;
+        cursor: pointer;
+        transition: border-color 0.3s ease;
+    }
+
+    select:hover {
+        border-color: #2C2C2C;  /* Dark color from image */
+    }
+
+    select:focus {
+        border-color: #2C2C2C;  /* Dark color from image */
+        background-color: #fff;
+        outline: none;
+    }
+
+    button[type="submit"] {
+        padding: 12px 20px;
+        background-color: #4CAF50; /* Green color for confirmation */
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 16px;
+        font-weight: bold;
+        text-align: center;
+        text-decoration: none;
+        display: inline-block;
+        transition: background-color 0.3s ease;
+    }
+    
+    button[type="submit"]:hover {
+        background-color: #45a049; /* Darker green on hover */
+    }
+    
+    button[type="submit"]:focus {
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.5); /* Green focus ring */
+    }
+    
+    button[type="submit"]:active {
+        background-color: #3e8e41; /* Even darker green when clicked */
+        transform: translateY(1px); /* Slight push down effect */
+    }
+    
+
+

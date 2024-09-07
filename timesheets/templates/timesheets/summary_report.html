@@ -1,0 +1,225 @@
+
+{% extends 'timesheets/base.html' %}
+
+{% block title %}Home - Time Sheet App{% endblock %}
+
+{% block content %}
+{% load extra_filters %}
+{% load custom_filters %}
+<style>
+    /* Form container */
+.filter-form {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 20px; /* Space between form elements */
+    margin-bottom: 20px;
+    padding: 20px;
+    background-color: #f9f9f9; /* Light background */
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Labels */
+.form-label {
+    font-weight: bold;
+    font-size: 14px;
+    color: #333;
+}
+
+/* Unified styling for select dropdowns (including sort dropdown) */
+.form-select,
+.sort-select, /* Assuming your sort dropdown has this class */
+.form-input {
+    padding: 10px 12px; /* Match padding */
+    font-size: 14px; /* Match font size */
+    border: 1px solid #ccc; /* Match border color */
+    border-radius: 4px;
+    background-color: #fff;
+    color: #333;
+    outline: none;
+    width: 220px; /* Adjust to match the width of your sort dropdown */
+    transition: border-color 0.3s;
+}
+
+.form-select:focus,
+.sort-select:focus,
+.form-input:focus {
+    border-color: #007BFF;
+}
+
+/* Responsive layout for smaller screens */
+@media (max-width: 768px) {
+    .filter-form {
+        flex-direction: column;
+        gap: 15px;
+    }
+    
+    .form-select, .form-input, .sort-select {
+        width: 100%;
+    }
+}
+
+</style>
+
+<form method="GET" action="" class="filter-form">
+    {% if users %}
+        <label for="user-select" class="form-label">Select User:</label>
+        <select name="user" id="user-select" class="form-select" onchange="this.form.submit()">
+            <option value="">--Select User--</option>
+            {% for user in users %}
+                <option value="{{ user.id }}" {% if selected_user and user.id == selected_user.id %}selected{% endif %}>
+                    {{ user.first_name }} {{ user.last_name }}
+                </option>
+            {% endfor %}
+        </select>
+    {% endif %}
+
+    <label for="week-start" class="form-label">Select Week Start:</label>
+    <input type="date" name="week_start" id="week-start" value="{{ week_start|date:'Y-m-d' }}" class="form-input" onchange="this.form.submit()">
+</form>
+    
+    <h2>Report for {{ selected_user.first_name }} {{ selected_user.last_name }} (Week of {{ week_start|date:'M d, Y' }} to {{ week_end|date:'M d, Y' }})</h2>
+    
+    <div class="summary-section">
+        <table>
+            <tr>
+                <th>Project No</th>
+                <th>Client</th>
+                <th>Project Name</th>
+                <th>Labor Code</th>
+                <th>Sunday</th>
+                <th>Monday</th>
+                <th>Tuesday</th>
+                <th>Wednesday</th>
+                <th>Thursday</th>
+                <th>Friday</th>
+                <th>Saturday</th>
+                <th>Total Hours</th>
+            </tr>
+            {% for labor_code, data in weekly_hours.items %}
+            <tr>
+                <td></td>
+                <td></td>
+                <td>{{ data.description }}</td>
+                <td>{{ labor_code }} - {{ data.labor_code_description }} </td>
+                <td>{{ data.hours.Sunday }}</td>
+                <td>{{ data.hours.Monday }}</td>
+                <td>{{ data.hours.Tuesday }}</td>
+                <td>{{ data.hours.Wednesday }}</td>
+                <td>{{ data.hours.Thursday }}</td>
+                <td>{{ data.hours.Friday }}</td>
+                <td>{{ data.hours.Saturday }}</td>
+                <td>{{ data.hours.Sunday|add:data.hours.Monday|add:data.hours.Tuesday|add:data.hours.Wednesday|add:data.hours.Thursday|add:data.hours.Friday|add:data.hours.Saturday }}</td>
+            </tr>
+            {% endfor %}
+            <!-- Add a row for daily totals -->
+            <tr>
+                <td colspan="4"><strong>Total Daily Hours</strong></td>
+                <td>{{ daily_totals.Sunday }}</td>
+                <td>{{ daily_totals.Monday }}</td>
+                <td>{{ daily_totals.Tuesday }}</td>
+                <td>{{ daily_totals.Wednesday }}</td>
+                <td>{{ daily_totals.Thursday }}</td>
+                <td>{{ daily_totals.Friday }}</td>
+                <td>{{ daily_totals.Saturday }}</td>
+                <td>{{ daily_totals.Sunday|add:daily_totals.Monday|add:daily_totals.Tuesday|add:daily_totals.Wednesday|add:daily_totals.Thursday|add:daily_totals.Friday|add:daily_totals.Saturday }}</td>
+            </tr>
+        </table>
+    </div>
+<!-- Labor Code Section -->
+        <div class="labor-code-section">
+            <table>
+                <thead>
+                    <tr>
+                        <th colspan="2">Field Technician & Engineering Codes</th>
+                        <th colspan="2">Lab Service Codes</th>
+
+                        <th colspan="6">Time Sheet Summary</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>1. Project Management/P.E.</td>
+                        <td>13. Concrete Lab</td>
+                        <td>25. Moisture Content</td>
+                        <td>37. Modified Proctor 4" Mold</td>
+                        <td colspan="3"><strong>Total Regular Hours</strong></td>
+                        <td colspan="3">{{ total_regular_hours }}</td>
+                    </tr>
+                    <tr>
+                        <td>2. Senior Engineer/P.E.</td>
+                        <td>14. Concrete Coring</td>
+                        <td>26. Particle Size Analysis</td>
+                        <td>38. Modified Proctor 6" Mold</td>
+                        <td colspan="3"><strong>Total Overtime Hours</strong></td>
+                        <td colspan="3">{{ total_overtime_hours }}</td>
+                    </tr>
+                    <tr>
+                        <td>3. Project Engineer</td>
+                        <td>15. Windsor Probe/Pin</td>
+                        <td>27. Hydrometer</td>
+                        <td>39. Unconsolidated Triaxle Shear Test</td>
+                        <td colspan="3"><strong>Double Time Hours</strong></td>
+                        <td colspan="3">{{ total_double_time_hours }}</td>
+                    </tr>
+                    <tr>
+                        <td>4. Lab Manager</td>
+                        <td>16. Schmidt Hammer</td>
+                        <td>28. Atterberg Limits</td>
+                        <td>40. Consolidated Triaxle Shear Test</td>
+                        <td colspan="3"><strong>Grand Total Hours</strong></td>
+                        <td colspan="3">{{ grand_total_hours }}</td>
+                    </tr>
+                    <tr>
+                        <td>5. Laboratory Technician</td>
+                        <td>17. Ground Penetrating Radar</td>
+                        <td>29. Specific Gravity</td>
+                        <td>41. Unconfined Compression</td>
+                    </tr>
+                    <tr>
+                        <td>6. Field Engineer</td>
+                        <td>18. Floor Flatness</td>
+                        <td>30. Organic Content</td>
+                        <td>42. One Dimensional Consolidation</td>
+                    </tr>
+                    <tr>
+                        <td>7. Field Technician Level I</td>
+                        <td>19. CAD Drawing</td>
+                        <td>31. Unit Weight</td>
+                        <td>43. Asphalt Extraction Test</td>
+                    </tr>
+                    <tr>
+                        <td>8. Field Technician Level II</td>
+                        <td>20. Administration</td>
+                        <td>32. Density, Soil Particle</td>
+                        <td>44. Gyratory Compaction</td>
+                    </tr>
+                    <tr>
+                        <td>9. CWI</td>
+                        <td>21. Marketing</td>
+                        <td>33. Fractional Organic Carbon</td>
+                        <td>45. Asphalt Bulk Specific Gravity</td>
+                    </tr>
+                    <tr>
+                        <td>10. Report / Documentation Preparation</td>
+                        <td>22. Clerical Support</td>
+                        <td>34. Hydraulic Conductivity</td>
+                        <td>46. Asphalt Apparent Specific Gravity</td>
+                    </tr>
+                    <tr>
+                        <td>11. Report / Document Quality Review</td>
+                        <td>23. Training</td>
+                        <td>35. Standard Proctor 4" Mold</td>
+                        <td>47. pH</td>
+                    </tr>
+                    <tr>
+                        <td>12. Concrete / Sample Collection Pick-Up</td>
+                        <td>24. School</td>
+                        <td>36. Standard Proctor 6" Mold</td>
+                        <td>48. Other</td>
+                    </tr>
+            </tbody>
+        </table>
+    </div>
+    {% endblock %}

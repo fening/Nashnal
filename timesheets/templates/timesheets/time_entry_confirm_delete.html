@@ -1,0 +1,44 @@
+
+{% extends 'timesheets/base.html' %}
+
+{% block title %}Time Entries Detailed View - Time Sheet App{% endblock %}
+
+{% block content %}
+<style>
+    button[type="submit"] {
+        padding: 12px 20px;
+        background-color: #4CAF50; /* Green color for confirmation */
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 16px;
+        font-weight: bold;
+        text-align: center;
+        text-decoration: none;
+        display: inline-block;
+        transition: background-color 0.3s ease;
+    }
+    
+    button[type="submit"]:hover {
+        background-color: #45a049; /* Darker green on hover */
+    }
+    
+    button[type="submit"]:focus {
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.5); /* Green focus ring */
+    }
+    
+    button[type="submit"]:active {
+        background-color: #3e8e41; /* Even darker green when clicked */
+        transform: translateY(1px); /* Slight push down effect */
+    }
+</style>
+    <h1>Delete Time Entry</h1>
+    <p>Are you sure you want to delete this time entry?</p>
+    <form method="post">
+        {% csrf_token %}
+        <button type="submit">Confirm</button>
+        <a href="{% url 'time_entry_list' %}">Cancel</a>
+    </form>
+    {% endblock %}

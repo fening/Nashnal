@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>{% block title %}My Time Sheet App{% endblock %}</title>
+    
+    <!-- Load static files -->
+    {% load static %}
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <style>
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            display: flex;
+            flex-direction: column;
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+        }
+        
+        .sidebar {
+            width: 250px;
+            background-color: #333;
+            height: 100vh;
+            padding-top: 20px;
+            position: fixed;
+            top: 0;
+            left: 0;
+        }
+        
+        .sidebar a {
+            padding: 15px;
+            text-decoration: none;
+            font-size: 18px;
+            color: white;
+            display: block;
+        }
+        
+        .sidebar a:hover {
+            background-color: #575757;
+        }
+        
+        .container {
+            flex: 1;
+            margin-left: 270px;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        h1 {
+            margin-bottom: 20px;
+            color: #333;
+        }
+        
+        footer {
+            text-align: center;
+            padding: 10px;
+            background-color: grey;
+            color: white;
+            width: 100%;
+            position: relative;
+            bottom: 0;
+            left: 0;
+            margin-top: auto; /* This makes the footer stick to the bottom when there's little content */
+        }
+        .logo {
+            position: relative;
+            width: 150px;
+            padding: 10px;
+            border: 1px solid #ccc;
+        }
+        .logo svg {
+            width: 100%;
+            height: auto;
+        }
+    </style>
+    {% block extra_css %}{% endblock %}
+
+
+</head>
+<body>
+
+
+    <div class="sidebar">
+        <div class="logo">
+            <svg viewBox="5.48 31.046 401.582 69.018" xmlns="http://www.w3.org/2000/svg">
+                <g>
+                    <path d="m179.03 41.83-10.82 14.05h-19.3v39.97h-16.72V55.88H90.11l-14.7.01c-1.94 0-3.38.27-4.32.81-.93.53-1.4 1.48-1.41 2.84v.13c.02 1.36.49 2.32 1.41 2.88.94.56 2.38.85 4.32.85h29.4c6.62 0 11.65 1.22 15.1 3.67 3.45 2.45 5.17 6.15 5.17 11.1 0 2.75-.43 5.22-1.29 7.43-.86 2.21-2.23 4.06-4.12 5.57-1.88 1.51-4.29 2.67-7.23 3.47-2.93.81-6.45 1.21-10.54 1.21H71.91c.61-.9 1.11-1.88 1.51-2.9.8-2.03 1.11-4.21 1.11-6.39v-4.6h28.66c1.99 0 3.45-.31 4.36-.93.92-.62 1.37-1.63 1.37-3.03s-.46-2.39-1.37-2.99c-.91-.59-2.37-.89-4.36-.89H73.8c-1.46 0-2.83-.06-4.12-.2v12.63c0 1.78-.26 3.31-.77 4.6-.51 1.29-1.18 2.36-2.02 3.19-.84.83-1.82 1.44-2.95 1.82-1.13.38-2.29.56-3.47.56-1.08 0-2.14-.17-3.19-.52-1.05-.35-2.22-1.14-3.51-2.38L20.66 64.1v31.73H5.48V51.05c0-1.78.26-3.31.77-4.6.51-1.29 1.19-2.34 2.02-3.15.83-.81 1.8-1.4 2.91-1.78 1.1-.38 2.25-.56 3.43-.56 1.02 0 2.06.17 3.11.53 1.05.35 2.25 1.14 3.59 2.38l32.22 28.92V58.65c0-2.53.44-4.83 1.33-6.9.89-2.07 2.26-3.84 4.12-5.29 1.86-1.45 4.25-2.59 7.18-3.39 2.94-.81 6.45-1.21 10.54-1.21h102.32Z" fill="#f37f20"></path>
+                </g>
+            </svg>
+        </div>
+        {% block sidebar %}
+        <a href="{% url 'home' %}">Home</a>
+        {% if user.is_authenticated %}
+        <a href="{% url 'time_entry_create' %}">Create Time Entry</a>
+            <a href="{% url 'time_entry_list' %}">View Time Entries</a>
+
+            <a href="{% url 'user_summary_report' %}">Weekly Summary</a>
+            <a href="{% url 'add_job_to_time_entry' %}" >Add Job</a>
+            <a href="">Profile</a>
+            <a href="{% url 'logout' %}">Logout</a>
+        {% else %}
+            <a href="{% url 'login' %}">Login</a>
+            <a href="{% url 'sregister' %}">Sign Up</a>
+        {% endif %}
+        {% endblock %}
+    </div>
+
+    <div class="container">
+        {% block content %}
+        <h1>Welcome to the Time Sheet App</h1>
+        {% endblock %}
+    </div>
+
+    <footer>
+        <p>&copy; 2024 Time Sheet App</p>
+    </footer>
+    <script src="{% static 'js/main.js' %}"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

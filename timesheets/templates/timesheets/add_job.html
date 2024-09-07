@@ -1,0 +1,67 @@
+{% extends 'timesheets/base.html' %}
+
+{% block title %}Add Job for {{ time_entry.date }}{% endblock %}
+
+{% block content %}
+<h2>Add Job for {{ time_entry.date }}</h2>
+
+{% if created %}
+<p>A new time entry has been created for today.</p>
+{% else %}
+<p>Adding to existing time entry for today.</p>
+{% endif %}
+
+<form method="post">
+    {% csrf_token %}
+    {{ formset.management_form }}
+    <table>
+        <thead>
+            <tr>
+                <th>Arrive Time</th>
+                <th>Leave Time</th>
+                <th>Start Mileage</th>
+                <th>End Mileage</th>
+                <th>Labor Code</th>
+                <th>Description</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for form in formset %}
+            <tr>
+                <td>{{ form.activity_arrive_time }}</td>
+                <td>{{ form.activity_leave_time }}</td>
+                <td>{{ form.activity_start_mileage }}</td>
+                <td>{{ form.activity_end_mileage }}</td>
+                <td>{{ form.labor_code }}</td>
+                <td>{{ form.description }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <button type="submit">Add Job</button>
+</form>
+
+<h3>Existing Jobs for this Time Entry:</h3>
+<ul>
+{% for job in time_entry.jobs.all %}
+    <li>{{ job.activity_arrive_time }} - {{ job.activity_leave_time }}: {{ job.get_labor_code_display }} - {{ job.description }}</li>
+{% empty %}
+    <li>No jobs added yet.</li>
+{% endfor %}
+</ul>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const laborCodeSelects = document.querySelectorAll('select[name$="labor_code"]');
+        
+        laborCodeSelects.forEach(select => {
+            select.addEventListener('change', function() {
+                const descriptionInput = this.closest('tr').querySelector('input[name$="labor_code_description"]');
+                if (descriptionInput) {
+                    descriptionInput.value = this.options[this.selectedIndex].text;
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,318 @@
+
+{% extends 'timesheets/base.html' %}
+
+{% block title %}Time Entries Detailed View - Time Sheet App{% endblock %}
+
+{% block content %}
+<style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4; /* Light background for contrast */
+            margin: 20px;
+        }
+        
+        .timesheet-form {
+            margin: 20px;
+            background-color: white; /* White background for the form */
+            padding: 20px;
+            border-radius: 8px; /* Rounded corners for the form */
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
+        }
+        
+        .timesheet-form h2 {
+            text-align: center;
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            color: #333; /* Darker color for the title */
+        }
+        
+        .timesheet-form table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+            background-color: #fff; /* White background for table */
+        }
+        
+        .timesheet-form th, .timesheet-form td {
+            border: 1px solid #ddd; /* Light gray borders */
+            padding: 12px;
+            text-align: left;
+        }
+        
+        .timesheet-form th {
+            background-color: #333; /* Green background for headers */
+            color: white; /* White text for headers */
+            text-align: center; /* Center text in headers */
+            font-size: 18px; /* Larger font size for headers */
+        }
+        
+        .timesheet-form td.header {
+            background-color: #f2f2f2; /* Light gray background for header-like cells */
+            font-weight: bold;
+        }
+        
+        .timesheet-form input[type="text"],
+        .timesheet-form input[type="number"],
+        .timesheet-form input[type="time"] {
+            width: 100%;
+            padding: 8px;
+            margin: 5px 0;
+            box-sizing: border-box;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        
+        .timesheet-form tfoot td {
+            text-align: center;
+            font-size: 16px;
+            font-weight: bold;
+            padding: 10px;
+            background-color: #f9f9f9; /* Light background for footer */
+            border-top: 2px solid #4CAF50; /* Slightly thicker border at the top */
+        }
+        
+        .timesheet-form tfoot tr {
+            border-top: 2px solid #4CAF50;
+        }
+        
+        .timesheet-form tfoot tr:last-child td {
+            font-size: 14px;
+            color: #666; /* Slightly darker color for labels in the last row */
+        }
+        
+        button {
+            display: inline-block;
+            padding: 8px 16px; /* Reduce padding for a smaller button */
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px; /* Slightly smaller font size */
+            margin-top: 20px;
+            width: auto; /* Change to auto to avoid full width */
+        }
+        
+        button:hover {
+            background-color: #45a049;
+        }
+        
+        button.cancel {
+            background-color: #d9534f;
+            margin-top: 10px;
+        }
+        
+        button.cancel:hover {
+            background-color: #c9302c;
+        }
+        
+        button.cancel a {
+            color: white;
+            text-decoration: none;
+        }
+        
+        button.cancel a:hover {
+            text-decoration: none;
+        }
+        
+        @media print {
+            /* Hide the print and cancel buttons on print */
+            button, button.cancel {
+                display: none;
+            }
+        
+            /* Ensure the table fills the page */
+            .timesheet-form {
+                margin: 0;
+                padding: 0;
+                border: none;
+                box-shadow: none;
+            }
+        
+            /* Adjust table for print */
+            .timesheet-form table {
+                width: 100%;
+                font-size: 12px;
+            }
+        
+            .timesheet-form th {
+                background-color: #333;
+                color: white;
+                -webkit-print-color-adjust: exact; /* Ensure background colors are printed */
+            }
+        
+            .timesheet-form td.header {
+                background-color: #e0e0e0;
+                -webkit-print-color-adjust: exact;
+            }
+        
+            /* Show signature and workspace sections only on print */
+            .signature-section, .workspace-section {
+                display: block;
+            }
+        }
+        
+        /* Hide these sections by default */
+        .signature-section, .workspace-section {
+            display: none;
+        }
+
+        /* Show only when printing */
+        @media print {
+            .print-only {
+                display: block;
+            }
+
+            /* Ensure the entire form fits well on the printed page */
+            body {
+                margin: 0;
+                padding: 0;
+                width: 100%;
+            }
+
+            table {
+                width: 100%;
+                border-collapse: collapse;
+            }
+
+            th, td {
+                padding: 10px;
+                border: 1px solid #000;
+            }
+
+            /* Adjust button visibility */
+            .no-print {
+                display: none;
+            }
+        }
+        
+    </style>
+
+    <div class="timesheet-form">
+        <h2>Timesheet</h2>
+                <a style="text-align: right;"> Date: {{ time_entry.date }} | Name: {{ request.user.first_name }} {{ request.user.last_name }}</a>
+        <table>
+        <thead>
+            <tr>
+                <th class="header" colspan="2">Client/Job</th>
+                <th class="header">NST Job #</th>
+                <th class="header" colspan="2">Time</th>
+                <th class="header" colspan="2">Mileage</th>
+                <th class="header" colspan="2">Services Performed</th>
+            </tr>
+            <tr>
+                <th colspan="2"></th>
+                <th></th>
+                <th>Arrive</th>
+                <th>Leave</th>
+                <th>Arrive</th>
+                <th>Leave</th>
+                <th>Labor Code</th>
+                <th>Description</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- First row with Start Time label -->
+            <tr>
+                <td class="header">Start Time:</td>
+                <td>{{ time_entry.start_time|date:"H:i" }}</td> <!-- 24-hour format -->
+                <td class="header"></td>
+                <td class="header"></td>
+                <td>{{ time_entry.initial_leave_time|date:"H:i" }}</td> <!-- 24-hour format -->
+                <td class="header"></td>
+                <td>{{ time_entry.initial_mileage }}</td>
+                <td class="header" colspan="2"></td>
+            </tr>
+            <!-- Repeat this block for additional rows -->
+            {% for job in time_entry.jobs.all %}
+            <tr>
+                <td colspan="2">{{ job.description }}</td>
+                <td></td>
+                <td>{{ job.activity_arrive_time|date:"H:i" }}</td> <!-- 24-hour format -->
+                <td>{{ job.activity_leave_time|date:"H:i" }}</td> <!-- 24-hour format -->
+                <td>{{ job.activity_start_mileage }}</td>
+                <td>{{ job.activity_end_mileage }}</td>
+                <td>{{ job.labor_code }}</td>
+                <td>{{ job.labor_code_description }}</td> <!-- Labor code with description -->
+            </tr>
+            {% endfor %}
+            <!-- Add more rows as needed -->
+            <tr>
+                <td>End Time:</td>
+                <td>{{ time_entry.end_time|date:"H:i" }}</td> <!-- 24-hour format -->
+                <td class="header"></td>
+                <td>{{ time_entry.final_arrive_time|date:"H:i" }}</td> <!-- 24-hour format -->
+                <td class="header"></td>
+                <td>{{ time_entry.final_mileage }}</td>
+                <td class="header" colspan="3"></td>
+            </tr>
+        </tbody>
+        <tfoot>
+            <tr>
+                <td>{{ time_entry.hours_on_site }}</td>
+                <td>{{ time_entry.hours_for_the_day }}</td>
+                <td>{{ time_entry.travel_time_subtract }}</td>
+                <td>{{ time_entry.hours_to_be_paid }}</td>
+                <td colspan="2" style="height: 30px;"></td>
+                <td>{{ time_entry.total_miles }}</td>
+                <td>{{ time_entry.travel_miles_subtract }}</td>
+                <td>{{ time_entry.miles_to_be_paid }}</td>
+            </tr>
+            <tr>
+                <td>Hours on Site:</td>
+                <td>Hours for the Day:</td>
+                <td>Travel Time (subtract):</td>
+                <td>Hours to be Paid:</td>
+                <td colspan="2">Employee's Signature</td>
+                <td>Total Miles:</td>
+                <td>Travel Miles (subtract):</td>
+                <td>Miles to be Paid</td>
+            </tr>
+        </tfoot>
+    </table>
+    <div class="workspace-section print-only">
+    <!-- Add the Supervisor's Initials and Workspaces section -->
+    <table>
+        <tr>
+            <td colspan="9" style="text-align: center; padding-bottom: 10px; height: 30px;">
+
+            </td>
+        </tr>
+        <tr>
+            <td colspan="9" style="text-align: center; padding-bottom: 10px;">
+                Supervisor's Initials
+            </td>
+        </tr>
+        <!-- Spacer row for extra space above workspaces -->
+        <tr>
+            <td colspan="7" style="height: 30px;"></td>
+            <td colspan="3" style="height: 30px;"></td>
+        </tr>
+        <tr>
+            <td colspan="7" style="text-align: center;">Technician's Workspace</td>
+            <td colspan="3" style="text-align: center;">Accounting Workspace - Do Not Write Here</td>
+        </tr>
+    </table>
+    <div>
+        <table>
+            <!-- Spacer row for extra space above next section -->
+            <tr>
+                <td colspan="7" style="height: 30px;"></td>
+                <td colspan="1.5" style="height: 30px;"></td>
+                <td colspan="1.5" style="height: 30px;"></td>
+            </tr>
+            <tr>
+                <td colspan="7" style="text-align: center;">Supervisor's Workspace</td>
+                <td colspan="1.5" style="text-align: center;">Accounting Manager's Initials</td>
+                <td colspan="1.5" style="text-align: center;">Controller's Initials</td>
+            </tr>
+        </table>
+    </div>
+
+    
+</div>
+<button onclick="window.print()">Print</button> <!-- Print Button -->
+<button> <a href="{% url 'time_entry_edit' time_entry.pk %}">Edit</a></button>
+<button> <a href="{% url 'time_entry_list' %}">Back to List</a></button>
+{% endblock %}

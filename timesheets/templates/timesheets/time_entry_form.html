@@ -1,0 +1,497 @@
+{% extends 'timesheets/base.html' %}
+{% load static %}
+
+
+
+{% block title %}Time Entries Detailed View - Time Sheet App{% endblock %}
+
+{% block content %}
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Time Entry Form</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    {{ form.media }}
+</head>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        background-color: #f4f4f4;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+    }
+    
+    .main-content {
+        flex: 1;
+        padding: 20px;
+    }
+    
+    .timesheet-form {
+        margin: auto;
+        max-width: 100%;
+        background-color: #fff;
+        padding: 20px;
+    }
+    
+    /* ... (keep all your existing styles for form elements, buttons, etc.) ... */
+    
+    footer {
+        background-color: grey;
+        color: white;
+        text-align: center;
+        padding: 10px;
+        margin-top: auto;
+    }
+    
+    /* Button Container */
+    .button-container {
+        display: flex;
+        justify-content: center;
+        margin-top: 20px;
+    }
+    
+    /* General Button Style */
+    button {
+        padding: 12px 20px;
+        background-color: #333;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 16px;
+        margin: 0 10px;
+        text-align: center;
+        text-decoration: none;
+    }
+    
+    /* Hover Effect */
+    button:hover {
+        background-color: #45a049;
+    }
+    
+    button.submit {
+        background-color: #333;
+    }
+    
+    /* Cancel Button Style */
+    button.cancel {
+        background-color: #333;
+    }
+    
+    /* Hover Effect for Cancel Button */
+    button.cancel:hover {
+        background-color: #d32f2f;
+    }
+    
+    h2 {
+        text-align: center;
+        color: #333;
+        margin-bottom: 20px;
+    }
+    
+    /* Table styles */
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 20px;
+    }
+    
+    th, td {
+        border: 1px solid #ccc;
+        padding: 10px;
+        text-align: left;
+    }
+    
+    /* Header styling */
+    th {
+        background-color: #333;
+        color: white;
+        font-size: 18px;
+        text-align: center;
+    }
+    
+    td.header {
+        background-color: #f0f0ff;
+        font-weight: bold;
+    }
+    
+    /* Form field styles */
+    input[type="text"],
+    input[type="number"],
+    input[type="time"],
+    input[type="date"],
+    select,
+    textarea {
+        width: 100%;
+        padding: 8px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        box-sizing: border-box;
+    }
+    
+    /* Custom field styles */
+    .date-field {
+        display: inline-block;
+        width: 200px;
+        padding: 8px;
+        font-size: 16px;
+        color: #333;
+        background-color: #f9f9f9;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        text-align: left;
+        margin-bottom: 10px;
+    }
+    
+    .date-field:focus {
+        outline: none;
+        border-color: #4CAF50;
+        box-shadow: 0 0 5px rgba(76, 175, 80, 0.3);
+    }
+    
+    .start-time-field, 
+    .end-time-field, 
+    .arrive-time-field, 
+    .leave-time-field {
+        background-color: #f0f0f0;
+        color: #333;
+    }
+    
+    .mileage-field {
+        background-color: #f0f9f9;
+        color: #444;
+    }
+    
+    .labor-code-field,
+    .job-number-field {
+        background-color: #f0f0ff;
+        color: #444;
+    }
+    
+    .job-description-field,
+    .labor-code-description-field {
+        background-color: #f9f9f9;
+        color: #333;
+        font-family: 'Open Sans', sans-serif;
+        font-size: 14px;
+    }
+    
+    .readonly-field {
+        background-color: #f5f5f5;
+        color: #666;
+        font-style: italic;
+    }
+    
+    /* Link styles */
+    a.add-job {
+        color: #333;
+        text-decoration: none;
+        cursor: pointer;
+        font-weight: bold;
+    }
+    
+    a.remove-job {
+        color: red;
+        text-decoration: none;
+        cursor: pointer;
+        font-weight: bold;
+    }
+    
+    a.add-job:hover, a.remove-job:hover {
+        text-decoration: underline;
+    }
+    
+    /* Button Container */
+    .button-container {
+        display: inline-block;
+        margin-top: 20px;
+        text-align: center;
+    }
+    
+    /* General Button Style */
+    button {
+        padding: 12px 20px;
+        background-color: #333;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 16px;
+        margin-right: 10px;
+        text-align: center;
+        text-decoration: none;
+        display: inline-block;
+    }
+    
+    /* Hover Effect */
+    button:hover {
+        background-color: #45a049;
+    }
+    
+    button.submit {
+        background-color: #333;
+        margin-left: 10px;
+    }
+    
+    /* Cancel Button Style */
+    button.cancel {
+        background-color: #333;
+        margin-left: 10px;
+    }
+    
+    /* Hover Effect for Cancel Button */
+    button.cancel:hover {
+        background-color: #d32f2f;
+    }
+    
+    /* Link inside Cancel Button */
+    button.cancel a {
+        color: white;
+        text-decoration: none;
+    }
+    
+    /* Hover Effect for Link inside Cancel Button */
+    button.cancel a:hover {
+        text-decoration: underline;
+    }
+    
+    /* Optional styling for the label */
+    label {
+        font-size: 16px; /* Set a reasonable size */
+        font-weight: bold;
+        margin-right: 10px; /* Add some space between the label and date */
+        display: inline-block;
+    }
+    
+</style>
+<body>
+    <div class="main-content">
+        <div class="timesheet-form">
+        <form method="post">
+            {% csrf_token %}
+            <table>
+                <tr>
+                    <th class="header">Date:</th>
+                    <th colspan="8">{{ form.date }}</th>
+                </tr>
+                <thead>
+                    <tr>
+                        <th colspan="2">Client/Job</th>
+                        <th>NST Job #</th>
+                        <th colspan="2">Time</th>
+                        <th colspan="2">Mileage</th>
+                        <th colspan="2">Services Performed</th>
+                        <td rowspan="3">
+                            <a href="javascript:void(0);" id="add-job" class="add-job">Add Job</a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th></th>
+                        <th></th>
+                        <th></th>
+                        <th>Arrive</th>
+                        <th>Leave</th>
+                        <th>Arrive</th>
+                        <th>Leave</th>
+                        <th>Labor Code</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody id="formset-container">
+                    <!-- Render form fields for TimeEntry -->
+                    <tr>
+                        <td class="header">Start Time:</td>
+                        <td>{{ form.start_time }}</td>
+                        <td class="header"></td>
+                        <td class="header"></td>
+                        <td>{{ form.initial_leave_time }}</td>
+                        <td class="header"></td>
+                        <td>{{ form.initial_mileage }}</td>
+                        <td class="header" colspan="2"></td>
+                    </tr>
+        
+                    <!-- Include the formset management form -->
+                    {{ job_formset.management_form }}
+        
+                    <!-- Render each form in the Job formset -->
+                    {% for job_form in job_formset %}
+                    <tr class="job-form">
+                        {{ job_form.id }}
+                        {% if job_form.instance.pk %}{{ job_form.DELETE }}{% endif %}
+                        <td colspan="2">{{ job_form.description }}</td>
+                        <td>
+                            {% if job_form.nst_job_number %}
+                                {{ job_form.nst_job_number }}
+                            {% else %}
+                                <input type="text" name="{{ job_form.prefix }}-nst_job_number" id="id_{{ job_form.prefix }}-nst_job_number">
+                            {% endif %}
+                        </td>
+                        <td>{{ job_form.activity_arrive_time }}</td>
+                        <td>{{ job_form.activity_leave_time }}</td>
+                        <td>{{ job_form.activity_start_mileage }}</td>
+                        <td>{{ job_form.activity_end_mileage }}</td>
+                        <td>{{ job_form.labor_code }}</td>
+                        <td>{{ job_form.labor_code_description }}</td>
+                        <td>
+                            <a href="javascript:void(0);" class="remove-job">Remove</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+        
+                    <!-- Render form fields for TimeEntry -->
+                    <tr>
+                        <td class="header">End Time:</td>
+                        <td>{{ form.end_time }}</td>
+                        <td class="header"></td>
+                        <td>{{ form.final_arrive_time }}</td>
+                        <td class="header"></td>
+                        <td>{{ form.final_mileage }}</td>
+                        <td class="header" colspan="3"></td>
+                    </tr>
+                </tbody>
+            </table>
+        
+            <div style="text-align: center;">
+                <button type="submit">Save</button>
+                <button type="button" class="cancel"><a href="{% url 'time_entry_list' %}">Cancel</a></button>
+            </div>
+        </div>
+    </div>
+</body>
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                const formsetContainer = document.getElementById('formset-container');
+                const addJobButton = document.getElementById('add-job');
+                const totalFormsInput = document.getElementById('id_form-TOTAL_FORMS');
+        
+                const laborCodeDescriptions = {
+                    '1': 'Project Manager/P.E.',
+                    '2': 'Senior Engineer/P.E.',
+                    '3': 'Project Engineer',
+                    '4': 'Laboratory Manager',
+                    '5': 'Laboratory Technician',
+                    '6': 'Field Engineer',
+                    '7': 'Field Technician Level I',
+                    '8': 'Field Technician Level II',
+                    '9': 'CWI',
+                    '10': 'Report/ Documentation Preparation',
+                    '11': 'Report/ Document Quality Review',
+                    '12': 'Concrete/ Sample Collection Pick-Up',
+                    '13': 'Concrete Lab',
+                    '14': 'Concrete Coring',
+                    '15': 'Windsor Probe/Pin',
+                    '16': 'Schmidt Hammer',
+                    '17': 'Ground Penetrating Radar',
+                    '18': 'Floor Flatness',
+                    '19': 'CAD Drawing',
+                    '20': 'Administration',
+                    '21': 'Marketing',
+                    '22': 'Clerical Support',
+                    '23': 'Training',
+                    '24': 'School',
+                    '25': 'Moisture Content',
+                    '26': 'Particle Size Analysis',
+                    '27': 'Hydrometer',
+                    '28': 'Atterberg Limits',
+                    '29': 'Specific Gravity',
+                    '30': 'Organic Content',
+                    '31': 'Unit Weight',
+                    '32': 'Density, Soil Particle',
+                    '33': 'Fractional Organic Carbon',
+                    '34': 'Hydraulic Conductivity',
+                    '35': 'Standard Proctor 4" Mold',
+                    '36': 'Standard Proctor 6" Mold',
+                    '37': 'Modified Proctor 4" Mold',
+                    '38': 'Modified Proctor 6" Mold',
+                    '39': 'Unconsolidated Triaxle Shear Test',
+                    '40': 'Consolidated Triaxle Shear Test',
+                    '41': 'Unconfined Compression',
+                    '42': 'One Dimensional Consolidation',
+                    '43': 'Asphalt Extraction Test',
+                    '44': 'Gyratory Compaction',
+                    '45': 'Asphalt Bulk Specific Gravity',
+                    '46': 'Asphalt Apparent Specific Gravity',
+                    '47': 'pH',
+                    '48': 'Other'
+                };
+        
+                function updateLaborCodeDescription(selectElement) {
+                    const descriptionInput = selectElement.closest('tr').querySelector('input[name$="labor_code_description"]');
+                    const selectedValue = selectElement.value;
+                    descriptionInput.value = laborCodeDescriptions[selectedValue] || '';
+                }
+        
+                function attachLaborCodeListener(select) {
+                    select.addEventListener('change', function () {
+                        updateLaborCodeDescription(this);
+                    });
+                    updateLaborCodeDescription(select);
+                }
+        
+                // Attach listeners to existing labor code selects
+                document.querySelectorAll('select[name$="labor_code"]').forEach(attachLaborCodeListener);
+        
+                addJobButton.addEventListener('click', function() {
+                    const forms = formsetContainer.querySelectorAll('.job-form');
+                    const formCount = forms.length;
+                    const newForm = forms[0].cloneNode(true);
+                    
+                    newForm.innerHTML = newForm.innerHTML.replace(/-\d+-/g, `-${formCount}-`);
+                    newForm.querySelectorAll('input, select, textarea').forEach(input => {
+                        input.value = '';
+                        if (input.type !== 'hidden') {
+                            input.name = input.name.replace(/-\d+-/, `-${formCount}-`);
+                            input.id = input.id.replace(/-\d+-/, `-${formCount}-`);
+                        }
+                    });
+        
+                    // Remove the DELETE checkbox if it exists
+                    const deleteCheckbox = newForm.querySelector('input[name$="-DELETE"]');
+                    if (deleteCheckbox) {
+                        deleteCheckbox.remove();
+                    }
+        
+                    formsetContainer.insertBefore(newForm, formsetContainer.querySelector('tr:last-child'));
+                    totalFormsInput.value = formCount + 1;
+        
+                    // Attach labor code listener to the new form
+                    const newLaborCodeSelect = newForm.querySelector('select[name$="labor_code"]');
+                    attachLaborCodeListener(newLaborCodeSelect);
+                });
+        
+                formsetContainer.addEventListener('click', function(e) {
+                    if (e.target.classList.contains('remove-job')) {
+                        const jobForm = e.target.closest('.job-form');
+                        const deleteCheckbox = jobForm.querySelector('input[name$="-DELETE"]');
+                        if (deleteCheckbox) {
+                            deleteCheckbox.checked = true;
+                            jobForm.style.display = 'none';
+                        } else {
+                            jobForm.remove();
+                            updateFormIndices();
+                        }
+                    }
+                });
+        
+                function updateFormIndices() {
+                    const forms = formsetContainer.querySelectorAll('.job-form');
+                    forms.forEach((form, index) => {
+                        form.innerHTML = form.innerHTML.replace(/-\d+-/g, `-${index}-`);
+                        form.querySelectorAll('input, select, textarea').forEach(input => {
+                            if (input.type !== 'hidden') {
+                                input.name = input.name.replace(/-\d+-/, `-${index}-`);
+                                input.id = input.id.replace(/-\d+-/, `-${index}-`);
+                            }
+                        });
+                        // Re-attach labor code listener after updating indices
+                        const laborCodeSelect = form.querySelector('select[name$="labor_code"]');
+                        attachLaborCodeListener(laborCodeSelect);
+                    });
+                    totalFormsInput.value = forms.length;
+                }
+            });
+        </script>
+        {% endblock %}
