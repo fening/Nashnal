@@ -93,7 +93,6 @@ WSGI_APPLICATION = 'nst_timesheet.wsgi.application'
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 # Determine if running locally or in production
 
-ENVIRONMENT = env('ENVIRONMENT', default='development')
 POSTGRES_LOCALLY = env.bool('POSTGRES_LOCALLY', default=False)
 
 # Database settings
