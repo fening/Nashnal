@@ -24,16 +24,12 @@
         min-height: 100vh;
     }
     
-    .main-content {
-        flex: 1;
-        padding: 20px;
-    }
-    
+
     .timesheet-form {
-        margin: auto;
-        max-width: 100%;
+        max-width: auto;
         background-color: #fff;
-        padding: 20px;
+        padding: 10px;
+        margin-left: 0;
     }
     
     /* ... (keep all your existing styles for form elements, buttons, etc.) ... */
@@ -358,7 +354,6 @@
     }
 </style>
 <body>
-    <div class="main-content">
         <div class="timesheet-form">
         <form method="post">
             {% csrf_token %}
@@ -464,7 +459,6 @@
                 <button type="button" class="cancel"><a href="{% url 'time_entry_list' %}">Cancel</a></button>
             </div>
         </div>
-    </div>
 </body>
         <script>
             document.addEventListener('DOMContentLoaded', function() {
