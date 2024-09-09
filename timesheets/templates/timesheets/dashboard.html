@@ -1,0 +1,284 @@
+{% extends 'timesheets/base.html' %}
+
+{% block content %}
+<style>
+    .dashboard-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+    .dashboard-header {
+        text-align: center;
+        margin-bottom: 30px;
+    }
+    .dashboard-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 20px;
+    }
+    .dashboard-card {
+        background-color: white;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        padding: 20px;
+    }
+    .dashboard-card h3 {
+        color: #333;
+        margin-top: 0;
+        margin-bottom: 15px;
+    }
+    .quick-stats {
+        display: flex;
+        justify-content: space-around;
+        text-align: center;
+    }
+    .stat-item {
+        flex: 1;
+    }
+    .stat-value {
+        font-size: 24px;
+        font-weight: bold;
+        color: #007bff;
+    }
+    .recent-entries table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    .recent-entries th, .recent-entries td {
+        text-align: left;
+        padding: 8px;
+        border-bottom: 1px solid #ddd;
+    }
+    .recent-entries th {
+        background-color: #f8f9fa;
+    }
+    .action-buttons {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+    .action-button {
+        background-color: #007bff;
+        color: white;
+        border: none;
+        padding: 10px;
+        font-size: 16px;
+        border-radius: 20px;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+        text-align: center;
+        text-decoration: none;
+    }
+    .action-button:hover {
+        background-color: #0056b3;
+    }
+    .chart-container {
+        height: 300px;
+    }
+    .admin-section {
+        margin-bottom: 30px;
+    }
+    .user-select {
+        margin-bottom: 20px;
+    }
+    .user-stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 15px;
+    }
+    .user-stat-card {
+        background-color: #f8f9fa;
+        border-radius: 8px;
+        padding: 15px;
+        text-align: center;
+    }
+    .date-selection {
+        margin-bottom: 20px;
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+    }
+    .date-selection input[type="date"] {
+        padding: 5px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+    }
+    .date-selection button {
+        padding: 5px 10px;
+        background-color: #007bff;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+    .date-selection button:hover {
+        background-color: #0056b3;
+    }
+</style>
+
+<div class="dashboard-container">
+    <div class="dashboard-header">
+        <h2>Welcome, {{ user.first_name }} {{ user.last_name }}!</h2>
+    </div>
+    
+    <div class="date-selection">
+        <form method="get">
+            <input type="date" name="start_date" value="{{ start_date|date:'Y-m-d' }}">
+            <input type="date" name="end_date" value="{{ end_date|date:'Y-m-d' }}">
+            {% if is_admin %}
+                <select name="user_id">
+                    <option value="">All Users</option>
+                    {% for user in all_users %}
+                        <option value="{{ user.id }}" {% if user.id == selected_user.id %}selected{% endif %}>
+                            {{ user.first_name }} {{ user.last_name }}
+                        </option>
+                    {% endfor %}
+                </select>
+            {% endif %}
+            <button type="submit">Update</button>
+        </form>
+    </div>
+    <div class="dashboard-grid">
+        <div class="dashboard-card quick-stats">
+            <div class="stat-item">
+                <div class="stat-value">{{ total_hours }}</div>
+                <div>Total Hours This Week</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value">{{ total_entries }}</div>
+                <div>Total Entries</div>
+            </div>
+        </div>
+        
+        <div class="dashboard-card recent-entries">
+            <h3>Recent Time Entries</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Hours</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for entry in recent_entries %}
+                    <tr>
+                        <td>{{ entry.date }}</td>
+                        <td>{{ entry.hours_for_the_day }}</td>
+                        <td>{{ entry.jobs.first.description|truncatechars:30 }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="dashboard-card action-buttons">
+            <h3>Quick Actions</h3>
+            {% if not user.is_superuser %}
+                <a href="{% url 'time_entry_create' %}" class="action-button">Create New Time Entry</a>
+            {% endif %}
+            <a href="{% url 'user_summary_report' %}" class="action-button">View Weekly Summary</a>
+            <a href="{% url 'time_entry_list' %}" class="action-button">View All Time Entries</a>
+        </div>
+        
+        <div class="dashboard-card">
+            <h3>Labor Code Distribution</h3>
+            <div class="chart-container">
+                <canvas id="laborCodeChart"></canvas>
+            </div>
+            <div id="laborCodeDebug" style="display: none;"></div>
+        </div>
+        
+        <div class="dashboard-card">
+            <h3>Daily Hours (This Week)</h3>
+            <div class="chart-container">
+                <canvas id="dailyHoursChart"></canvas>
+            </div>
+            <div id="dailyHoursDebug" style="display: none;"></div>
+        </div>
+        
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        <script>
+            var startDate = "{{ start_date|date:'Y-m-d' }}";
+            var endDate = "{{ end_date|date:'Y-m-d' }}";
+        
+            var laborCodeData = JSON.parse('{{ labor_code_data|safe }}');
+            var dailyHoursData = JSON.parse('{{ daily_hours_data|safe }}');
+        
+            console.log("Labor Code Data:", laborCodeData);
+            console.log("Daily Hours Data:", dailyHoursData);
+        
+            document.getElementById('laborCodeDebug').textContent = JSON.stringify(laborCodeData);
+            document.getElementById('dailyHoursDebug').textContent = JSON.stringify(dailyHoursData);
+        
+            if (laborCodeData && laborCodeData.length > 0) {
+                var laborCodeCtx = document.getElementById('laborCodeChart').getContext('2d');
+                new Chart(laborCodeCtx, {
+                    type: 'pie',
+                    data: {
+                        labels: laborCodeData.map(item => item.labor_code),
+                        datasets: [{
+                            data: laborCodeData.map(item => item.count),
+                            backgroundColor: [
+                                '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40'
+                            ]
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            title: {
+                                display: true,
+                                text: `Labor Code Distribution (${startDate} to ${endDate})`
+                            }
+                        }
+                    }
+                });
+            } else {
+                document.getElementById('laborCodeChart').insertAdjacentHTML('afterend', '<p>No data available for Labor Code Distribution</p>');
+            }
+        
+            if (dailyHoursData && dailyHoursData.length > 0) {
+                var dailyHoursCtx = document.getElementById('dailyHoursChart').getContext('2d');
+                new Chart(dailyHoursCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: dailyHoursData.map(item => item.date),
+                        datasets: [{
+                            label: 'Hours',
+                            data: dailyHoursData.map(item => item.hours),
+                            backgroundColor: '#36A2EB'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                title: {
+                                    display: true,
+                                    text: 'Hours'
+                                }
+                            },
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: 'Date'
+                                }
+                            }
+                        },
+                        plugins: {
+                            title: {
+                                display: true,
+                                text: `Daily Hours (${startDate} to ${endDate})`
+                            }
+                        }
+                    }
+                });
+            } else {
+                document.getElementById('dailyHoursChart').insertAdjacentHTML('afterend', '<p>No data available for Daily Hours</p>');
+            }
+        </script>
+        {% endblock %}

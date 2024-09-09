@@ -1,0 +1,150 @@
+{% extends 'timesheets/base.html' %}
+
+{% block content %}
+<style>
+    .profile-container {
+        max-width: 600px;
+        margin: 0 auto;
+        padding: 20px;
+        background-color: #f9f9f9;
+        border-radius: 25px;
+        box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    .profile-header {
+        text-align: center;
+        margin-bottom: 30px;
+    }
+    .profile-info {
+        background-color: white;
+        padding: 20px;
+        border-radius: 20px;
+        margin-bottom: 20px;
+    }
+    .profile-info p {
+        margin: 10px 0;
+        font-size: 16px;
+    }
+    .password-change-section {
+        background-color: white;
+        padding: 20px;
+        border-radius: 20px;
+    }
+    .password-change-section h3 {
+        margin-top: 0;
+        margin-bottom: 20px;
+        color: #333;
+    }
+    #password-change-form .form-group {
+        margin-bottom: 15px;
+    }
+    #password-change-form label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: bold;
+    }
+    #password-change-form input {
+        width: 100%;
+        padding: 8px;
+        border: 1px solid #ddd;
+        border-radius: 20px;
+        font-size: 20px;
+    }
+    #password-change-form button {
+        width: 100%;
+        padding: 10px;
+        background-color: #007bff;
+        color: white;
+        border: none;
+        border-radius: 20px;
+        cursor: pointer;
+        font-size: 20px;
+    }
+    #password-change-form button:hover {
+        background-color: #0056b3;
+    }
+    .success {
+        color: #28a745;
+        font-weight: bold;
+        padding: 10px;
+        background-color: #d4edda;
+        border-radius: 4px;
+        margin-top: 15px;
+    }
+    .error {
+        color: #dc3545;
+        list-style-type: none;
+        padding: 10px;
+        background-color: #f8d7da;
+        border-radius: 4px;
+        margin-top: 15px;
+    }
+    .error li {
+        margin-bottom: 5px;
+    }
+</style>
+
+<div class="profile-container">
+    <div class="profile-header">
+        <h2>User Profile</h2>
+    </div>
+    
+    <div class="profile-info">
+        <p><strong>Username:</strong> {{ user.username }}</p>
+        <p><strong>Email:</strong> {{ user.email }}</p>
+        <!-- Add more profile fields as needed -->
+    </div>
+
+    <div class="password-change-section">
+        <h3>Change Password</h3>
+        <form id="password-change-form">
+            {% csrf_token %}
+            {% for field in form %}
+                <div class="form-group">
+                    {{ field.label_tag }}
+                    {{ field }}
+                    {% if field.help_text %}
+                        <small class="form-text text-muted">{{ field.help_text }}</small>
+                    {% endif %}
+                </div>
+            {% endfor %}
+            <button type="submit" class="btn btn-primary">Change Password</button>
+        </form>
+        <div id="password-change-message"></div>
+    </div>
+</div>
+
+<script>
+document.getElementById('password-change-form').addEventListener('submit', function(e) {
+    e.preventDefault();
+    var form = this;
+    var formData = new FormData(form);
+    
+    fetch('{% url "profile" %}', {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRFToken': formData.get('csrfmiddlewaretoken'),
+        },
+    })
+    .then(response => response.json())
+    .then(data => {
+        var messageDiv = document.getElementById('password-change-message');
+        if (data.success) {
+            messageDiv.innerHTML = '<p class="success">' + data.message + '</p>';
+            form.reset();
+        } else {
+            var errorHtml = '<ul class="error">';
+            for (var field in data.errors) {
+                errorHtml += '<li>' + field + ': ' + data.errors[field].join(', ') + '</li>';
+            }
+            errorHtml += '</ul>';
+            messageDiv.innerHTML = errorHtml;
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+    });
+});
+</script>
+{% endblock %}

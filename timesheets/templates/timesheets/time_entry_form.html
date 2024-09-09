@@ -265,18 +265,119 @@
         margin-right: 10px; /* Add some space between the label and date */
         display: inline-block;
     }
-    
+    .date-container {
+        display: flex;
+        align-items: center;
+        margin-bottom: 15px;
+    }
+    .date-container label {
+        margin-right: 10px;
+        font-weight: bold;
+    }
+    .date-container input {
+        width: auto; /* Allow the input to size based on its content */
+        padding: 5px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+    }
+        /* Styles for select dropdowns */
+    select.form-control {
+        appearance: none;
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        background-color: #f8f9fa;
+        border: 1px solid #ced4da;
+        border-radius: 4px;
+        padding: 0.375rem 1.75rem 0.375rem 0.75rem;
+        font-size: 1rem;
+        line-height: 1.5;
+        color: #495057;
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 4 5'%3e%3cpath fill='%23343a40' d='M2 0L0 2h4zm0 5L0 3h4z'/%3e%3c/svg%3e");
+        background-repeat: no-repeat;
+        background-position: right 0.75rem center;
+        background-size: 8px 10px;
+    }
+
+    select.form-control:focus {
+        border-color: #80bdff;
+        outline: 0;
+        box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+    }
+
+    /* Style for the dropdown arrow */
+    select.form-control::-ms-expand {
+        display: none;
+    }
+
+    /* Hover effect */
+    select.form-control:hover {
+        border-color: #a1a9b3;
+    }
+
+    /* Container for select to add a subtle background */
+    .select-container {
+        display: inline-block;
+        position: relative;
+        background-color: #e9ecef;
+        padding: 2px;
+        border-radius: 5px;
+    }
+
+    /* Label styling */
+    label {
+        font-weight: bold;
+        margin-bottom: 0.5rem;
+        display: block;
+    }
+    /* Styles for the vehicle selection */
+    .vehicle-container {
+        display: flex;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+
+    .vehicle-container label.header {
+        margin-right: 15px;
+        font-weight: bold;
+        white-space: nowrap;
+    }
+
+    .radio-group {
+        display: flex;
+        align-items: center;
+    }
+
+    .radio-inline {
+        display: flex;
+        align-items: center;
+        margin-right: 20px;
+    }
+
+    .radio-inline input[type="radio"] {
+        margin-right: 5px;
+    }
 </style>
 <body>
     <div class="main-content">
         <div class="timesheet-form">
         <form method="post">
             {% csrf_token %}
+
+            <div class="date-container">
+                <label class="header" for="{{ form.date.id_for_label }}">Date:</label>
+                {{ form.date }}
+            </div>
+            <div class="vehicle-container">
+                <label class="header">{{ form.company_vehicle_used.label }}:</label>
+                {% for radio in form.company_vehicle_used %}
+                    <label class="radio-inline">
+                        {{ radio.tag }}
+                        {{ radio.choice_label }}
+                    </label>
+                {% endfor %}
+            </div>
             <table>
-                <tr>
-                    <th class="header">Date:</th>
-                    <th colspan="8">{{ form.date }}</th>
-                </tr>
+
                 <thead>
                     <tr>
                         <th colspan="2">Client/Job</th>
@@ -303,14 +404,14 @@
                 <tbody id="formset-container">
                     <!-- Render form fields for TimeEntry -->
                     <tr>
-                        <td class="header">Start Time:</td>
-                        <td>{{ form.start_time }}</td>
+                        <td class="header">Start Location:</td>
+                        <td>{{ form.start_location }}</td>
                         <td class="header"></td>
                         <td class="header"></td>
                         <td>{{ form.initial_leave_time }}</td>
                         <td class="header"></td>
                         <td>{{ form.initial_mileage }}</td>
-                        <td class="header" colspan="2"></td>
+                        <td class="header" colspan="3"></td>
                     </tr>
         
                     <!-- Include the formset management form -->
@@ -343,14 +444,18 @@
         
                     <!-- Render form fields for TimeEntry -->
                     <tr>
-                        <td class="header">End Time:</td>
-                        <td>{{ form.end_time }}</td>
+                        <td class="header">End Location:</td>
+                        <td>{{ form.end_location }}</td>
                         <td class="header"></td>
                         <td>{{ form.final_arrive_time }}</td>
                         <td class="header"></td>
                         <td>{{ form.final_mileage }}</td>
-                        <td class="header" colspan="3"></td>
+                        <td class="header" colspan="4"></td>
                     </tr>
+                    <tr>
+                        <td class="header">Comments:</td>
+                        <td colspan="9">{{ form.comments }}</td>
+                        </tr>
                 </tbody>
             </table>
         
@@ -454,7 +559,11 @@
                         deleteCheckbox.remove();
                     }
         
-                    formsetContainer.insertBefore(newForm, formsetContainer.querySelector('tr:last-child'));
+                    // Find the end location row
+                    const endLocationRow = formsetContainer.querySelector('tr:nth-last-child(2)');
+
+                    // Insert the new form before the end location row
+                    formsetContainer.insertBefore(newForm, endLocationRow);
                     totalFormsInput.value = formCount + 1;
         
                     // Attach labor code listener to the new form
@@ -464,14 +573,19 @@
         
                 formsetContainer.addEventListener('click', function(e) {
                     if (e.target.classList.contains('remove-job')) {
-                        const jobForm = e.target.closest('.job-form');
-                        const deleteCheckbox = jobForm.querySelector('input[name$="-DELETE"]');
-                        if (deleteCheckbox) {
-                            deleteCheckbox.checked = true;
-                            jobForm.style.display = 'none';
+                        const jobForms = formsetContainer.querySelectorAll('.job-form');
+                        if (jobForms.length > 1) {
+                            const jobForm = e.target.closest('.job-form');
+                            const deleteCheckbox = jobForm.querySelector('input[name$="-DELETE"]');
+                            if (deleteCheckbox) {
+                                deleteCheckbox.checked = true;
+                                jobForm.style.display = 'none';
+                            } else {
+                                jobForm.remove();
+                                updateFormIndices();
+                            }
                         } else {
-                            jobForm.remove();
-                            updateFormIndices();
+                            alert('At least one job must remain.');
                         }
                     }
                 });

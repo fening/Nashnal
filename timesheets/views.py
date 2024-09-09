@@ -5,14 +5,26 @@ from .formsets import JobFormSet
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q
 from django.contrib.auth import get_user_model
-from django.db.models import Sum, F, ExpressionWrapper, fields
+from django.db.models import Sum, F, ExpressionWrapper, fields,Count
 from django.utils import timezone
-import datetime
 from datetime import timedelta
-from django.forms import inlineformset_factory
-from django.forms import formset_factory
+from django.forms import inlineformset_factory, formset_factory
+from django.contrib.auth.models import User
+import logging
+from datetime import datetime, timedelta
+import json
+from decimal import Decimal
+
+logger = logging.getLogger(__name__)
+
 
 User = get_user_model()
+
+class DecimalEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, Decimal):
+            return float(obj)
+        return super(DecimalEncoder, self).default(obj)
 
 @login_required
 def home(request):
@@ -162,19 +174,14 @@ def time_entry_delete(request, pk):
     
     return render(request, 'timesheets/time_entry_confirm_delete.html', {'time_entry': time_entry})
 
-from django.contrib.auth.decorators import login_required
-from django.shortcuts import render
-from django.utils import timezone
-from datetime import timedelta
-from django.contrib.auth.models import User
-from .models import TimeEntry
+
 
 @login_required
 def user_summary_report(request):
     # Determine the selected user (for admin)
     if request.user.is_superuser:
         selected_user_id = request.GET.get('user')
-        selected_user = User.objects.filter(id=selected_user_id).first() if selected_user_id else None
+        selected_user = User.objects.filter(id=selected_user_id).first() if selected_user_id else request.user
         users = User.objects.all()
     else:
         selected_user = request.user
@@ -288,3 +295,88 @@ def add_job_to_time_entry(request):
         'time_entry': time_entry,
         'created': created,
     })
+    
+@login_required
+def dashboard(request):
+    # Get date range from request, default to current week if not provided
+    start_date = request.GET.get('start_date')
+    end_date = request.GET.get('end_date')
+    
+    if not start_date or not end_date:
+        today = timezone.now().date()
+        start_date = today - timedelta(days=today.weekday())
+        end_date = start_date + timedelta(days=6)
+    else:
+        try:
+            start_date = datetime.strptime(start_date, '%Y-%m-%d').date()
+            end_date = datetime.strptime(end_date, '%Y-%m-%d').date()
+        except ValueError:
+            logger.error(f"Invalid date format: start_date={start_date}, end_date={end_date}")
+            # Fall back to current week if date parsing fails
+            today = timezone.now().date()
+            start_date = today - timedelta(days=today.weekday())
+            end_date = start_date + timedelta(days=6)
+
+    logger.info(f"Date range: {start_date} to {end_date}")
+
+    if request.user.is_superuser:
+        selected_user_id = request.GET.get('user_id')
+        if selected_user_id:
+            selected_user = User.objects.get(id=selected_user_id)
+        else:
+            selected_user = request.user
+
+        all_users = User.objects.all()
+        user_stats = []
+        for user in all_users:
+            user_entries = TimeEntry.objects.filter(
+                user=user,
+                date__range=[start_date, end_date]
+            )
+            total_hours = user_entries.aggregate(Sum('hours_for_the_day'))['hours_for_the_day__sum'] or 0
+            total_entries = user_entries.count()
+            user_stats.append({
+                'user': user,
+                'total_hours': round(total_hours, 2),
+                'total_entries': total_entries
+            })
+    else:
+        selected_user = request.user
+        user_stats = None
+        all_users = None
+
+    entries = TimeEntry.objects.filter(
+        user=selected_user,
+        date__range=[start_date, end_date]
+    )
+    
+    total_hours = entries.aggregate(Sum('hours_for_the_day'))['hours_for_the_day__sum'] or 0
+    total_entries = entries.count()
+    recent_entries = entries.order_by('-date')[:5]
+    
+    labor_code_data = list(Job.objects.filter(
+        time_entry__user=selected_user,
+        time_entry__date__range=[start_date, end_date]
+    ).values('labor_code').annotate(count=Sum('time_entry__hours_for_the_day')))
+    
+    daily_hours_data = list(entries.values('date').annotate(hours=Sum('hours_for_the_day')).order_by('date'))
+
+    # Log the data being sent to the template
+    logger.info(f"Labor Code Data: {json.dumps(labor_code_data, cls=DecimalEncoder)}")
+    logger.info(f"Daily Hours Data: {json.dumps(daily_hours_data, cls=DecimalEncoder, default=str)}")
+
+    context = {
+        'selected_user': selected_user,
+        'total_hours': round(total_hours, 2),
+        'total_entries': total_entries,
+        'recent_entries': recent_entries,
+        'labor_code_data': json.dumps(labor_code_data, cls=DecimalEncoder),
+        'daily_hours_data': json.dumps(daily_hours_data, cls=DecimalEncoder, default=str),
+        'start_date': start_date,
+        'end_date': end_date,
+        'user_stats': user_stats,
+        'all_users': all_users,
+        'is_admin': request.user.is_superuser
+    }
+    
+    return render(request, 'timesheets/dashboard.html', context)

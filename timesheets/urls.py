@@ -10,4 +10,5 @@ urlpatterns = [
     path('delete/<int:pk>/', views.time_entry_delete, name='time_entry_delete'),
     path('summary/', views.user_summary_report, name='user_summary_report'),
     path('add-job/', views.add_job_to_time_entry, name='add_job_to_time_entry'),
+    path('dashboard/', views.dashboard, name='dashboard'),
 ]

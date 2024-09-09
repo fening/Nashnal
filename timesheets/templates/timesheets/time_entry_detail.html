@@ -82,20 +82,22 @@
         }
         
         button {
-            display: inline-block;
-            padding: 8px 16px; /* Reduce padding for a smaller button */
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 14px; /* Slightly smaller font size */
-            margin-top: 20px;
-            width: auto; /* Change to auto to avoid full width */
+        padding: 12px 20px;
+        background-color: #c0a010; /* Green color for confirmation */
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 16px;
+        font-weight: bold;
+        text-align: center;
+        text-decoration: none;
+        display: inline-block;
+        transition: background-color 0.3s ease;
         }
-        
+            
         button:hover {
-            background-color: #45a049;
+            background-color: #7b857b;
         }
         
         button.cancel {
@@ -187,6 +189,7 @@
             }
         }
         
+        
     </style>
 
     <div class="timesheet-form">
@@ -215,8 +218,8 @@
         <tbody>
             <!-- First row with Start Time label -->
             <tr>
-                <td class="header">Start Time:</td>
-                <td>{{ time_entry.start_time|date:"H:i" }}</td> <!-- 24-hour format -->
+                <td class="header">Start Location:</td>
+                <td>{{ time_entry.start_location }}</td>
                 <td class="header"></td>
                 <td class="header"></td>
                 <td>{{ time_entry.initial_leave_time|date:"H:i" }}</td> <!-- 24-hour format -->
@@ -239,8 +242,8 @@
             {% endfor %}
             <!-- Add more rows as needed -->
             <tr>
-                <td>End Time:</td>
-                <td>{{ time_entry.end_time|date:"H:i" }}</td> <!-- 24-hour format -->
+                <td class="header">End Location:</td>
+                <td>{{ time_entry.end_location }}</td>
                 <td class="header"></td>
                 <td>{{ time_entry.final_arrive_time|date:"H:i" }}</td> <!-- 24-hour format -->
                 <td class="header"></td>
@@ -312,7 +315,9 @@
 
     
 </div>
-<button onclick="window.print()">Print</button> <!-- Print Button -->
-<button> <a href="{% url 'time_entry_edit' time_entry.pk %}">Edit</a></button>
-<button> <a href="{% url 'time_entry_list' %}">Back to List</a></button>
+<div class="button-container">
+    <button onclick="window.print()">Print</button>
+    <button><a href="{% url 'time_entry_edit' time_entry.pk %}">Edit</a></button>
+    <button><a href="{% url 'time_entry_list' %}">Back to List</a></button>
+</div>
 {% endblock %}

@@ -38,18 +38,47 @@ class TimeEntryForm(forms.ModelForm):
         label='Mileage After Last Job:',
         required=False
     )
-
+    start_location = forms.ChoiceField(
+        choices=TimeEntry.LOCATION_CHOICES,
+        widget=forms.Select(attrs={'class': 'form-control'}),
+        label='Start Location:'
+    )
+    end_location = forms.ChoiceField(
+        choices=TimeEntry.LOCATION_CHOICES,
+        widget=forms.Select(attrs={'class': 'form-control'}),
+        label='End Location:'
+    )
+    comments = forms.CharField(
+        widget=forms.Textarea(attrs={'rows': 4, 'cols': 50, 'class': 'form-control'}),
+        required=False,
+        help_text="Any additional notes or comments for this time entry."
+    )
+    company_vehicle_used = forms.ChoiceField(choices=TimeEntry.VEHICLE_CHOICES,
+        widget=forms.RadioSelect,
+        initial=False,
+        label="Vehicle Used"
+    )
+        
     class Meta:
         model = TimeEntry
         fields = [
-            'date', 'initial_leave_time', 'initial_mileage', 'start_time',  # Depart from Home
-            'end_time', 'final_arrive_time', 'final_mileage', 'activity_end_mileage'  # Return Home
+            'date', 'company_vehicle_used','start_location', 'initial_leave_time', 'initial_mileage',  # Depart from Home
+            'end_location', 'final_arrive_time', 'final_mileage', 'activity_end_mileage','comments'  # Return Home
         ]
         widgets = {
             'start_time': forms.TimeInput(attrs={'type': 'time', 'class': 'form-control start-time-field'}),
             'start_location': forms.Select(attrs={'class': 'form-control'}),
             'end_location': forms.Select(attrs={'class': 'form-control'}),
         }
+        
+        # Explicitly exclude start_time and end_time
+        exclude = ['start_time', 'end_time']
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Remove start_time and end_time from the form fields if they're somehow still there
+        self.fields.pop('start_time', None)
+        self.fields.pop('end_time', None)
 
 class JobForm(forms.ModelForm):
     # Jobs Section
@@ -72,7 +101,7 @@ class JobForm(forms.ModelForm):
         required=False 
     )
     description = forms.CharField(
-        widget=forms.Textarea(attrs={'placeholder': 'Describe the work performed', 'rows': 4, 'class': 'form-control description-field'}),
+        widget=forms.TextInput(attrs={'placeholder': 'Describe the work performed', 'rows': 4, 'class': 'form-control description-field'}),
         label='Description:'
     )
     activity_leave_time = forms.TimeField(

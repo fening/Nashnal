@@ -93,6 +93,7 @@ WSGI_APPLICATION = 'nst_timesheet.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 # Determine if running locally or in production
+# Environment variables
 
 POSTGRES_LOCALLY = env.bool('POSTGRES_LOCALLY', default=False)
 
@@ -101,17 +102,19 @@ if ENVIRONMENT == 'production' or POSTGRES_LOCALLY:
     DATABASES = {
         'default': dj_database_url.parse(env('DATABASE_URL'))
     }
+    print("Using production/POSTGRES_LOCALLY database:", DATABASES['default'])
 else:
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.postgresql_psycopg2',
-            'NAME': env("DB_NAME"),
-            'USER': env("DB_USER"),
-            'PASSWORD': env("DB_PASSWORD"),
-            'HOST': env("DB_HOST"),
-            'PORT': env("DB_PORT"),
+            'NAME': env('DB_NAME'),
+            'USER': env('DB_USER'),
+            'PASSWORD': env('DB_PASSWORD'),
+            'HOST': env('DB_HOST'),
+            'PORT': env('DB_PORT'),
         }
     }
+    print("Using development database:", DATABASES['default'])
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
@@ -171,7 +174,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 SITE_ID = 1
 
-LOGIN_REDIRECT_URL = 'home'  # or any view you want to redirect to after login
+LOGIN_REDIRECT_URL = '/dashboard/'  # or any view you want to redirect to after login
 LOGOUT_REDIRECT_URL = 'login'
 
 AUTH_USER_MODEL = 'accounts.CustomUser'

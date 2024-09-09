@@ -12,6 +12,11 @@ class TimeEntry(models.Model):
         ('Office', 'Office'),
     ]
     
+    VEHICLE_CHOICES = [
+        (True, 'Company Vehicle'),
+        (False, 'Personal Vehicle'),
+    ]
+    
     id = models.AutoField(primary_key=True)
     # client_job = models.ForeignKey(ClientJob, on_delete=models.CASCADE)
     
@@ -37,96 +42,99 @@ class TimeEntry(models.Model):
     final_arrive_time = models.TimeField(null=True, blank=True)
     start_time = models.TimeField(null=True, blank=True)
     end_time = models.TimeField(null=True, blank=True)
-    activity_arrive_time = models.TimeField(null=True, blank=True)
-    activity_leave_time = models.TimeField(null=True, blank=True)
 
     # Calculated fields
     hours_on_site = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
     hours_for_the_day = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
     travel_time_subtract = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
     hours_to_be_paid = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+    
+    company_vehicle_used = models.BooleanField(choices=VEHICLE_CHOICES,default=False, verbose_name="Vehicle Used")
+    comments = models.TextField(blank=True, null=True, help_text="Any additional notes or comments for this time entry.")
 
     def calculate_hours(self):
-        if self.start_time and self.end_time:
-            work_duration = datetime.combine(datetime.min, self.end_time) - datetime.combine(datetime.min, self.start_time)
-            print("Work Duration (Hours on Site):", work_duration.total_seconds() / 3600)
-            self.hours_on_site = round(work_duration.total_seconds() / 3600 - 0.5, 2)  # Subtract 30 minutes for lunch
+        if self.jobs.exists():
+            first_job = self.jobs.order_by('activity_arrive_time').first()
+            last_job = self.jobs.order_by('-activity_leave_time').last()
+            
+            if first_job and last_job:
+                self.start_time = first_job.activity_arrive_time
+                self.end_time = last_job.activity_leave_time
+            
+                work_duration = datetime.combine(datetime.min, last_job.activity_leave_time) - datetime.combine(datetime.min, first_job.activity_arrive_time)
+                self.hours_on_site = round(work_duration.total_seconds() / 3600 - 0.5, 2)  # Subtract 30 minutes for lunch
 
         if self.initial_leave_time and self.final_arrive_time:
             total_duration = datetime.combine(datetime.min, self.final_arrive_time) - datetime.combine(datetime.min, self.initial_leave_time)
-            print("Total Duration (Hours for the Day):", total_duration.total_seconds() / 3600)
             self.hours_for_the_day = round(total_duration.total_seconds() / 3600, 2)
         
         if self.jobs.exists():
             travel_time_subtract = 0
 
             # Calculate the time from initial_leave_time to the first job's arrival
-            first_job_arrival_time = self.jobs.first().activity_arrive_time
-            if self.initial_leave_time and first_job_arrival_time:
-                travel_to_first_job = datetime.combine(datetime.min, first_job_arrival_time) - datetime.combine(datetime.min, self.initial_leave_time)
-                travel_time_subtract += travel_to_first_job.total_seconds() / 3600  # Convert to hours
+            first_job = self.jobs.order_by('activity_arrive_time').first()
+            if self.initial_leave_time and first_job:
+                travel_to_first_job = datetime.combine(datetime.min, first_job.activity_arrive_time) - datetime.combine(datetime.min, self.initial_leave_time)
+                travel_time_subtract += travel_to_first_job.total_seconds() / 3600
 
             # Calculate the time between jobs
-            job_times = list(self.jobs.values_list('activity_arrive_time', 'activity_leave_time'))
+            job_times = list(self.jobs.order_by('activity_arrive_time').values_list('activity_arrive_time', 'activity_leave_time'))
             
             for i in range(1, len(job_times)):
                 previous_leave_time = job_times[i-1][1]
                 current_arrive_time = job_times[i][0]
                 
                 travel_gap = datetime.combine(datetime.min, current_arrive_time) - datetime.combine(datetime.min, previous_leave_time)
-                travel_time_subtract += travel_gap.total_seconds() / 3600  # Convert to hours
+                travel_time_subtract += travel_gap.total_seconds() / 3600
 
             # Calculate the time from the last job to final_arrive_time
-            last_job_leave_time = self.jobs.last().activity_leave_time
-            if self.final_arrive_time and last_job_leave_time:
-                travel_from_last_job = datetime.combine(datetime.min, self.final_arrive_time) - datetime.combine(datetime.min, last_job_leave_time)
-                travel_time_subtract += travel_from_last_job.total_seconds() / 3600  # Convert to hours
+            last_job = self.jobs.order_by('-activity_leave_time').last()
+            if self.final_arrive_time and last_job:
+                travel_from_last_job = datetime.combine(datetime.min, self.final_arrive_time) - datetime.combine(datetime.min, last_job.activity_leave_time)
+                travel_time_subtract += travel_from_last_job.total_seconds() / 3600
 
-            print("Total Travel Time (subtract):", travel_time_subtract)
             self.travel_time_subtract = round(travel_time_subtract, 2)
         
-        if self.hours_for_the_day and self.travel_time_subtract:
+        if self.hours_for_the_day is not None and self.travel_time_subtract is not None:
             self.hours_to_be_paid = round(self.hours_for_the_day - self.travel_time_subtract, 2)
 
     def calculate_mileage(self):
-        """Aggregate mileage from all related jobs."""
         if self.initial_mileage is not None and self.final_mileage is not None:
             self.total_miles = self.final_mileage - self.initial_mileage
 
             if self.jobs.exists():
-                miles_to_be_paid = 0
-                
-                for job in self.jobs.all():
-                    job_miles = job.calculate_job_miles()
-                    if job_miles is not None:
-                        miles_to_be_paid += job_miles
-
-                self.travel_miles_subtract = self.total_miles - miles_to_be_paid
+                miles_to_be_paid = sum(job.calculate_job_miles() or 0 for job in self.jobs.all())
                 self.miles_to_be_paid = miles_to_be_paid
+                self.travel_miles_subtract = self.total_miles - miles_to_be_paid
 
     def save(self, *args, **kwargs):
-        # Save the instance first to generate a primary key
-        if not self.pk:
-            super(TimeEntry, self).save(*args, **kwargs)
+        # Save the instance first to ensure we have a primary key
+        super().save(*args, **kwargs)
+        
         if self.jobs.exists():
-            # Get the last job related to this time entry
-            last_job = self.jobs.last()
-            # Set the activity_end_mileage to the last job's activity_end_mileage
-            self.activity_end_mileage = last_job.activity_end_mileage
-        # Now that the instance has a primary key, calculate hours and mileage
+            first_job = self.jobs.order_by('activity_arrive_time').first()
+            last_job = self.jobs.order_by('-activity_leave_time').last()
+            
+            if first_job and last_job:
+                self.start_time = first_job.activity_arrive_time
+                self.end_time = last_job.activity_leave_time
+                self.activity_end_mileage = last_job.activity_end_mileage
+
+        # Perform calculations
         self.calculate_hours()
         self.calculate_mileage()
 
-        # Save the instance again with updated calculated fields
-        super(TimeEntry, self).save(*args, **kwargs)
-        
+        # Save again with calculated fields
+        super().save(*args, **kwargs)
+
     def calculate_total_hours(self):
         if self.start_time and self.end_time:
             work_duration = datetime.combine(datetime.min, self.end_time) - datetime.combine(datetime.min, self.start_time)
-            total_hours = work_duration.total_seconds() / 3600  # Convert to hours
+            total_hours = work_duration.total_seconds() / 3600
             return round(total_hours, 2)
-        return 0  # Return 0 if start_time or end_time is not provided
-
+        return 0
+    
+    
 class Job(models.Model):
     LABOR_CODE_CHOICES = [
         ('1', 'Project Manager/P.E.'),
@@ -195,6 +203,8 @@ class Job(models.Model):
         if self.activity_start_mileage is not None and self.activity_end_mileage is not None:
             return self.activity_end_mileage - self.activity_start_mileage
         return None
-    
-    def __str__(self):
-        return f"Job at {self.activity_arrive_time} - {self.activity_leave_time}"
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        if self.time_entry:
+            self.time_entry.save()  # Trigger recalculation in TimeEntry
