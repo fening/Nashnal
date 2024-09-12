@@ -14,6 +14,7 @@ import logging
 from datetime import datetime, timedelta
 import json
 from decimal import Decimal
+from django.contrib import messages
 
 logger = logging.getLogger(__name__)
 
@@ -269,13 +270,16 @@ def add_job_to_time_entry(request):
             final_arrive_time=timezone.now().time(),
         )
         created = True
+        messages.info(request, "A new Time Entry has been created for today.")
     
     JobFormSet = inlineformset_factory(
         TimeEntry, 
         Job, 
         form=JobForm, 
         extra=1, 
-        can_delete=False
+        can_delete=True,  # Allow job deletion
+        min_num=1,  # Ensure at least one job form is always present
+        validate_min=True
     )
 
     if request.method == 'POST':
@@ -285,8 +289,12 @@ def add_job_to_time_entry(request):
             for instance in instances:
                 instance.time_entry = time_entry
                 instance.save()
+            formset.save_m2m()  # Save many-to-many relationships if any
             time_entry.save()  # This will trigger the recalculation of hours and mileage
-            return redirect('time_entry_list')
+            messages.success(request, "Jobs have been successfully added/updated.")
+            return redirect('time_entry_detail', pk=time_entry.pk)
+        else:
+            messages.error(request, "There was an error in your form. Please check and try again.")
     else:
         formset = JobFormSet(instance=time_entry)
 
