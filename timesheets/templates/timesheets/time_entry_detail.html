@@ -5,190 +5,7 @@
 
 {% block content %}
 <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f4; /* Light background for contrast */
-            margin: 20px;
-        }
-        
-        .timesheet-form {
-            margin: 20px;
-            background-color: white; /* White background for the form */
-            padding: 20px;
-            border-radius: 8px; /* Rounded corners for the form */
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
-        }
-        
-        .timesheet-form h2 {
-            text-align: center;
-            font-size: 24px;
-            font-weight: bold;
-            margin-bottom: 20px;
-            color: #333; /* Darker color for the title */
-        }
-        
-        .timesheet-form table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 20px;
-            background-color: #fff; /* White background for table */
-        }
-        
-        .timesheet-form th, .timesheet-form td {
-            border: 1px solid #ddd; /* Light gray borders */
-            padding: 12px;
-            text-align: left;
-        }
-        
-        .timesheet-form th {
-            background-color: #333; /* Green background for headers */
-            color: white; /* White text for headers */
-            text-align: center; /* Center text in headers */
-            font-size: 18px; /* Larger font size for headers */
-        }
-        
-        .timesheet-form td.header {
-            background-color: #f2f2f2; /* Light gray background for header-like cells */
-            font-weight: bold;
-        }
-        
-        .timesheet-form input[type="text"],
-        .timesheet-form input[type="number"],
-        .timesheet-form input[type="time"] {
-            width: 100%;
-            padding: 8px;
-            margin: 5px 0;
-            box-sizing: border-box;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-        }
-        
-        .timesheet-form tfoot td {
-            text-align: center;
-            font-size: 16px;
-            font-weight: bold;
-            padding: 10px;
-            background-color: #f9f9f9; /* Light background for footer */
-            border-top: 2px solid #4CAF50; /* Slightly thicker border at the top */
-        }
-        
-        .timesheet-form tfoot tr {
-            border-top: 2px solid #4CAF50;
-        }
-        
-        .timesheet-form tfoot tr:last-child td {
-            font-size: 14px;
-            color: #666; /* Slightly darker color for labels in the last row */
-        }
-        
-        button {
-        padding: 12px 20px;
-        background-color: #c0a010; /* Green color for confirmation */
-        color: white;
-        border: none;
-        border-radius: 5px;
-        cursor: pointer;
-        font-size: 16px;
-        font-weight: bold;
-        text-align: center;
-        text-decoration: none;
-        display: inline-block;
-        transition: background-color 0.3s ease;
-        }
-            
-        button:hover {
-            background-color: #7b857b;
-        }
-        
-        button.cancel {
-            background-color: #d9534f;
-            margin-top: 10px;
-        }
-        
-        button.cancel:hover {
-            background-color: #c9302c;
-        }
-        
-        button.cancel a {
-            color: white;
-            text-decoration: none;
-        }
-        
-        button.cancel a:hover {
-            text-decoration: none;
-        }
-        
-        @media print {
-            /* Hide the print and cancel buttons on print */
-            button, button.cancel {
-                display: none;
-            }
-        
-            /* Ensure the table fills the page */
-            .timesheet-form {
-                margin: 0;
-                padding: 0;
-                border: none;
-                box-shadow: none;
-            }
-        
-            /* Adjust table for print */
-            .timesheet-form table {
-                width: 100%;
-                font-size: 12px;
-            }
-        
-            .timesheet-form th {
-                background-color: #333;
-                color: white;
-                -webkit-print-color-adjust: exact; /* Ensure background colors are printed */
-            }
-        
-            .timesheet-form td.header {
-                background-color: #e0e0e0;
-                -webkit-print-color-adjust: exact;
-            }
-        
-            /* Show signature and workspace sections only on print */
-            .signature-section, .workspace-section {
-                display: block;
-            }
-        }
-        
-        /* Hide these sections by default */
-        .signature-section, .workspace-section {
-            display: none;
-        }
 
-        /* Show only when printing */
-        @media print {
-            .print-only {
-                display: block;
-            }
-
-            /* Ensure the entire form fits well on the printed page */
-            body {
-                margin: 0;
-                padding: 0;
-                width: 100%;
-            }
-
-            table {
-                width: 100%;
-                border-collapse: collapse;
-            }
-
-            th, td {
-                padding: 10px;
-                border: 1px solid #000;
-            }
-
-            /* Adjust button visibility */
-            .no-print {
-                display: none;
-            }
-        }
-        
         
     </style>
 
@@ -230,8 +47,8 @@
             <!-- Repeat this block for additional rows -->
             {% for job in time_entry.jobs.all %}
             <tr>
-                <td colspan="2">{{ job.description }}</td>
-                <td></td>
+                <td colspan="2">{{ job.job_description }}</td>
+                <td>{{ job.job_number }}</td>
                 <td>{{ job.activity_arrive_time|date:"H:i" }}</td> <!-- 24-hour format -->
                 <td>{{ job.activity_leave_time|date:"H:i" }}</td> <!-- 24-hour format -->
                 <td>{{ job.activity_start_mileage }}</td>
@@ -289,7 +106,7 @@
         </tr>
         <!-- Spacer row for extra space above workspaces -->
         <tr>
-            <td colspan="7" style="height: 30px;"></td>
+            <td colspan="7" style="height: 30px;">{{ time_entry.comments }}</td>
             <td colspan="3" style="height: 30px;"></td>
         </tr>
         <tr>
@@ -320,4 +137,54 @@
     <button><a href="{% url 'time_entry_edit' time_entry.pk %}">Edit</a></button>
     <button><a href="{% url 'time_entry_list' %}">Back to List</a></button>
 </div>
+<h3>Job Calculations</h3>
+<table>
+    <thead>
+        <tr>
+            <th>Job Description</th>
+            <th>Job Number</th>
+            <th>Miles for Job</th>
+            <th>Time for Job</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for job in time_entry.jobs.all %}
+        <tr>
+            <td>{{ job.job_description }}</td>
+            <td>{{ job.job_number }}</td>
+            <td>{{ job.job_number.distance_office }}</td>
+            <td>{{ job.job_number.time_office }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+<h2>Time Calculations</h2>
+
+<h3>First Leg Calculations</h3>
+<p>Travel Time First Leg: {{ time_entry.travel_time_first_leg }} hours</p>
+<p>Standard Time from Office to First Job: {{ time_entry.time_office_to_first_job }} hours</p>
+<p>Unpaid Travel Time First Leg: {{ time_entry.unpaid_travel_time_first_leg }} hours</p>
+
+<h3>Last Leg Calculations</h3>
+<p>Travel Time Last Leg: {{ time_entry.travel_time_last_leg }} hours</p>
+<p>Standard Time from Last Job to Office: {{ time_entry.time_last_job_to_office }} hours</p>
+<p>Unpaid Travel Time Last Leg: {{ time_entry.unpaid_travel_time_last_leg }} hours</p>
+
+<h3>Total Unpaid Travel Time</h3>
+<p>Total Unpaid Travel Time: {{ time_entry.total_unpaid_travel_time }} hours</p>
+
+<h2>Distance Calculations</h2>
+
+<h3>First Leg Calculations</h3>
+<p>Miles Traveled First Leg: {{ time_entry.miles_traveled_first_leg }} miles</p>
+<p>Standard Distance from Office to First Job: {{ time_entry.distance_office_to_first_job }} miles</p>
+<p>Miles to Pay First Leg: {{ time_entry.miles_to_pay_first_leg }} miles</p>
+
+<h3>Last Leg Calculations</h3>
+<p>Miles Traveled Last Leg: {{ time_entry.miles_traveled_last_leg }} miles</p>
+<p>Standard Distance from Last Job to Office: {{ time_entry.distance_last_job_to_office }} miles</p>
+<p>Miles to Pay Last Leg: {{ time_entry.miles_to_pay_last_leg }} miles</p>
+
+
+
 {% endblock %}

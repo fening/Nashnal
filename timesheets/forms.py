@@ -1,5 +1,14 @@
 from django import forms
-from .models import TimeEntry, Job
+from .models import TimeEntry, Job, JobDetails, LaborCode
+from datetime import datetime, timedelta
+
+class JobDescriptionChoiceField(forms.ModelChoiceField):
+    def label_from_instance(self, obj):
+        return obj.job_description
+
+class LaborCodeDescriptionChoiceField(forms.ModelChoiceField):
+    def label_from_instance(self, obj):
+        return obj.labor_code_description
 
 class TimeEntryForm(forms.ModelForm):
     # Depart from Home Section
@@ -19,7 +28,6 @@ class TimeEntryForm(forms.ModelForm):
         widget=forms.TimeInput(attrs={'type': 'time', 'class': 'form-control start-time-field'}),
         label='Work Start Time:'
     )
-
     # Return Home Section
     end_time = forms.TimeField(
         widget=forms.TimeInput(attrs={'type': 'time', 'class': 'form-control end-time-field'}),
@@ -58,12 +66,15 @@ class TimeEntryForm(forms.ModelForm):
         initial=False,
         label="Vehicle Used"
     )
-        
+
     class Meta:
         model = TimeEntry
         fields = [
-            'date', 'company_vehicle_used','start_location', 'initial_leave_time', 'initial_mileage',  # Depart from Home
-            'end_location', 'final_arrive_time', 'final_mileage', 'activity_end_mileage','comments'  # Return Home
+            'date', 'company_vehicle_used', 'start_location', 'end_location',
+            'initial_leave_time', 'final_arrive_time', 'initial_mileage', 'final_mileage',
+            'hours_on_site', 'hours_for_the_day', 'travel_time_subtract', 'hours_to_be_paid',
+            'total_miles', 'travel_miles_subtract', 'miles_to_be_paid',
+            'comments'
         ]
         widgets = {
             'start_time': forms.TimeInput(attrs={'type': 'time', 'class': 'form-control start-time-field'}),
@@ -73,15 +84,56 @@ class TimeEntryForm(forms.ModelForm):
         
         # Explicitly exclude start_time and end_time
         exclude = ['start_time', 'end_time']
-
+        
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         # Remove start_time and end_time from the form fields if they're somehow still there
         self.fields.pop('start_time', None)
         self.fields.pop('end_time', None)
 
+
 class JobForm(forms.ModelForm):
-    # Jobs Section
+    id = forms.IntegerField(required=False, widget=forms.HiddenInput())
+    
+    job_number = forms.ModelChoiceField(
+        queryset=JobDetails.objects.all().order_by('job_number'),
+        required=False,
+        empty_label="Select a job number",
+        widget=forms.Select(attrs={
+            'class': 'form-control job-number-field', 
+            'data-dependency': 'job_description_field'
+        }),
+        label='Job Number'
+    )
+    job_description = JobDescriptionChoiceField(
+        queryset=JobDetails.objects.all().order_by('job_description'),
+        empty_label="Select a job description",
+        widget=forms.Select(attrs={
+            'class': 'form-control job-description-field', 
+            'data-dependency': 'job_number_field'
+        }),
+        label='Job Description'
+    )
+    labor_code = forms.ModelChoiceField(
+        queryset=LaborCode.objects.all().order_by('laborcode'),
+        required=False,
+        empty_label="Select a labor code",
+        widget=forms.Select(attrs={
+            'class': 'form-control labor-code-field', 
+            'data-dependency': 'labor_code_description_field'
+        }),
+        label='Labor Code'
+    )
+    labor_code_description = LaborCodeDescriptionChoiceField(
+        queryset=LaborCode.objects.all().order_by('labor_code_description'),
+        empty_label="Select a labor code description",
+        widget=forms.Select(attrs={
+            'class': 'form-control labor-code-description-field', 
+            'data-dependency': 'labor_code_field'
+        }),
+        label='Labor Code Description'
+    )
+
     activity_arrive_time = forms.TimeField(
         widget=forms.TimeInput(attrs={'type': 'time', 'class': 'form-control arrive-time-field'}),
         label='Arrive Time:'
@@ -89,20 +141,6 @@ class JobForm(forms.ModelForm):
     activity_start_mileage = forms.DecimalField(
         widget=forms.NumberInput(attrs={'placeholder': 'Enter mileage at arrival', 'class': 'form-control mileage-field'}),
         label='Mileage at Arrival:'
-    )
-    labor_code = forms.ChoiceField(
-        choices=[(code, code) for code, _ in Job.LABOR_CODE_CHOICES],
-        widget=forms.Select(attrs={'class': 'form-control labor-code-field', 'onchange': 'updateLaborCodeDescription(this)'}),
-        label='Labor Code:'
-    )
-    labor_code_description = forms.CharField(
-        widget=forms.TextInput(attrs={'readonly': 'readonly', 'placeholder': 'Enter labor code description', 'class': 'form-control readonly-field'}),
-        label='Labor Code Description:',
-        required=False 
-    )
-    description = forms.CharField(
-        widget=forms.TextInput(attrs={'placeholder': 'Describe the work performed', 'rows': 4, 'class': 'form-control description-field'}),
-        label='Description:'
     )
     activity_leave_time = forms.TimeField(
         widget=forms.TimeInput(attrs={'type': 'time', 'class': 'form-control leave-time-field'}),
@@ -115,13 +153,84 @@ class JobForm(forms.ModelForm):
 
     class Meta:
         model = Job
-        fields = ['labor_code', 'labor_code_description', 'description', 'activity_arrive_time', 'activity_start_mileage', 'activity_leave_time', 'activity_end_mileage']
+        fields = [
+            'id','job_number', 'job_description',
+            'labor_code', 'labor_code_description',
+            'activity_arrive_time', 'activity_leave_time',
+            'activity_start_mileage', 'activity_end_mileage'
+        ]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['id'].required = False
+        if self.instance and self.instance.pk:
+            self.fields['id'].initial = self.instance.pk
+            if self.instance.job_number:
+                self.fields['job_number'].initial = self.instance.job_number
+                self.fields['job_description'].initial = self.instance.job_number
+            if self.instance.labor_code:
+                self.fields['labor_code'].initial = self.instance.labor_code
+                self.fields['labor_code_description'].initial = self.instance.labor_code
+
+    def clean(self):
+        cleaned_data = super().clean()
+        
+        if cleaned_data.get('id') == '':
+            cleaned_data['id'] = None
+        
+        job_number = cleaned_data.get('job_number')
+        job_description = cleaned_data.get('job_description')
+        
+        if not job_number and not job_description:
+            raise forms.ValidationError('Either Job Number or Job Description must be selected.')
+        
+        labor_code = cleaned_data.get('labor_code')
+        labor_code_description = cleaned_data.get('labor_code_description')
+        
+        if not labor_code and not labor_code_description:
+            raise forms.ValidationError('Either Labor Code or Labor Code Description must be selected.')
+        
+        return cleaned_data
+
+    def save(self, commit=True):
+        job = super().save(commit=False)
+
+        job_number = self.cleaned_data.get('job_number') or self.cleaned_data.get('job_description')
+        if job_number:
+            job.job_number = job_number
+
+        labor_code = self.cleaned_data.get('labor_code') or self.cleaned_data.get('labor_code_description')
+        if labor_code:
+            job.labor_code = labor_code
+
+        if commit:
+            job.save()
+
+        return job
+
+
+class JobDetailsForm(forms.ModelForm):
+    class Meta:
+        model = JobDetails
+        fields = ['job_description', 'distance_office', 'time_office']
         widgets = {
-            'labor_code': forms.Select(attrs={'class': 'form-control labor-code-field'}),
-            'labor_code_description': forms.TextInput(attrs={'readonly': 'readonly', 'class': 'form-control readonly-field'}),
-            'description': forms.Textarea(attrs={'placeholder': 'Describe the work performed', 'rows': 4, 'class': 'form-control description-field'}),
-            'activity_arrive_time': forms.TimeInput(attrs={'type': 'time', 'class': 'form-control arrive-time-field'}),
-            'activity_start_mileage': forms.NumberInput(attrs={'class': 'form-control mileage-field'}),
-            'activity_leave_time': forms.TimeInput(attrs={'type': 'time', 'class': 'form-control leave-time-field'}),
-            'activity_end_mileage': forms.NumberInput(attrs={'class': 'form-control mileage-field'}),
+            'job_description': forms.TextInput(attrs={'class': 'form-control'}),
+            'distance_office': forms.NumberInput(attrs={'class': 'form-control'}),
+            'time_office': forms.NumberInput(attrs={'class': 'form-control'}),  # Use NumberInput for numeric fields
+        }
+
+    def clean_time_office(self):
+        time = self.cleaned_data['time_office']
+        if isinstance(time, str):
+            # Convert string time to timedelta
+            hours, minutes, seconds = map(int, time.split(':'))
+            return timedelta(hours=hours, minutes=minutes, seconds=seconds)
+        return time
+
+class LaborCodeForm(forms.ModelForm):
+    class Meta:
+        model = LaborCode
+        fields = ['labor_code_description']
+        widgets = {
+            'labor_code_description': forms.TextInput(attrs={'class': 'form-control'}),
         }

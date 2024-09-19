@@ -171,23 +171,26 @@
                 </svg>
             </div>
             {% block sidebar %}
-                <a href="{% url 'dashboard' %}">Dashboard</a>
-                {% if user.is_authenticated %}
-                    {% if not user.is_superuser %}
-                        <a href="{% url 'time_entry_create' %}">Create Time Entry</a>
-                        {% if has_jobs_for_today %}
-                            <a href="{% url 'add_job_to_time_entry' %}">Add Job</a>
-                        {% endif %}
-                    {% endif %}
-                    <a href="{% url 'time_entry_list' %}">View Time Entries</a>
-                    <a href="{% url 'user_summary_report' %}">Weekly Summary</a>
-                    <a href="{% url 'profile' %}">Profile</a>
-                    <a href="{% url 'logout' %}">Logout</a>
+            <a href="{% url 'dashboard' %}">Dashboard</a>
+            {% if user.is_authenticated %}
+                {% if user.is_superuser %}
+                    <a href="{% url 'job_details_create' %}">Create Job Details</a>
+                    <a href="{% url 'create_and_list_laborcode' %}">Add Labor Details</a>
                 {% else %}
-                    <a href="{% url 'login' %}">Login</a>
-                    <a href="{% url 'register' %}">Sign Up</a>
+                    <a href="{% url 'time_entry_create' %}">Create Time Entry</a>
+                    {% if has_jobs_for_today %}
+                        <a href="{% url 'add_job_to_time_entry' %}">Add Job</a>
+                    {% endif %}
                 {% endif %}
-            {% endblock %}
+                <a href="{% url 'time_entry_list' %}">View Time Entries</a>
+                <a href="{% url 'user_summary_report' %}">Weekly Summary</a>
+                <a href="{% url 'profile' %}">Profile</a>
+                <a href="{% url 'logout' %}">Logout</a>
+            {% else %}
+                <a href="{% url 'login' %}">Login</a>
+                <a href="{% url 'register' %}">Sign Up</a>
+            {% endif %}
+        {% endblock %}
         </nav>
 
         <main class="main-content">

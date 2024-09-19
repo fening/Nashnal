@@ -1,6 +1,6 @@
 from django.shortcuts import redirect, render, get_object_or_404
-from .models import TimeEntry, Job
-from .forms import TimeEntryForm, JobForm
+from .models import TimeEntry, Job, JobDetails, LaborCode
+from .forms import TimeEntryForm, JobForm, JobDetailsForm, LaborCodeForm
 from .formsets import JobFormSet
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q
@@ -15,6 +15,10 @@ from datetime import datetime, timedelta
 import json
 from decimal import Decimal
 from django.contrib import messages
+from django.http import JsonResponse
+from django.db import IntegrityError
+from django.db.models import Max
+from django.db import transaction
 
 logger = logging.getLogger(__name__)
 
@@ -111,7 +115,7 @@ def time_entry_create(request):
                     job.save()
                     print(f"Saved job: {job}")
             
-            return redirect('time_entry_list')
+            return redirect('time_entry_detail', pk=time_entry.pk)
         else:
             print(f"Form errors: {form.errors}")
             print(f"Formset errors: {formset.errors}")
@@ -124,38 +128,53 @@ def time_entry_create(request):
 @login_required
 def time_entry_edit(request, pk):
     time_entry = get_object_or_404(TimeEntry, pk=pk)
-    
+
     JobFormSet = inlineformset_factory(
-        TimeEntry, 
-        Job, 
-        form=JobForm, 
-        extra=1, 
-        can_delete=True
+        TimeEntry,
+        Job,
+        form=JobForm,
+        extra=1,
+        can_delete=True,
+        min_num=1,
+        validate_min=True
     )
 
     if request.method == 'POST':
         form = TimeEntryForm(request.POST, instance=time_entry)
         formset = JobFormSet(request.POST, instance=time_entry)
 
+        logger.debug(f"POST data: {request.POST}")
+        logger.debug(f"Form is valid: {form.is_valid()}")
+        logger.debug(f"Formset is valid: {formset.is_valid()}")
+
         if form.is_valid() and formset.is_valid():
-            time_entry = form.save(commit=False)
-            time_entry.user = request.user  # Ensure the user is set
-            time_entry.save()
+            try:
+                with transaction.atomic():
+                    time_entry = form.save()
+                    instances = formset.save(commit=False)
+                    for instance in instances:
+                        instance.time_entry = time_entry
+                        instance.save()
+                    formset.save_m2m()
+                    
+                    # Delete the removed instances
+                    for obj in formset.deleted_objects:
+                        obj.delete()
 
-            # Save formset
-            instances = formset.save(commit=False)
-            for instance in instances:
-                instance.time_entry = time_entry
-                instance.save()
-            
-            # Handle deletions
-            for obj in formset.deleted_objects:
-                obj.delete()
+                    if time_entry.jobs.count() == 0:
+                        raise ValueError("At least one job must be present.")
 
-            return redirect('time_entry_list')
+                messages.success(request, "Time entry updated successfully.")
+                return redirect('time_entry_detail', pk=time_entry.pk)
+            except ValueError as e:
+                messages.error(request, str(e))
+            except Exception as e:
+                logger.exception("Error saving time entry")
+                messages.error(request, f"An error occurred while saving: {str(e)}")
         else:
-            print(f"Form errors: {form.errors}")
-            print(f"Formset errors: {formset.errors}")
+            logger.error(f"Form errors: {form.errors}")
+            logger.error(f"Formset errors: {formset.errors}")
+            messages.error(request, "Please correct the errors below.")
     else:
         form = TimeEntryForm(instance=time_entry)
         formset = JobFormSet(instance=time_entry)
@@ -165,6 +184,7 @@ def time_entry_edit(request, pk):
         'job_formset': formset,
         'edit': True
     })
+
 
 @login_required
 def time_entry_delete(request, pk):
@@ -215,7 +235,7 @@ def user_summary_report(request):
             day_of_week = entry.date.strftime('%A')
             if job.labor_code not in weekly_hours:
                 weekly_hours[job.labor_code] = {
-                    "description": job.description,
+                    "description": job.job_description,
                     "labor_code_description": job.labor_code_description,
                     "hours": {day: 0.00 for day in ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']}
                 }
@@ -388,3 +408,97 @@ def dashboard(request):
     }
     
     return render(request, 'timesheets/dashboard.html', context)
+
+@login_required
+def job_details_create_or_edit(request, pk=None):
+    if pk:
+        job = get_object_or_404(JobDetails, pk=pk)
+    else:
+        job = None
+
+    if request.method == 'POST':
+        form = JobDetailsForm(request.POST, instance=job)
+        if form.is_valid():
+            new_job = form.save()
+            messages.success(request, 'Job details saved successfully.')
+            if pk:
+                return redirect('job_details_edit', pk=new_job.pk)  # Redirect to edit the same job
+            else:
+                return redirect('job_details_create')  # Redirect to the create page
+    else:
+        form = JobDetailsForm(instance=job)
+    
+    jobs = JobDetails.objects.all().order_by('-job_number')
+    return render(request, 'timesheets/job_details_form.html', {
+        'form': form, 
+        'jobs': jobs, 
+        'job': job
+    })
+
+@login_required
+def job_details_delete(request, pk):
+    job = get_object_or_404(JobDetails, pk=pk)
+    job.delete()
+    messages.success(request, 'Job details deleted successfully.')
+    return redirect('job_details_create')  # Redirect back to the job create page after deletion
+
+@login_required
+def get_job_details(request, job_id):
+    try:
+        job_detail = JobDetails.objects.get(pk=job_id)
+        return JsonResponse({
+            'success': True,
+            'distance': float(job_detail.distance_office),
+            'travel_time': str(job_detail.time_office)
+        })
+    except JobDetails.DoesNotExist:
+        return JsonResponse({'success': False, 'message': 'Job not found'})
+    
+    
+@login_required
+def create_and_list_laborcode(request):
+    if request.method == 'POST':
+        form = LaborCodeForm(request.POST)
+        if form.is_valid():
+            # Automatically generate the next laborcode
+            max_code = LaborCode.objects.aggregate(Max('laborcode'))['laborcode__max']
+            if max_code is not None:
+                next_code = max_code + 1
+            else:
+                next_code = 1  # Start from 1 if no labor codes exist
+
+            # Save the new labor code with the incremented value
+            new_laborcode = form.save(commit=False)
+            new_laborcode.laborcode = next_code  # Assign the next laborcode (integer)
+            new_laborcode.save()
+
+            return redirect('create_and_list_laborcode')
+    else:
+        form = LaborCodeForm()
+
+    # Get all labor codes for listing
+    laborcodes = LaborCode.objects.all()
+
+    return render(request, 'timesheets/create_and_list_laborcode.html', {
+        'form': form,
+        'laborcodes': laborcodes
+    })
+    
+    
+# get_job_number view
+def get_job_number(request, job_id):
+    try:
+        job_detail = JobDetails.objects.get(pk=job_id)
+        return JsonResponse({'success': True, 'job_number': job_detail.job_number})
+    except JobDetails.DoesNotExist:
+        return JsonResponse({'success': False, 'message': 'Job not found'})
+
+
+def get_labor_code(request, description_id):
+    try:
+        labor_code = LaborCode.objects.get(id=description_id)
+        return JsonResponse({'success': True, 'labor_code': labor_code.laborcode})
+    except LaborCode.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'Labor code description not found'})
+    
+

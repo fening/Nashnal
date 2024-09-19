@@ -89,8 +89,8 @@
                     <td rowspan="{{ entry.jobs.count }}">{{ entry.start_time }}</td>
                     <td rowspan="{{ entry.jobs.count }}">{{ entry.end_time }}</td>
                 {% endif %}
-                <td>{{ job.get_labor_code_display }}</td>
-                <td>{{ job.description }}</td>
+                <td>{{ job.labor_code_description }}</td>
+                <td>{{ job.job_description }}</td>
                 <td>{{ job.activity_start_mileage }}</td>
                 <td>{{ job.activity_end_mileage }}</td>
                 {% if forloop.first %}
