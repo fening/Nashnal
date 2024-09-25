@@ -24,9 +24,12 @@ class CustomUserCreationForm(UserCreationForm):
         help_text='Select your supervisor (only required for technicians)'
     )
 
+    distance_office = forms.DecimalField(max_digits=8, decimal_places=2, required=False, help_text="Distance in miles")
+    time_office = forms.IntegerField(required=False, help_text="Travel time to office in minutes")
+
     class Meta:
         model = CustomUser
-        fields = ['username', 'email', 'first_name', 'last_name', 'role', 'supervisor', 'password1', 'password2']
+        fields = ['username', 'email', 'first_name', 'last_name', 'role', 'supervisor', 'distance_office', 'time_office', 'password1', 'password2']
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -46,7 +49,9 @@ class CustomUserCreationForm(UserCreationForm):
 
     def save(self, commit=True):
         user = super().save(commit=False)
-        user.role = self.cleaned_data['role']  # Save the selected role
+        user.role = self.cleaned_data['role']
+        user.distance_office = self.cleaned_data['distance_office']
+        user.time_office = self.cleaned_data['time_office']
         if commit:
             user.save()
         return user

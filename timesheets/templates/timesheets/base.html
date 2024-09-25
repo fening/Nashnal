@@ -176,6 +176,7 @@
                 {% if user.is_superuser %}
                     <a href="{% url 'job_details_create' %}">Create Job Details</a>
                     <a href="{% url 'create_and_list_laborcode' %}">Add Labor Details</a>
+                    <a href="{% url 'employee_list' %}">View All Employees</a>
                 {% else %}
                     <a href="{% url 'time_entry_create' %}">Create Time Entry</a>
                     {% if has_jobs_for_today %}

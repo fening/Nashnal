@@ -102,30 +102,26 @@ class TimeEntry(models.Model):
             # Calculate unpaid travel time for the first leg
             if self.initial_leave_time and first_job.activity_arrive_time:
                 travel_time_first_leg = (datetime.combine(datetime.min, first_job.activity_arrive_time) - datetime.combine(datetime.min, self.initial_leave_time)).total_seconds() / 3600
-                time_office_to_first_job = first_job.job_number.time_office / 60  # Convert minutes to hours
+                time_home_to_office = (self.user.time_office or 0) / 60  # Convert minutes to hours, use 0 if None
 
                 if self.start_location == 'Home':
-                    if travel_time_first_leg > time_office_to_first_job:
-                        unpaid_travel_time_first_leg = time_office_to_first_job
-                    else:
-                        unpaid_travel_time_first_leg = travel_time_first_leg
+                    # Unpaid time is the shorter of actual travel time or home-to-office time
+                    unpaid_travel_time_first_leg = min(travel_time_first_leg, time_home_to_office)
                 else:  # Start from Office
                     unpaid_travel_time_first_leg = 0  # All travel time is paid
 
                 unpaid_travel_time += unpaid_travel_time_first_leg
 
-            # Travel time between jobs is paid
+            # Travel time between jobs is paid (unchanged)
 
             # Calculate unpaid travel time for the last leg
             if last_job.activity_leave_time and self.final_arrive_time:
                 travel_time_last_leg = (datetime.combine(datetime.min, self.final_arrive_time) - datetime.combine(datetime.min, last_job.activity_leave_time)).total_seconds() / 3600
-                time_last_job_to_office = last_job.job_number.time_office / 60  # Convert minutes to hours
+                time_home_to_office = (self.user.time_office or 0) / 60  # Convert minutes to hours, use 0 if None
 
                 if self.end_location == 'Home':
-                    if travel_time_last_leg > time_last_job_to_office:
-                        unpaid_travel_time_last_leg = time_last_job_to_office
-                    else:
-                        unpaid_travel_time_last_leg = travel_time_last_leg
+                    # Unpaid time is the shorter of actual travel time or home-to-office time
+                    unpaid_travel_time_last_leg = min(travel_time_last_leg, time_home_to_office)
                 else:  # End at Office
                     unpaid_travel_time_last_leg = 0  # All travel time is paid
 
@@ -140,58 +136,61 @@ class TimeEntry(models.Model):
         if self.initial_mileage is not None and self.final_mileage is not None:
             self.total_miles = self.final_mileage - self.initial_mileage
 
-            travel_miles_subtract = 0
+            if self.company_vehicle_used:
+                # If company vehicle is used, set both travel_miles_subtract and miles_to_be_paid to 0
+                self.travel_miles_subtract = 0
+                self.miles_to_be_paid = 0
+            else:
+                travel_miles_subtract = 0
 
-            if self.jobs.exists():
-                # Get the first and last jobs
-                first_job = self.jobs.order_by('activity_arrive_time').first()
-                last_job = self.jobs.order_by('-activity_leave_time').first()
+                if self.jobs.exists():
+                    first_job = self.jobs.order_by('activity_arrive_time').first()
+                    last_job = self.jobs.order_by('-activity_leave_time').first()
 
-                # First Leg Calculation
-                if first_job.activity_start_mileage is not None:
-                    miles_traveled_first_leg = first_job.activity_start_mileage - self.initial_mileage
-                    standard_miles_first_leg = first_job.job_number.distance_office
+                    # First Leg Calculation
+                    if first_job.activity_start_mileage is not None:
+                        miles_traveled_first_leg = first_job.activity_start_mileage - self.initial_mileage
+                        miles_home_to_office = self.user.distance_office or 0  # Use 0 if distance_office is None
 
-                    if self.start_location == 'Home':
-                        # Unpaid miles is the lesser of actual miles or standard miles
-                        unpaid_miles_first_leg = min(miles_traveled_first_leg, standard_miles_first_leg)
-                    else:  # Start from Office
-                        unpaid_miles_first_leg = 0
+                        if self.start_location == 'Home':
+                            # Subtract the shorter of actual miles or home-to-office miles
+                            unpaid_miles_first_leg = min(miles_traveled_first_leg, miles_home_to_office)
+                        else:  # Start from Office
+                            unpaid_miles_first_leg = 0
 
-                    travel_miles_subtract += unpaid_miles_first_leg
+                        travel_miles_subtract += unpaid_miles_first_leg
 
-                # Miles Between Jobs
-                job_mileages = self.jobs.order_by('activity_arrive_time').values_list('activity_start_mileage', 'activity_end_mileage')
-                for i in range(len(job_mileages) - 1):
-                    current_job_end_mileage = job_mileages[i][1]
-                    next_job_start_mileage = job_mileages[i + 1][0]
-                    if current_job_end_mileage is not None and next_job_start_mileage is not None:
-                        miles_between_jobs = next_job_start_mileage - current_job_end_mileage
-                        travel_miles_subtract += miles_between_jobs
+                    # Miles Between Jobs (unchanged)
+                    job_mileages = self.jobs.order_by('activity_arrive_time').values_list('activity_start_mileage', 'activity_end_mileage')
+                    for i in range(len(job_mileages) - 1):
+                        current_job_end_mileage = job_mileages[i][1]
+                        next_job_start_mileage = job_mileages[i + 1][0]
+                        if current_job_end_mileage is not None and next_job_start_mileage is not None:
+                            miles_between_jobs = next_job_start_mileage - current_job_end_mileage
+                            travel_miles_subtract += miles_between_jobs
 
-                # Miles During Jobs
-                for job in self.jobs.all():
-                    if job.activity_start_mileage is not None and job.activity_end_mileage is not None:
-                        miles_during_job = job.activity_end_mileage - job.activity_start_mileage
-                        travel_miles_subtract += miles_during_job
+                    # Miles During Jobs (unchanged)
+                    for job in self.jobs.all():
+                        if job.activity_start_mileage is not None and job.activity_end_mileage is not None:
+                            miles_during_job = job.activity_end_mileage - job.activity_start_mileage
+                            travel_miles_subtract += miles_during_job
 
-                # Last Leg Calculation
-                if last_job.activity_end_mileage is not None:
-                    miles_traveled_last_leg = self.final_mileage - last_job.activity_end_mileage
-                    standard_miles_last_leg = last_job.job_number.distance_office
+                    # Last Leg Calculation
+                    if last_job.activity_end_mileage is not None:
+                        miles_traveled_last_leg = self.final_mileage - last_job.activity_end_mileage
+                        miles_home_to_office = self.user.distance_office or 0  # Use 0 if distance_office is None
 
-                    if self.end_location == 'Home':
-                        # Unpaid miles is the lesser of actual miles or standard miles
-                        unpaid_miles_last_leg = min(miles_traveled_last_leg, standard_miles_last_leg)
-                    else:  # End at Office
-                        unpaid_miles_last_leg = 0
+                        if self.end_location == 'Home':
+                            # Subtract the shorter of actual miles or home-to-office miles
+                            unpaid_miles_last_leg = min(miles_traveled_last_leg, miles_home_to_office)
+                        else:  # End at Office
+                            unpaid_miles_last_leg = 0
 
-                    travel_miles_subtract += unpaid_miles_last_leg
+                        travel_miles_subtract += unpaid_miles_last_leg
 
-            self.travel_miles_subtract = round(travel_miles_subtract, 2)
-            self.miles_to_be_paid = round(self.total_miles - self.travel_miles_subtract, 2)
-
-
+                self.travel_miles_subtract = round(travel_miles_subtract, 2)
+                self.miles_to_be_paid = round(self.total_miles - self.travel_miles_subtract, 2)
+            
     def save(self, *args, **kwargs):
         # Save the instance first to ensure we have a primary key
         super().save(*args, **kwargs)
@@ -220,101 +219,14 @@ class TimeEntry(models.Model):
         return 0
     
     @property
-    def miles_traveled_first_leg(self):
-        if self.initial_mileage is not None and self.jobs.exists():
-            first_job = self.jobs.order_by('activity_arrive_time').first()
-            if first_job.activity_start_mileage is not None:
-                return first_job.activity_start_mileage - self.initial_mileage
-        return None
-
-    @property
-    def distance_office_to_first_job(self):
-        if self.jobs.exists():
-            first_job = self.jobs.order_by('activity_arrive_time').first()
-            if first_job.job_number.distance_office is not None:
-                return first_job.job_number.distance_office
-        return None
-
-    @property
-    def miles_to_pay_first_leg(self):
-        miles_traveled_first_leg = self.miles_traveled_first_leg
-        distance_office_to_first_job = self.distance_office_to_first_job
-        if miles_traveled_first_leg is not None and distance_office_to_first_job is not None:
-            if self.start_location == 'Home':
-                if miles_traveled_first_leg > distance_office_to_first_job:
-                    miles_to_pay_first_leg = miles_traveled_first_leg - distance_office_to_first_job
-                else:
-                    miles_to_pay_first_leg = 0
-            else:  # Start from Office
-                miles_to_pay_first_leg = miles_traveled_first_leg  # All miles are paid
-            return miles_to_pay_first_leg
-        return None
-
-    # Similarly, add properties for last leg calculations
-    @property
-    def miles_traveled_last_leg(self):
-        if self.final_mileage is not None and self.jobs.exists():
-            last_job = self.jobs.order_by('-activity_leave_time').first()
-            if last_job.activity_end_mileage is not None:
-                return self.final_mileage - last_job.activity_end_mileage
-        return None
-
-    @property
-    def distance_last_job_to_office(self):
-        if self.jobs.exists():
-            last_job = self.jobs.order_by('-activity_leave_time').first()
-            if last_job.job_number.distance_office is not None:
-                return last_job.job_number.distance_office
-        return None
-
-    @property
-    def miles_to_pay_last_leg(self):
-        miles_traveled_last_leg = self.miles_traveled_last_leg
-        distance_last_job_to_office = self.distance_last_job_to_office
-        if miles_traveled_last_leg is not None and distance_last_job_to_office is not None:
-            if self.end_location == 'Home':
-                if miles_traveled_last_leg > distance_last_job_to_office:
-                    miles_to_pay_last_leg = miles_traveled_last_leg - distance_last_job_to_office
-                else:
-                    miles_to_pay_last_leg = 0
-            else:  # End at Office
-                miles_to_pay_last_leg = miles_traveled_last_leg  # All miles are paid
-            return miles_to_pay_last_leg
-        return None
-    
-        # Time calculations for the first leg
-    @property
     def travel_time_first_leg(self):
         if self.initial_leave_time and self.jobs.exists():
             first_job = self.jobs.order_by('activity_arrive_time').first()
             if first_job.activity_arrive_time:
                 delta = datetime.combine(datetime.min, first_job.activity_arrive_time) - datetime.combine(datetime.min, self.initial_leave_time)
                 return round(delta.total_seconds() / 3600, 2)  # in hours
-        return None
+        return 0
 
-    @property
-    def time_office_to_first_job(self):
-        if self.jobs.exists():
-            first_job = self.jobs.order_by('activity_arrive_time').first()
-            if first_job.job_number.time_office is not None:
-                return round(first_job.job_number.time_office / 60, 2)  # Convert minutes to hours
-        return None
-
-    @property
-    def unpaid_travel_time_first_leg(self):
-        travel_time_first_leg = self.travel_time_first_leg
-        time_office_to_first_job = self.time_office_to_first_job
-        if travel_time_first_leg is not None and time_office_to_first_job is not None:
-            if self.start_location == 'Home':
-                if travel_time_first_leg > time_office_to_first_job:
-                    return round(time_office_to_first_job, 2)
-                else:
-                    return round(travel_time_first_leg, 2)
-            else:  # Start from Office
-                return 0  # All travel time is paid
-        return None
-
-    # Time calculations for the last leg
     @property
     def travel_time_last_leg(self):
         if self.final_arrive_time and self.jobs.exists():
@@ -322,35 +234,55 @@ class TimeEntry(models.Model):
             if last_job.activity_leave_time:
                 delta = datetime.combine(datetime.min, self.final_arrive_time) - datetime.combine(datetime.min, last_job.activity_leave_time)
                 return round(delta.total_seconds() / 3600, 2)  # in hours
-        return None
+        return 0
 
     @property
-    def time_last_job_to_office(self):
-        if self.jobs.exists():
+    def standard_time_home_to_office(self):
+        return round((self.user.time_office or 0) / 60, 2)  # Convert minutes to hours
+
+    @property
+    def time_to_subtract_first_leg(self):
+        if self.start_location == 'Home':
+            return round(min(self.travel_time_first_leg, self.standard_time_home_to_office), 2)
+        return 0
+
+    @property
+    def time_to_subtract_last_leg(self):
+        if self.end_location == 'Home':
+            return round(min(self.travel_time_last_leg, self.standard_time_home_to_office), 2)
+        return 0
+
+    @property
+    def miles_traveled_first_leg(self):
+        if self.initial_mileage is not None and self.jobs.exists():
+            first_job = self.jobs.order_by('activity_arrive_time').first()
+            if first_job.activity_start_mileage is not None:
+                return round(first_job.activity_start_mileage - self.initial_mileage, 2)
+        return 0
+
+    @property
+    def miles_traveled_last_leg(self):
+        if self.final_mileage is not None and self.jobs.exists():
             last_job = self.jobs.order_by('-activity_leave_time').first()
-            if last_job.job_number.time_office is not None:
-                return round(last_job.job_number.time_office / 60, 2)  # Convert minutes to hours
-        return None
+            if last_job.activity_end_mileage is not None:
+                return round(self.final_mileage - last_job.activity_end_mileage, 2)
+        return 0
 
     @property
-    def unpaid_travel_time_last_leg(self):
-        travel_time_last_leg = self.travel_time_last_leg
-        time_last_job_to_office = self.time_last_job_to_office
-        if travel_time_last_leg is not None and time_last_job_to_office is not None:
-            if self.end_location == 'Home':
-                if travel_time_last_leg > time_last_job_to_office:
-                    return round(time_last_job_to_office, 2)
-                else:
-                    return round(travel_time_last_leg, 2)
-            else:  # End at Office
-                return 0  # All travel time is paid
-        return None
+    def standard_distance_home_to_office(self):
+        return round(self.user.distance_office or 0, 2)
 
     @property
-    def total_unpaid_travel_time(self):
-        unpaid_first_leg = self.unpaid_travel_time_first_leg or 0
-        unpaid_last_leg = self.unpaid_travel_time_last_leg or 0
-        return round(unpaid_first_leg + unpaid_last_leg, 2)
+    def miles_to_subtract_first_leg(self):
+        if self.start_location == 'Home':
+            return round(min(self.miles_traveled_first_leg, self.standard_distance_home_to_office), 2)
+        return 0
+
+    @property
+    def miles_to_subtract_last_leg(self):
+        if self.end_location == 'Home':
+            return round(min(self.miles_traveled_last_leg, self.standard_distance_home_to_office), 2)
+        return 0
     
 class LaborCode(models.Model):
     laborcode = models.IntegerField(unique=True)

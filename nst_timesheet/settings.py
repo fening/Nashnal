@@ -55,9 +55,12 @@ INSTALLED_APPS = [
     # Your app
     'timesheets',
     'accounts',
+    'rest_framework',
+    'corsheaders',
 
 ]
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -178,3 +181,6 @@ LOGIN_REDIRECT_URL = '/dashboard/'  # or any view you want to redirect to after 
 LOGOUT_REDIRECT_URL = 'login'
 
 AUTH_USER_MODEL = 'accounts.CustomUser'
+
+# Allow all origins for development (adjust this for production)
+CORS_ALLOW_ALL_ORIGINS = True

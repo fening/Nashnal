@@ -19,6 +19,7 @@ from django.http import JsonResponse
 from django.db import IntegrityError
 from django.db.models import Max
 from django.db import transaction
+from rest_framework import viewsets
 
 logger = logging.getLogger(__name__)
 
@@ -30,6 +31,19 @@ class DecimalEncoder(json.JSONEncoder):
         if isinstance(obj, Decimal):
             return float(obj)
         return super(DecimalEncoder, self).default(obj)
+    
+from rest_framework.views import APIView
+from rest_framework.response import Response
+
+from .serializers import TimeEntrySerializer
+
+class TimeEntryViewSet(viewsets.ModelViewSet):
+    queryset = TimeEntry.objects.all()
+    serializer_class = TimeEntrySerializer
+    
+class HelloWorldView(APIView):
+    def get(self, request):
+        return Response({"message": "Hello, World!"})
 
 @login_required
 def home(request):
@@ -133,7 +147,7 @@ def time_entry_edit(request, pk):
         TimeEntry,
         Job,
         form=JobForm,
-        extra=1,
+        extra=0,
         can_delete=True,
         min_num=1,
         validate_min=True

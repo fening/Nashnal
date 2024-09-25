@@ -74,3 +74,8 @@ def profile_view(request):
         form = CustomPasswordChangeForm(request.user)
     
     return render(request, 'accounts/profile.html', {'form': form})
+
+@login_required
+def employee_list_view(request):
+    employees = CustomUser.objects.all().order_by('last_name', 'first_name')
+    return render(request, 'accounts/employee_list.html', {'employees': employees})

@@ -4,6 +4,7 @@
 {% block title %}Time Entries Detailed View - Time Sheet App{% endblock %}
 
 {% block content %}
+{% load custom_filters %}
 <style>
 
         
@@ -137,54 +138,39 @@
     <button><a href="{% url 'time_entry_edit' time_entry.pk %}">Edit</a></button>
     <button><a href="{% url 'time_entry_list' %}">Back to List</a></button>
 </div>
-<h3>Job Calculations</h3>
-<table>
-    <thead>
-        <tr>
-            <th>Job Description</th>
-            <th>Job Number</th>
-            <th>Miles for Job</th>
-            <th>Time for Job</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for job in time_entry.jobs.all %}
-        <tr>
-            <td>{{ job.job_description }}</td>
-            <td>{{ job.job_number }}</td>
-            <td>{{ job.job_number.distance_office }}</td>
-            <td>{{ job.job_number.time_office }}</td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
-<h2>Time Calculations</h2>
+<h3>Employee Information</h3>
+<p>Employee Name: {{ time_entry.user.get_full_name }}</p>
+<p>Distance to Office: {{ time_entry.standard_distance_home_to_office }} miles</p>
+<p>Time to Office: {{ time_entry.standard_time_home_to_office|floatformat:2 }} hours</p>
 
-<h3>First Leg Calculations</h3>
-<p>Travel Time First Leg: {{ time_entry.travel_time_first_leg }} hours</p>
-<p>Standard Time from Office to First Job: {{ time_entry.time_office_to_first_job }} hours</p>
-<p>Unpaid Travel Time First Leg: {{ time_entry.unpaid_travel_time_first_leg }} hours</p>
+<h3>Time Calculations</h3>
+<h4>First Leg Calculations</h4>
+<p>Travel Time First Leg: {{ time_entry.travel_time_first_leg|floatformat:2 }} hours</p>
+<p>Standard Time from Home to Office: {{ time_entry.standard_time_home_to_office|floatformat:2 }} hours</p>
+<p>Time to Subtract First Leg: {{ time_entry.time_to_subtract_first_leg|floatformat:2 }} hours</p>
 
-<h3>Last Leg Calculations</h3>
-<p>Travel Time Last Leg: {{ time_entry.travel_time_last_leg }} hours</p>
-<p>Standard Time from Last Job to Office: {{ time_entry.time_last_job_to_office }} hours</p>
-<p>Unpaid Travel Time Last Leg: {{ time_entry.unpaid_travel_time_last_leg }} hours</p>
+<h4>Last Leg Calculations</h4>
+<p>Travel Time Last Leg: {{ time_entry.travel_time_last_leg|floatformat:2 }} hours</p>
+<p>Standard Time from Home to Office: {{ time_entry.standard_time_home_to_office|floatformat:2 }} hours</p>
+<p>Time to Subtract Last Leg: {{ time_entry.time_to_subtract_last_leg|floatformat:2 }} hours</p>
 
-<h3>Total Unpaid Travel Time</h3>
-<p>Total Unpaid Travel Time: {{ time_entry.total_unpaid_travel_time }} hours</p>
+<h4>Total Travel Time</h4>
+<p>Total Travel Time to Subtract: {{ time_entry.travel_time_subtract|floatformat:2 }} hours</p>
 
-<h2>Distance Calculations</h2>
+<h3>Mileage Calculations</h3>
+<h4>First Leg Calculations</h4>
+<p>Miles Traveled First Leg: {{ time_entry.miles_traveled_first_leg|floatformat:2 }} miles</p>
+<p>Standard Distance from Home to Office: {{ time_entry.standard_distance_home_to_office|floatformat:2 }} miles</p>
+<p>Miles to Subtract First Leg: {{ time_entry.miles_to_subtract_first_leg|floatformat:2 }} miles</p>
 
-<h3>First Leg Calculations</h3>
-<p>Miles Traveled First Leg: {{ time_entry.miles_traveled_first_leg }} miles</p>
-<p>Standard Distance from Office to First Job: {{ time_entry.distance_office_to_first_job }} miles</p>
-<p>Miles to Pay First Leg: {{ time_entry.miles_to_pay_first_leg }} miles</p>
+<h4>Last Leg Calculations</h4>
+<p>Miles Traveled Last Leg: {{ time_entry.miles_traveled_last_leg|floatformat:2 }} miles</p>
+<p>Standard Distance from Home to Office: {{ time_entry.standard_distance_home_to_office|floatformat:2 }} miles</p>
+<p>Miles to Subtract Last Leg: {{ time_entry.miles_to_subtract_last_leg|floatformat:2 }} miles</p>
 
-<h3>Last Leg Calculations</h3>
-<p>Miles Traveled Last Leg: {{ time_entry.miles_traveled_last_leg }} miles</p>
-<p>Standard Distance from Last Job to Office: {{ time_entry.distance_last_job_to_office }} miles</p>
-<p>Miles to Pay Last Leg: {{ time_entry.miles_to_pay_last_leg }} miles</p>
-
-
+<h4>Total Mileage</h4>
+<p>Total Miles: {{ time_entry.total_miles|floatformat:2 }} miles</p>
+<p>Total Miles to Subtract: {{ time_entry.travel_miles_subtract|floatformat:2 }} miles</p>
+<p>Miles to be Paid: {{ time_entry.miles_to_be_paid|floatformat:2 }} miles</p>
 
 {% endblock %}

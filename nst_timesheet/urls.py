@@ -16,8 +16,15 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from rest_framework.routers import DefaultRouter
+from timesheets.views import TimeEntryViewSet
+
+router = DefaultRouter()
+router.register(r'timeentries', TimeEntryViewSet)
 
 urlpatterns = [
+    path('api/', include(router.urls)),
+
     path('admin/', admin.site.urls),
     path('time-entry/', include('timesheets.urls')),
     path('accounts/', include('accounts.urls')),

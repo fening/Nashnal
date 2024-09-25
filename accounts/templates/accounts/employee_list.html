@@ -1,0 +1,27 @@
+{% extends 'timesheets/base.html' %}
+
+{% block content %}
+<h2>Employee List</h2>
+<table class="table">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Role</th>
+            <th>Supervisor</th>
+            <th>Distance to Office (miles)</th>
+            <th>Travel Time to Office (minutes)</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for employee in employees %}
+        <tr>
+            <td>{{ employee.get_full_name }}</td>
+            <td>{{ employee.role }}</td>
+            <td>{{ employee.supervisor.get_full_name|default_if_none:"N/A" }}</td>
+            <td>{{ employee.distance_office|default_if_none:"N/A" }}</td>
+            <td>{{ employee.time_office|default_if_none:"N/A" }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}
