@@ -2,130 +2,155 @@
 {% load static %}
 
 {% block title %}Time Entries Form - Time Sheet App{% endblock %}
-
+{% load custom_filters %}
 {% block content %}
-<style>
-    /* Add any custom styling here */
-</style>
-
-<body>
-    <div class="timesheet-form">
-        <form method="post">
-            {% csrf_token %}
-            <div class="date-container">
-                <label class="header" for="{{ form.date.id_for_label }}">Date:</label>
-                {{ form.date }}
+<div class="container mx-auto px-4 py-8">
+    <div class="bg-white shadow-md rounded-lg p-6">
+      <form method="post" class="space-y-6">
+        {% csrf_token %}
+        <div class="flex items-center space-x-4 mb-6">
+            <label class="text-base font-medium text-gray-700 whitespace-nowrap" for="{{ form.date.id_for_label }}">Date:</label>
+            <div class="w-48">
+              {{ form.date|add_class:"block w-full text-base rounded-md border-2 border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 px-3 py-2" }}
             </div>
-            <div class="vehicle-container">
-                <label class="header">{{ form.company_vehicle_used.label }}:</label>
-                {% for radio in form.company_vehicle_used %}
-                    <label class="radio-inline">
-                        {{ radio.tag }}
-                        {{ radio.choice_label }}
-                    </label>
-                {% endfor %}
-            </div>
-            <table>
-                <thead>
-                    <tr><th></th>
-                        <th colspan="2">Client/Job</th>
-                        <th colspan="2">Time</th>
-                        <th colspan="2">Mileage</th>
-                        <th colspan="3">Services Performed</th>
-                        <td rowspan="3">
-                            <a href="javascript:void(0);" id="add-job" class="add-job">Add Job</a>
-                        </td>
-                    </tr>
-                    <tr>
-                        <th></th>
-                        <th colspan="2"></th>
-                        <th>Arrive</th>
-                        <th>Leave</th>
-                        <th>Arrive</th>
-                        <th>Leave</th>
-                        <th colspan="3">Labor Code Description</th>
-                    </tr>
-                </thead>
-                <tbody id="formset-container">
-                    <!-- Render form fields for TimeEntry -->
-                    <tr>
-                        <td></td>
-                        <td class="header">Start Location:</td>
-                        <td>{{ form.start_location }}</td>
-                        <td class="header"></td>
-                        <td>{{ form.initial_leave_time }}</td>
-                        <td class="header"></td>
-                        <td>{{ form.initial_mileage }}</td>
-                        <td class="header" colspan="3"></td>
-                    </tr>
+          </div>
+        <div class="overflow-x-auto">
+          <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+              <tr>
+                <th class="px-6 py-3 text-center text-sm font-medium text-gray-500 uppercase tracking-wider" colspan="3">Client/Job</th>
+                <th class="px-6 py-3 text-center text-sm font-medium text-gray-500 uppercase tracking-wider" colspan="2">Time</th>
+                <th class="px-6 py-3 text-center text-sm font-medium text-gray-500 uppercase tracking-wider" colspan="2">Mileage</th>
+                <th class="px-6 py-3 text-center text-sm font-medium text-gray-500 uppercase tracking-wider" colspan="3">Services Performed</th>
+                <th class="px-6 py-3 text-center text-sm font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+              </tr>
+              <tr>
+                <th class="px-6 py-3 text-left text-xs font-small text-gray-500 uppercase tracking-wider" colspan="3"></th>
+                <th class="px-6 py-3 text-center text-xs font-small text-gray-500 uppercase tracking-wider">Arrive</th>
+                <th class="px-6 py-3 text-center text-xs font-small text-gray-500 uppercase tracking-wider">Leave</th>
+                <th class="px-6 py-3 text-center text-xs font-small text-gray-500 uppercase tracking-wider">Arrive</th>
+                <th class="px-6 py-3 text-center text-xs font-small text-gray-500 uppercase tracking-wider">Leave</th>
+                <th class="px-6 py-3 text-center text-xs font-small text-gray-500 uppercase tracking-wider" colspan="3"></th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="formset-container" class="bg-white divide-y divide-gray-200">
+              <tr>
+                <td class="px-6 py-4 whitespace-nowrap text-base font-medium text-gray-900">Start Location:</td>
+                <td class="px-6 py-4 whitespace-nowrap text-base text-gray-500" >{{ form.start_location|add_class:"block w-24 text-base rounded-md border-2 border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 px-3 py-2" }}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-base text-gray-500" ></td>
+                <td class="px-6 py-4 whitespace-nowrap text-base text-gray-500" ></td>
+                <td class="px-6 py-4 whitespace-nowrap text-base text-gray-500">{{ form.initial_leave_time|add_class:"block w-full text-base rounded-md border-2 border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 px-3 py-2" }}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-base text-gray-500" ></td>
+                <td class="px-6 py-4 whitespace-nowrap text-base text-gray-500">{{ form.initial_mileage|add_class:"block w-24 text-base rounded-md border-2 border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 px-3 py-2" }}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-base text-gray-500" colspan="3"></td>
+                <td></td>
+              </tr>
+  
+              {{ job_formset.management_form }}
+  
+              {% for job_form in job_formset %}
+              <tr class="job-form">
+                {{ job_form.id }}
+                <td class="px-6 py-4 whitespace-nowrap text-base text-gray-500 hidden">{{ job_form.DELETE }}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-base text-gray-500" colspan="2">
+                  {{ job_form.job_description|add_class:"block w-full text-base rounded-md border-2 border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 px-3 py-2" }}
+                </td>
+            <!-- Add Job Icon -->
+            <td class="p-4">
+              <div class="flex justify-center items-center h-full">
+                <a href="javascript:void(0);" id="add-job" class="add-job text-blue-600 hover:text-blue-900 p-2 rounded-full hover:bg-blue-100 transition-colors duration-200" title="Add new Job">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="w-6 h-6">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                  </svg>
+                  <span class="sr-only">Add Job</span>
+                </a>
+              </div>
+            </td>
+                <td class="px-6 py-4 whitespace-nowrap text-base text-gray-500">{{ job_form.activity_arrive_time|add_class:"block w-full text-base rounded-md border-2 border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 px-3 py-2" }}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-base text-gray-500">{{ job_form.activity_leave_time|add_class:"block w-full text-base rounded-md border-2 border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 px-3 py-2" }}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-base text-gray-500">{{ job_form.activity_start_mileage|add_class:"block w-24 text-base rounded-md border-2 border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 px-3 py-2" }}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-base text-gray-500">{{ job_form.activity_end_mileage|add_class:"block w-24 text-base rounded-md border-2 border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 px-3 py-2" }}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-base text-gray-500" colspan="3">
+                  {{ job_form.labor_code_description|add_class:"block w-full text-base rounded-md border-2 border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 px-3 py-2"}}
+                </td>
+              <!-- Remove Job Icon -->
+              <td class="p-4 whitespace-nowrap text-base font-medium">
+                <div class="flex justify-center items-center h-full">
+                  <a href="javascript:void(0);" class="remove-job flex items-center space-x-1 text-red-600 hover:text-red-900 p-2 rounded-full hover:bg-red-100 transition-colors duration-200" title="Remove Job">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="w-5 h-5">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                    <span class="text-sm">Remove</span>
+                  </a>
+                </div>
+              </td>
+              </tr>
+              <tr class="hidden">
+                <td>{{ job_form.job_number }}</td>
+                <td>{{ job_form.labor_code }}</td>
+              </tr>
+              {% endfor %}
+              <!-- Placeholder Row When No Job Forms Are Visible -->
+              <tr class="no-job-forms" style="display: none;">
+                <td colspan="11" class="text-center py-4">
+                  <a href="javascript:void(0);" id="add-job-when-empty" class="add-job inline-flex items-center space-x-2 bg-blue-50 text-blue-600 hover:bg-blue-100 hover:text-blue-700 px-4 py-2 rounded-full transition-all duration-200 shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2" title="Add new Job">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="w-5 h-5">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                    </svg>
+                    <span class="font-medium text-sm">Add Job</span>
+                  </a>
+                </td>
+              </tr>
+              <tr>
+                <td class="px-6 py-4 whitespace-nowrap text-base font-medium text-gray-900">End Location:</td>
+                <td class="px-6 py-4 whitespace-nowrap text-base text-gray-500" >{{ form.end_location|add_class:"block w-24 text-base rounded-md border-2 border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 px-3 py-2"}}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-base text-gray-500" ></td>
+                <td class="px-6 py-4 whitespace-nowrap text-base text-gray-500">{{ form.final_arrive_time|add_class:"block w-full text-base rounded-md border-2 border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 px-3 py-2" }}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-base text-gray-500" ></td>
+                <td class="px-6 py-4 whitespace-nowrap text-base text-gray-500">{{ form.final_mileage|add_class:"block w-24 text-base rounded-md border-2 border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 px-3 py-2" }}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-base text-gray-500" colspan="3"></td>
+                <td></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
 
-                    <!-- Include the formset management form -->
-                    {{ job_formset.management_form }}
-
-                    <!-- Render each form in the Job formset -->
-                    {% for job_form in job_formset %}
-                    <tr class="job-form">
-                        {{ job_form.id }}
-                        
-                        <td>{{ job_form.DELETE }}</td>
-                        
-                        <td colspan="2">
-                            {{ job_form.job_description }}
-                        </td>
-                        <td>{{ job_form.activity_arrive_time }}</td>
-                        <td>{{ job_form.activity_leave_time }}</td>
-                        <td>{{ job_form.activity_start_mileage }}</td>
-                        <td>{{ job_form.activity_end_mileage }}</td>
-                        <td colspan="3">
-                            {{ job_form.labor_code_description }}
-                        </td>
-                        <td>
-                            <a href="javascript:void(0);" class="remove-job">Remove</a>
-                        </td>
-                    </tr>
-                    <!-- Hidden fields -->
-                    <tr style="display: none;">
-                        <td>
-                            {{ job_form.job_number }}
-                        </td>
-                        <td>
-                            {{ job_form.labor_code }}
-                        </td>
-                    </tr>
-                    {% endfor %}
-
-                    <!-- Render form fields for TimeEntry -->
-                    <tr>
-                        <td></td>
-                        <td class="header">End Location:</td>
-                        <td>{{ form.end_location }}</td>
-                        <td class="header"></td>
-                        <td>{{ form.final_arrive_time }}</td>
-                        <td class="header"></td>
-                        <td>{{ form.final_mileage }}</td>
-                        <td class="header" colspan="3"></td>
-                    </tr>
-                    <tr>
-                        <td></td>
-                        <td class="header">Comments:</td>
-                        <td colspan="8">{{ form.comments }}</td>
-                    </tr>
-                </tbody>
-            </table>
-
-            <div style="text-align: center;">
-                <button type="submit">Save</button>
-                <button type="button" class="cancel"><a href="{% url 'time_entry_list' %}">Cancel</a></button>
-            </div>
-        </form>
+        <div class="mt-6">
+          <label class="block text-base font-medium text-gray-700">{{ form.company_vehicle_used.label }}:</label>
+          <div class="mt-2 space-x-4">
+            {% for radio in form.company_vehicle_used %}
+              <label class="inline-flex items-center">
+                {{ radio.tag|add_class:"form-radio text-indigo-600" }}
+                <span class="ml-2 text-base">{{ radio.choice_label }}</span>
+              </label>
+            {% endfor %}
+          </div>
+        </div>
+  
+        <div class="mt-6">
+          <label class="block text-base font-medium text-gray-700" for="{{ form.comments.id_for_label }}">Comments:</label>
+          {{ form.comments|add_class:"mt-1 block w-full text-base rounded-md border-2 border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 px-3 py-2" }}
+        </div>
+  
+        <div class="mt-8 flex justify-center space-x-4">
+          <button type="submit" class="px-6 py-3 border-2 border-transparent text-base font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+            Save
+          </button>
+          <a href="{% url 'time_entry_list' %}" class="px-6 py-3 border-2 border-gray-300 text-base font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+            Cancel
+          </a>
+        </div>
+      </form>
     </div>
-</body>
+  </div>
 
-<script type="text/javascript">
+
+  <script type="text/javascript">
     document.addEventListener('DOMContentLoaded', function () {
         const formsetContainer = document.getElementById('formset-container');
         const addJobButton = document.getElementById('add-job');
-        const totalFormsInput = document.getElementById('id_form-TOTAL_FORMS');
+        const totalFormsInput = document.getElementById('id_jobs-TOTAL_FORMS');
     
         function attachEventListeners(container) {
             const jobDescriptionFields = container.querySelectorAll('[name$="-job_description"]');
@@ -213,95 +238,134 @@
                 }
             });
         }
-    
-        function addNewForm() {
-            const forms = formsetContainer.querySelectorAll('.job-form');
-            const formCount = forms.length;
-            const newForm = forms[0].cloneNode(true);
         
-            // Update indices in form fields
-            const formRegex = new RegExp(`form-(\\d+)-`, 'g');
-            newForm.innerHTML = newForm.innerHTML.replace(formRegex, `form-${formCount}-`);
-            newForm.querySelectorAll('input, select, textarea').forEach(input => {
-                if (input.type === 'checkbox' || input.type === 'radio') {
-                    input.checked = false;
-                } else {
-                    input.value = '';
-                }
-                input.name = input.name.replace(formRegex, `form-${formCount}-`);
-                input.id = input.id.replace(formRegex, `form-${formCount}-`);
-            });
-            
-                    // Ensure the id field is present and empty for new forms
-            let idField = newForm.querySelector('input[name$="-id"]');
-            if (!idField) {
-                idField = document.createElement('input');
-                idField.type = 'hidden';
-                idField.name = `form-${formCount}-id`;
-                idField.id = `id_form-${formCount}-id`;
-                newForm.appendChild(idField);
-            }
-            idField.value = '';
-
-            // Ensure the DELETE checkbox is included and unchecked
-            let deleteCheckbox = newForm.querySelector('input[name$="-DELETE"]');
-            if (!deleteCheckbox) {
-                // Create the DELETE checkbox
-                const deleteCell = newForm.querySelector('td'); // Assuming DELETE checkbox is in the first cell
-                deleteCheckbox = document.createElement('input');
-                deleteCheckbox.type = 'checkbox';
-                deleteCheckbox.name = `form-${formCount}-DELETE`;
-                deleteCheckbox.id = `id_form-${formCount}-DELETE`;
-                deleteCell.appendChild(deleteCheckbox);
-            }
-            deleteCheckbox.checked = false;
-        
-            // Insert the new form
-            const endLocationRow = formsetContainer.querySelector('tr:nth-last-child(2)');
-            formsetContainer.insertBefore(newForm, endLocationRow);
-            totalFormsInput.value = formCount + 1;
-        
-            attachEventListeners(newForm); // Attach event listeners to the new form only
-        }
-    
-        function removeForm(e) {
-            if (e.target.classList.contains('remove-job')) {
-                const jobForms = formsetContainer.querySelectorAll('.job-form');
-                if (jobForms.length > 1) {
-                    const jobForm = e.target.closest('.job-form');
-                    const deleteCheckbox = jobForm.querySelector('input[name$="-DELETE"]');
-                    if (deleteCheckbox) {
-                        deleteCheckbox.checked = true;
-                        jobForm.style.display = 'none';
-                    } else {
-                        jobForm.remove();
-                        updateFormIndices();
-                    }
-                } else {
-                    alert('At least one job must remain.');
-                }
-            }
-        }
-    
         function updateFormIndices() {
-            const forms = formsetContainer.querySelectorAll('.job-form');
-            forms.forEach((form, index) => {
-                form.querySelectorAll('input, select, textarea').forEach(input => {
-                    const oldName = input.name;
-                    const newName = oldName.replace(/-\d+-/, `-${index}-`);
-                    input.name = newName;
-                    input.id = input.id.replace(/-\d+-/, `-${index}-`);
-                });
-            });
-            totalFormsInput.value = forms.length;
+          const forms = formsetContainer.querySelectorAll('.job-form');
+          forms.forEach((form, index) => {
+              form.querySelectorAll('input, select, textarea').forEach(input => {
+                  const oldName = input.name;
+                  const newName = oldName.replace(/jobs-\d+-/, `jobs-${index}-`);  // Use 'jobs' prefix
+                  input.name = newName;
+                  input.id = input.id.replace(/jobs-\d+-/, `jobs-${index}-`);       // Use 'jobs' prefix
+              });
+          });
+          totalFormsInput.value = forms.length;
+      }
+
+        function addNewForm() {
+          const forms = formsetContainer.querySelectorAll('.job-form');
+          const formCount = forms.length;
+          let newForm;
+          let templateForm = formsetContainer.querySelector('.job-form');
+      
+          if (templateForm) {
+              newForm = templateForm.cloneNode(true);
+              newForm.style.display = ''; // Ensure the new form is visible
+          } else {
+              alert('No forms available to clone.');
+              return;
+          }
+      
+          // Update indices in form fields
+          const formRegex = new RegExp(`jobs-(\\d+)-`, 'g');
+          newForm.innerHTML = newForm.innerHTML.replace(formRegex, `jobs-${formCount}-`);
+          newForm.querySelectorAll('input, select, textarea').forEach(input => {
+              if (input.type === 'checkbox' || input.type === 'radio') {
+                  input.checked = false;
+              } else {
+                  input.value = '';
+              }
+              input.name = input.name.replace(formRegex, `jobs-${formCount}-`);
+              input.id = input.id.replace(formRegex, `jobs-${formCount}-`);
+          });
+      
+          // Ensure the id field is present and empty for new forms
+          let idField = newForm.querySelector('input[name$="-id"]');
+          if (!idField) {
+              idField = document.createElement('input');
+              idField.type = 'hidden';
+              idField.name = `jobs-${formCount}-id`;
+              idField.id = `id_jobs-${formCount}-id`;
+              newForm.appendChild(idField);
+          }
+          idField.value = '';
+      
+          // Ensure the DELETE checkbox is included and unchecked
+          let deleteCheckbox = newForm.querySelector('input[name$="-DELETE"]');
+          if (!deleteCheckbox) {
+              const deleteCell = newForm.querySelector('td'); // Adjust as needed
+              deleteCheckbox = document.createElement('input');
+              deleteCheckbox.type = 'checkbox';
+              deleteCheckbox.name = `jobs-${formCount}-DELETE`;
+              deleteCheckbox.id = `id_jobs-${formCount}-DELETE`;
+              deleteCell.appendChild(deleteCheckbox);
+          }
+          deleteCheckbox.checked = false;
+      
+          // Insert the new form before the "End Location" row
+          const endLocationRow = formsetContainer.querySelector('tr:last-of-type');
+          formsetContainer.insertBefore(newForm, endLocationRow);
+          totalFormsInput.value = formCount + 1;
+      
+          // Attach event listeners to the new form only
+          attachEventListeners(newForm);
+      
+          // Hide the placeholder row since we now have a visible job form
+          document.querySelector('.no-job-forms').style.display = 'none';
         }
-    
-        addJobButton.addEventListener('click', addNewForm);
-        formsetContainer.addEventListener('click', removeForm);
-    
-        attachEventListeners(formsetContainer);
-        initializeFields();
-    });
-    
+  
+      function removeForm(e) {
+          if (e.target.classList.contains('remove-job')) {
+              const jobForms = formsetContainer.querySelectorAll('.job-form');
+              const visibleForms = formsetContainer.querySelectorAll('.job-form:not([style*="display: none"])');
+              const jobForm = e.target.closest('.job-form');
+  
+              if (visibleForms.length > 1) {
+                  // Proceed with deletion
+                  const deleteCheckbox = jobForm.querySelector('input[name$="-DELETE"]');
+                  if (deleteCheckbox) {
+                      deleteCheckbox.checked = true;
+                      jobForm.style.display = 'none';
+                  } else {
+                      jobForm.remove();
+                      updateFormIndices();
+                  }
+              } else {
+                  // Hide the form and show the placeholder row
+                  const deleteCheckbox = jobForm.querySelector('input[name$="-DELETE"]');
+                  if (deleteCheckbox) {
+                      deleteCheckbox.checked = true;
+                  }
+                  jobForm.style.display = 'none';
+                  // Show the placeholder row
+                  document.querySelector('.no-job-forms').style.display = '';
+              }
+  
+              // Update indices
+              updateFormIndices();
+          }
+      }
+
+      // Attach event listeners for "Add Job" buttons using event delegation
+      document.addEventListener('click', function (e) {
+          if (e.target && (e.target.id === 'add-job' || e.target.id === 'add-job-when-empty' || e.target.closest('#add-job') || e.target.closest('#add-job-when-empty'))) {
+              addNewForm();
+          }
+      });
+  
+      formsetContainer.addEventListener('click', removeForm);
+  
+      // Initial check to show/hide the placeholder row
+      const visibleForms = formsetContainer.querySelectorAll('.job-form:not([style*="display: none"])');
+      if (visibleForms.length === 0) {
+          document.querySelector('.no-job-forms').style.display = '';
+      } else {
+          document.querySelector('.no-job-forms').style.display = 'none';
+      }
+  
+      // Initialize fields and attach event listeners
+      attachEventListeners(formsetContainer);
+      initializeFields();
+  });
     </script>
 {% endblock %}

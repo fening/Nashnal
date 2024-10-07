@@ -160,21 +160,6 @@ class TimeEntry(models.Model):
 
                         travel_miles_subtract += unpaid_miles_first_leg
 
-                    # Miles Between Jobs (unchanged)
-                    job_mileages = self.jobs.order_by('activity_arrive_time').values_list('activity_start_mileage', 'activity_end_mileage')
-                    for i in range(len(job_mileages) - 1):
-                        current_job_end_mileage = job_mileages[i][1]
-                        next_job_start_mileage = job_mileages[i + 1][0]
-                        if current_job_end_mileage is not None and next_job_start_mileage is not None:
-                            miles_between_jobs = next_job_start_mileage - current_job_end_mileage
-                            travel_miles_subtract += miles_between_jobs
-
-                    # Miles During Jobs (unchanged)
-                    for job in self.jobs.all():
-                        if job.activity_start_mileage is not None and job.activity_end_mileage is not None:
-                            miles_during_job = job.activity_end_mileage - job.activity_start_mileage
-                            travel_miles_subtract += miles_during_job
-
                     # Last Leg Calculation
                     if last_job.activity_end_mileage is not None:
                         miles_traveled_last_leg = self.final_mileage - last_job.activity_end_mileage

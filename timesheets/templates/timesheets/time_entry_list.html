@@ -1,111 +1,87 @@
 {% extends 'timesheets/base.html' %}
 
-{% block title %}Time Entries - Time Sheet App{% endblock %}
+{% block title %}
+<h1 class="text-xl font-semibold">Timesheet Entries</h1>
+{% endblock %}
 
 {% block content %}
-<style>
-    button[type="submit"] {
-        padding: 12px 20px;
-        background-color: #333; /* Green color for confirmation */
-        color: white;
-        border: none;
-        border-radius: 5px;
-        cursor: pointer;
-        font-size: 16px;
-        font-weight: bold;
-        text-align: center;
-        text-decoration: none;
-        display: inline-block;
-        transition: background-color 0.3s ease;
-    }
-    
-    button[type="submit"]:hover {
-        background-color: #444744; /* Darker green on hover */
-    }
-    
-    button[type="submit"]:focus {
-        outline: none;
-        box-shadow: 0 0 0 3px rgba(161, 170, 161, 0.5); /* Green focus ring */
-    }
-    
-    button[type="submit"]:active {
-        background-color: #778378; /* Even darker green when clicked */
-        transform: translateY(1px); /* Slight push down effect */
-    }
-</style>
-    <div class="header-container">
-        <div class="search-container">
-            <form method="get" action="{% url 'time_entry_list' %}">
-                <input type="text" name="search" value="{{ search_query }}" placeholder="Search for entries...">
-                <button type="submit">Search</button>
-            </form>
-        </div>
-        <div class="sort-container">
-            <form method="get" action="{% url 'time_entry_list' %}">
-                <input type="hidden" name="search" value="{{ search_query }}">
-                <label for="sort_by">Sort by:</label>
-                <select name="sort_by" id="sort_by" onchange="this.form.submit()">
-                    <option value="date" {% if sort_by == 'date' %}selected{% endif %}>Date</option>
-                    {% if request.user.is_superuser %}
-                        <option value="user__username" {% if sort_by == 'user__username' %}selected{% endif %}>User</option>
-                    {% endif %}
-                    <option value="start_time" {% if sort_by == 'start_time' %}selected{% endif %}>Start Time</option>
-                    <option value="end_time" {% if sort_by == 'end_time' %}selected{% endif %}>End Time</option>
-                    <option value="hours_for_the_day" {% if sort_by == 'hours_for_the_day' %}selected{% endif %}>Hours for the Day</option>
-                    <option value="total_miles" {% if sort_by == 'total_miles' %}selected{% endif %}>Total Miles</option>
-                </select>
-            </form>
+<div class="bg-white shadow-md rounded-lg overflow-hidden">
+    <div class="p-6 space-y-4">
+        <div class="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0 md:space-x-4">
+            <div class="w-full md:w-1/2">
+                <form method="get" action="{% url 'time_entry_list' %}" class="flex">
+                    <input type="text" name="search" value="{{ search_query }}" placeholder="Search for entries..." class="flex-grow px-4 py-2 border rounded-l-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <button type="submit" class="px-4 py-2 bg-blue-500 text-white rounded-r-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500">Search</button>
+                </form>
+            </div>
+            <div class="w-full md:w-1/2">
+                <form method="get" action="{% url 'time_entry_list' %}" class="flex items-center justify-end">
+                    <input type="hidden" name="search" value="{{ search_query }}">
+                    <label for="sort_by" class="mr-2 text-gray-700">Sort by:</label>
+                    <select name="sort_by" id="sort_by" onchange="this.form.submit()" class="px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="date" {% if sort_by == 'date' %}selected{% endif %}>Date</option>
+                        {% if request.user.is_superuser %}
+                            <option value="user__username" {% if sort_by == 'user__username' %}selected{% endif %}>User</option>
+                        {% endif %}
+                        <option value="start_time" {% if sort_by == 'start_time' %}selected{% endif %}>Start Time</option>
+                        <option value="end_time" {% if sort_by == 'end_time' %}selected{% endif %}>End Time</option>
+                        <option value="hours_for_the_day" {% if sort_by == 'hours_for_the_day' %}selected{% endif %}>Hours for the Day</option>
+                        <option value="total_miles" {% if sort_by == 'total_miles' %}selected{% endif %}>Total Miles</option>
+                    </select>
+                </form>
+            </div>
         </div>
 
+        <div class="overflow-x-auto">
+            <table id="timeEntriesTable" class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        {% if request.user.is_superuser %}
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User</th>
+                        {% endif %}
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Start Time</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">End Time</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Labor Description</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Activity Start Mileage</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Activity End Mileage</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Hours for the Day</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Miles</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    {% for entry in time_entries %}
+                        {% for job in entry.jobs.all %}
+                            <tr>
+                                {% if forloop.first %}
+                                    {% if request.user.is_superuser %}
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500" rowspan="{{ entry.jobs.count }}">{{ entry.user.username }}</td>
+                                    {% endif %}
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500" rowspan="{{ entry.jobs.count }}">{{ entry.date }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500" rowspan="{{ entry.jobs.count }}">{{ entry.start_time }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500" rowspan="{{ entry.jobs.count }}">{{ entry.end_time }}</td>
+                                {% endif %}
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ job.labor_code_description }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ job.job_description }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ job.activity_start_mileage }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ job.activity_end_mileage }}</td>
+                                {% if forloop.first %}
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500" rowspan="{{ entry.jobs.count }}">{{ entry.hours_for_the_day }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500" rowspan="{{ entry.jobs.count }}">{{ entry.total_miles }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium" rowspan="{{ entry.jobs.count }}">
+                                        <a href="{% url 'time_entry_detail' entry.pk %}" class="text-blue-600 hover:text-blue-900 mr-2">View</a>
+                                        <a href="{% url 'time_entry_edit' entry.pk %}" class="text-indigo-600 hover:text-indigo-900 mr-2">Edit</a>
+                                        <a href="{% url 'time_entry_delete' entry.pk %}" class="text-red-600 hover:text-red-900">Delete</a>
+                                    </td>
+                                {% endif %}
+                            </tr>
+                        {% endfor %}
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
     </div>
-
-    <table id="timeEntriesTable">
-        <thead>
-            <tr>
-                {% if request.user.is_superuser %}
-                    <th>User</th>
-                {% endif %}
-                <th>Date</th>
-                <th>Start Time</th>
-                <th>End Time</th>
-                <th>Labor Description</th>
-                <th>Description</th>
-                <th>Activity Start Mileage</th>
-                <th>Activity End Mileage</th>
-                <th>Hours for the Day</th>
-                <th>Total Miles</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for entry in time_entries %}
-            {% for job in entry.jobs.all %}
-            <tr>
-                {% if forloop.first %}
-                    {% if request.user.is_superuser %}
-                        <td rowspan="{{ entry.jobs.count }}">{{ entry.user.username }}</td>
-                    {% endif %}
-                    <td rowspan="{{ entry.jobs.count }}">{{ entry.date }}</td>
-                    <td rowspan="{{ entry.jobs.count }}">{{ entry.start_time }}</td>
-                    <td rowspan="{{ entry.jobs.count }}">{{ entry.end_time }}</td>
-                {% endif %}
-                <td>{{ job.labor_code_description }}</td>
-                <td>{{ job.job_description }}</td>
-                <td>{{ job.activity_start_mileage }}</td>
-                <td>{{ job.activity_end_mileage }}</td>
-                {% if forloop.first %}
-                    <td rowspan="{{ entry.jobs.count }}">{{ entry.hours_for_the_day }}</td>
-                    <td rowspan="{{ entry.jobs.count }}">{{ entry.total_miles }}</td>
-                    <td rowspan="{{ entry.jobs.count }}">
-                        <a href="{% url 'time_entry_detail' entry.pk %}">View Details</a> |
-                        <a href="{% url 'time_entry_edit' entry.pk %}">Edit</a> | 
-                        <a href="{% url 'time_entry_delete' entry.pk %}">Delete</a>
-                    </td>
-                {% endif %}
-            </tr>
-            {% endfor %}
-            {% endfor %}
-        </tbody>
-    </table>
-
+</div>
 {% endblock %}

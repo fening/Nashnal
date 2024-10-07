@@ -155,8 +155,12 @@ def time_entry_edit(request, pk):
 
     if request.method == 'POST':
         form = TimeEntryForm(request.POST, instance=time_entry)
-        formset = JobFormSet(request.POST, instance=time_entry)
+        formset = JobFormSet(request.POST, instance=time_entry, prefix='jobs')
 
+        print("POST data:", request.POST)
+        print(f"Form is valid: {form.is_valid()}")
+        print(f"Formset is valid: {formset.is_valid()}")
+        
         logger.debug(f"POST data: {request.POST}")
         logger.debug(f"Form is valid: {form.is_valid()}")
         logger.debug(f"Formset is valid: {formset.is_valid()}")
@@ -191,7 +195,7 @@ def time_entry_edit(request, pk):
             messages.error(request, "Please correct the errors below.")
     else:
         form = TimeEntryForm(instance=time_entry)
-        formset = JobFormSet(instance=time_entry)
+        formset = JobFormSet(instance=time_entry, prefix='jobs')  
 
     return render(request, 'timesheets/time_entry_form.html', {
         'form': form,
