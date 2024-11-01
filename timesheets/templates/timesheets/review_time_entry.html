@@ -1,0 +1,112 @@
+{# templates/timesheets/review_time_entry.html #}
+{% extends 'timesheets/base.html' %}
+{% load custom_filters %}
+
+{% block title %}
+    <h1 class="text-xl font-semibold">Review Time Entry</h1>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto p-6">
+    <div class="bg-white shadow-md rounded-lg overflow-hidden">
+        <!-- Employee and Time Entry Info -->
+        <div class="bg-gray-50 p-6 border-b border-gray-200">
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <p class="text-gray-600">Employee:</p>
+                    <p class="font-medium">{{ approval.time_entry.user.get_full_name }}</p>
+                </div>
+                <div>
+                    <p class="text-gray-600">Submission Date:</p>
+                    <p class="font-medium">{{ approval.submitted_at|date:"M d, Y H:i" }}</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Time Entry Details -->
+        <div class="p-6 border-b border-gray-200">
+            <h2 class="text-lg font-semibold mb-4">Time Entry Details</h2>
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <p class="text-gray-600">Date:</p>
+                    <p class="font-medium">{{ approval.time_entry.date|date:"M d, Y" }}</p>
+                </div>
+                <div>
+                    <p class="text-gray-600">Total Hours:</p>
+                    <p class="font-medium">{{ approval.time_entry.hours_to_be_paid }}</p>
+                </div>
+                <div>
+                    <p class="text-gray-600">Travel Time Subtracted:</p>
+                    <p class="font-medium">{{ approval.time_entry.travel_time_subtract }}</p>
+                </div>
+                <div>
+                    <p class="text-gray-600">Miles to be Paid:</p>
+                    <p class="font-medium">{{ approval.time_entry.miles_to_be_paid }}</p>
+                </div>
+            </div>
+
+            <!-- Jobs List -->
+            <div class="mt-6">
+                <h3 class="text-md font-semibold mb-3">Jobs Completed:</h3>
+                <div class="space-y-2">
+                    {% for job in approval.time_entry.jobs.all %}
+                    <div class="border border-gray-200 rounded p-3">
+                        <p><span class="text-gray-600">Job Number:</span> {{ job.job_number }}</p>
+                        <p><span class="text-gray-600">Labor Code:</span> {{ job.labor_code }}</p>
+                        <p><span class="text-gray-600">Time:</span> 
+                            {{ job.activity_arrive_time|time:"H:i" }} - {{ job.activity_leave_time|time:"H:i" }}
+                        </p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Employee Comments -->
+            {% if approval.submitter_comments %}
+            <div class="mt-6">
+                <h3 class="text-md font-semibold mb-2">Employee Comments:</h3>
+                <div class="bg-gray-50 p-3 rounded">
+                    {{ approval.submitter_comments }}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Review Form -->
+        <form method="post" class="p-6">
+            {% csrf_token %}
+            
+            <div class="mb-6">
+                <label class="block text-gray-700 text-sm font-bold mb-2">
+                    Status
+                </label>
+                {{ form.status|add_class:"w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500" }}
+                {% if form.status.errors %}
+                    <p class="text-red-500 text-xs mt-1">{{ form.status.errors|join:", " }}</p>
+                {% endif %}
+            </div>
+
+            <div class="mb-6">
+                <label class="block text-gray-700 text-sm font-bold mb-2">
+                    Review Comments
+                </label>
+                {{ form.reviewer_comments|add_class:"w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500" }}
+                {% if form.reviewer_comments.errors %}
+                    <p class="text-red-500 text-xs mt-1">{{ form.reviewer_comments.errors|join:", " }}</p>
+                {% endif %}
+            </div>
+
+            <div class="flex items-center justify-end space-x-4">
+                <a href="{% url 'supervisor_dashboard' %}" 
+                   class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50">
+                    Cancel
+                </a>
+                <button type="submit" 
+                        class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                    Submit Review
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

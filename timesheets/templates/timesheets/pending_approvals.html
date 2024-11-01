@@ -1,0 +1,121 @@
+{% extends 'timesheets/base.html' %}
+{% load custom_filters %}
+
+{% block title %}
+    <h1 class="text-xl font-semibold">
+        {% if user.role == 'Supervisor' %}
+            Pending Time Entry Approvals
+        {% else %}
+            My Pending Approvals
+        {% endif %}
+    </h1>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto p-6">
+    <div class="bg-white shadow-md rounded-lg overflow-hidden">
+        {% if pending_approvals %}
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            {% if user.role == 'Supervisor' %}
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Employee
+                                </th>
+                            {% endif %}
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Date
+                            </th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Hours
+                            </th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Submitted
+                            </th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Jobs
+                            </th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Comments
+                            </th>
+                            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Actions
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        {% for approval in pending_approvals %}
+                            <tr>
+                                {% if user.role == 'Supervisor' %}
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="text-sm font-medium text-gray-900">
+                                            {{ approval.time_entry.user.get_full_name }}
+                                        </div>
+                                    </td>
+                                {% endif %}
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-gray-900">
+                                        {{ approval.time_entry.date|date:"M d, Y" }}
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-gray-900">
+                                        {{ approval.time_entry.hours_to_be_paid }}
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-gray-900">
+                                        {{ approval.submitted_at|date:"M d, Y H:i" }}
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4">
+                                    <div class="text-sm text-gray-900">
+                                        {% for job in approval.time_entry.jobs.all %}
+                                            <div class="mb-1">
+                                                {{ job.job_number }} - {{ job.labor_code }}
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4">
+                                    <div class="text-sm text-gray-900">
+                                        {% if approval.submitter_comments %}
+                                            {{ approval.submitter_comments|truncatechars:50 }}
+                                        {% else %}
+                                            <span class="text-gray-500 italic">No comments</span>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                    {% if user.role == 'Supervisor' %}
+                                        <a href="{% url 'review_time_entry' approval.time_entry.pk %}" 
+                                           class="text-blue-600 hover:text-blue-900">
+                                            Review
+                                        </a>
+                                    {% else %}
+                                        <a href="{% url 'time_entry_detail' approval.time_entry.pk %}" 
+                                           class="text-blue-600 hover:text-blue-900">
+                                            View
+                                        </a>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="p-6 text-center">
+                <p class="text-gray-500 text-lg">
+                    {% if user.role == 'Supervisor' %}
+                        No pending time entries to review.
+                    {% else %}
+                        You don't have any pending approvals.
+                    {% endif %}
+                </p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

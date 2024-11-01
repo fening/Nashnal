@@ -2,7 +2,6 @@ from django import template
 from datetime import timedelta
 from django.utils.safestring import SafeString
 
-
 register = template.Library()
 
 @register.filter
@@ -29,3 +28,21 @@ def add_class(value, arg):
         else:
             css_classes = arg
         return value.as_widget(attrs={'class': css_classes})
+    
+@register.filter
+def get_list_item(lst, index):
+    try:
+        return lst[index]
+    except:
+        return None
+
+@register.filter
+def add(value, arg):
+    try:
+        return int(value) + int(arg)
+    except (ValueError, TypeError):
+        return value
+    
+@register.filter
+def get_item(dictionary, key):
+    return dictionary.get(key)

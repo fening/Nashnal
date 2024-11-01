@@ -1,5 +1,5 @@
 from django import forms
-from .models import TimeEntry, Job, JobDetails, LaborCode
+from .models import TimeEntry, Job, JobDetails, LaborCode, TimeEntryApproval
 from datetime import datetime, timedelta
 
 class JobDescriptionChoiceField(forms.ModelChoiceField):
@@ -234,3 +234,44 @@ class LaborCodeForm(forms.ModelForm):
         widgets = {
             'labor_code_description': forms.TextInput(attrs={'class': 'form-control'}),
         }
+        
+class TimeEntryApprovalForm(forms.ModelForm):
+    """Form for submitting a time entry for approval"""
+    class Meta:
+        model = TimeEntryApproval
+        fields = ['submitter_comments']
+        widgets = {
+            'submitter_comments': forms.Textarea(attrs={
+                'rows': 3,
+                'class': 'form-control',
+                'placeholder': 'Add any comments for your supervisor...'
+            })
+        }
+
+class TimeEntryReviewForm(forms.ModelForm):
+    """Form for reviewing a submitted time entry"""
+    class Meta:
+        model = TimeEntryApproval
+        fields = ['status', 'reviewer_comments']
+        widgets = {
+            'status': forms.Select(attrs={
+                'class': 'form-control'
+            }),
+            'reviewer_comments': forms.Textarea(attrs={
+                'rows': 3,
+                'class': 'form-control',
+                'placeholder': 'Add review comments...'
+            })
+        }
+
+    def clean(self):
+        cleaned_data = super().clean()
+        status = cleaned_data.get('status')
+        reviewer_comments = cleaned_data.get('reviewer_comments')
+
+        if status == 'rejected' and not reviewer_comments:
+            raise forms.ValidationError({
+                'reviewer_comments': 'Comments are required when rejecting a time entry.'
+            })
+        
+        return cleaned_data

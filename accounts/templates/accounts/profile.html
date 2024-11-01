@@ -1,115 +1,37 @@
 {% extends 'timesheets/base.html' %}
 
 {% block content %}
-<style>
-    .profile-container {
-        max-width: 600px;
-        margin: 0 auto;
-        padding: 20px;
-        background-color: #f9f9f9;
-        border-radius: 25px;
-        box-shadow: 0 0 10px rgba(0,0,0,0.1);
-    }
-    .profile-header {
-        text-align: center;
-        margin-bottom: 30px;
-    }
-    .profile-info {
-        background-color: white;
-        padding: 20px;
-        border-radius: 20px;
-        margin-bottom: 20px;
-    }
-    .profile-info p {
-        margin: 10px 0;
-        font-size: 16px;
-    }
-    .password-change-section {
-        background-color: white;
-        padding: 20px;
-        border-radius: 20px;
-    }
-    .password-change-section h3 {
-        margin-top: 0;
-        margin-bottom: 20px;
-        color: #333;
-    }
-    #password-change-form .form-group {
-        margin-bottom: 15px;
-    }
-    #password-change-form label {
-        display: block;
-        margin-bottom: 5px;
-        font-weight: bold;
-    }
-    #password-change-form input {
-        width: 100%;
-        padding: 8px;
-        border: 1px solid #ddd;
-        border-radius: 20px;
-        font-size: 20px;
-    }
-    #password-change-form button {
-        width: 100%;
-        padding: 10px;
-        background-color: #007bff;
-        color: white;
-        border: none;
-        border-radius: 20px;
-        cursor: pointer;
-        font-size: 20px;
-    }
-    #password-change-form button:hover {
-        background-color: #0056b3;
-    }
-    .success {
-        color: #28a745;
-        font-weight: bold;
-        padding: 10px;
-        background-color: #d4edda;
-        border-radius: 4px;
-        margin-top: 15px;
-    }
-    .error {
-        color: #dc3545;
-        list-style-type: none;
-        padding: 10px;
-        background-color: #f8d7da;
-        border-radius: 4px;
-        margin-top: 15px;
-    }
-    .error li {
-        margin-bottom: 5px;
-    }
-</style>
-
-<div class="profile-container">
-    <div class="profile-header">
-        <h2>User Profile</h2>
+<div class="max-w-2xl mx-auto p-6 bg-gray-100 ">
+    <div class="text-center mb-8">
+        <h2 class="text-2xl font-bold">User Profile</h2>
     </div>
     
-    <div class="profile-info">
-        <p><strong>Username:</strong> {{ user.username }}</p>
-        <p><strong>Email:</strong> {{ user.email }}</p>
+    <div class="bg-white p-6 rounded-2xl mb-6">
+        <p class="mb-2 text-lg"><strong>Username:</strong> {{ user.username }}</p>
+        <p class="mb-2 text-lg"><strong>Email:</strong> {{ user.email }}</p>
         <!-- Add more profile fields as needed -->
     </div>
 
-    <div class="password-change-section">
-        <h3>Change Password</h3>
+    <div class="bg-white p-6 rounded-2xl">
+        <h3 class="text-xl font-semibold mb-4 text-gray-800">Change Password</h3>
         <form id="password-change-form">
             {% csrf_token %}
             {% for field in form %}
-                <div class="form-group">
-                    {{ field.label_tag }}
-                    {{ field }}
+                <div class="mb-4">
+                    <label for="{{ field.id_for_label }}" class="block mb-2 font-bold">{{ field.label }}</label>
+                    <input type="{{ field.field.widget.input_type }}" 
+                           name="{{ field.name }}" 
+                           id="{{ field.id_for_label }}" 
+                           class="w-full p-2 border border-gray-300 rounded-full text-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                           {% if field.field.required %}required{% endif %}>
                     {% if field.help_text %}
-                        <small class="form-text text-muted">{{ field.help_text }}</small>
+                        <small class="text-gray-600 mt-1 block">{{ field.help_text }}</small>
                     {% endif %}
                 </div>
             {% endfor %}
-            <button type="submit" class="btn btn-primary">Change Password</button>
+            <button type="submit" class="w-full py-2 px-4 bg-blue-500 text-white rounded-full text-lg hover:bg-blue-600 transition duration-300">Change Password</button>
         </form>
-        <div id="password-change-message"></div>
+        <div id="password-change-message" class="mt-4"></div>
     </div>
 </div>
 
@@ -131,12 +53,12 @@ document.getElementById('password-change-form').addEventListener('submit', funct
     .then(data => {
         var messageDiv = document.getElementById('password-change-message');
         if (data.success) {
-            messageDiv.innerHTML = '<p class="success">' + data.message + '</p>';
+            messageDiv.innerHTML = '<p class="text-green-600 font-bold p-3 bg-green-100 rounded-md">' + data.message + '</p>';
             form.reset();
         } else {
-            var errorHtml = '<ul class="error">';
+            var errorHtml = '<ul class="text-red-600 list-none p-3 bg-red-100 rounded-md">';
             for (var field in data.errors) {
-                errorHtml += '<li>' + field + ': ' + data.errors[field].join(', ') + '</li>';
+                errorHtml += '<li class="mb-1">' + field + ': ' + data.errors[field].join(', ') + '</li>';
             }
             errorHtml += '</ul>';
             messageDiv.innerHTML = errorHtml;

@@ -1,27 +1,232 @@
 {% extends 'timesheets/base.html' %}
+{% load custom_filters %}  {# Add this line at the top #}
+
+{% block title %}
+    <h1 class="text-xl font-semibold">
+        {% if is_supervisor %}
+            My Team Management
+        {% else %}
+            Employee Management
+        {% endif %}
+    </h1>
+{% endblock %}
 
 {% block content %}
-<h2>Employee List</h2>
-<table class="table">
-    <thead>
-        <tr>
-            <th>Name</th>
-            <th>Role</th>
-            <th>Supervisor</th>
-            <th>Distance to Office (miles)</th>
-            <th>Travel Time to Office (minutes)</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for employee in employees %}
-        <tr>
-            <td>{{ employee.get_full_name }}</td>
-            <td>{{ employee.role }}</td>
-            <td>{{ employee.supervisor.get_full_name|default_if_none:"N/A" }}</td>
-            <td>{{ employee.distance_office|default_if_none:"N/A" }}</td>
-            <td>{{ employee.time_office|default_if_none:"N/A" }}</td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
+<div class="max-w-7xl mx-auto p-6">
+    <!-- Stats Section -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+        <div class="bg-white rounded-lg shadow-sm p-4">
+            <div class="text-sm text-gray-500">Total Employees</div>
+            <div class="text-2xl font-bold text-gray-800">{{ stats.total }}</div>
+        </div>
+        <div class="bg-white rounded-lg shadow-sm p-4">
+            <div class="text-sm text-gray-500">Active Employees</div>
+            <div class="text-2xl font-bold text-green-600">{{ stats.active }}</div>
+        </div>
+        <div class="bg-white rounded-lg shadow-sm p-4">
+            <div class="text-sm text-gray-500">Technicians</div>
+            <div class="text-2xl font-bold text-blue-600">{{ stats.technicians }}</div>
+        </div>
+        <div class="bg-white rounded-lg shadow-sm p-4">
+            <div class="text-sm text-gray-500">Supervisors</div>
+            <div class="text-2xl font-bold text-purple-600">{{ stats.supervisors }}</div>
+        </div>
+    </div>
+
+    <div class="bg-white shadow-md rounded-lg overflow-hidden">
+        <!-- Header Section -->
+        <div class="px-6 py-4 border-b border-gray-200">
+            <div class="flex justify-between items-center">
+                <div class="flex items-center">
+                    <h2 class="text-xl font-semibold text-gray-800">
+                        {% if is_supervisor %}
+                            Team Members
+                        {% else %}
+                            All Employees
+                        {% endif %}
+                    </h2>
+                    {% if stats.total > 0 %}
+                        <span class="ml-3 px-3 py-1 text-sm bg-gray-100 text-gray-700 rounded-full">
+                            {{ stats.total }} total
+                        </span>
+                    {% endif %}
+                </div>
+                
+                {% if is_superuser or is_supervisor %}
+                    <a href="{% url 'employee_create' %}" 
+                       class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded inline-flex items-center transition duration-150 ease-in-out">
+                        <svg class="h-4 w-4 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="8.5" cy="7" r="4"></circle>
+                            <line x1="20" y1="8" x2="20" y2="14"></line>
+                            <line x1="23" y1="11" x2="17" y2="11"></line>
+                        </svg>
+                        Add Employee
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Add Role Filter Section for Admins -->
+        {% if is_superuser %}
+            <div class="px-6 py-3 bg-gray-50 border-b border-gray-200">
+                <div class="flex items-center space-x-4">
+                    <span class="text-sm font-medium text-gray-600">Filter by Role:</span>
+                    <div class="flex space-x-2">
+                        <button onclick="filterRole('all')" 
+                                class="role-filter px-3 py-1 text-sm rounded-full border transition-colors duration-150
+                                       bg-blue-100 text-blue-800 border-blue-200 hover:bg-blue-200">
+                            All
+                        </button>
+                        <button onclick="filterRole('Supervisor')" 
+                                class="role-filter px-3 py-1 text-sm rounded-full border transition-colors duration-150
+                                       bg-purple-100 text-purple-800 border-purple-200 hover:bg-purple-200">
+                            Supervisors
+                        </button>
+                        <button onclick="filterRole('Technician')" 
+                                class="role-filter px-3 py-1 text-sm rounded-full border transition-colors duration-150
+                                       bg-green-100 text-green-800 border-green-200 hover:bg-green-200">
+                            Technicians
+                        </button>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+        
+        <!-- Table Section -->
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Employee
+                        </th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Role
+                        </th>
+                        {% if is_superuser %}
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Supervisor
+                            </th>
+                        {% endif %}
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Status
+                        </th>
+                        <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Actions
+                        </th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    {% for employee in employees %}
+                        {% if forloop.counter > 1 %}
+                            {% with previous_employee=employees|get_list_item:forloop.counter0|add:"-1" %}
+                                {% if previous_employee.role != employee.role %}
+                                    <tr class="bg-gray-50">
+                                        <td colspan="{% if is_superuser %}5{% else %}4{% endif %}" class="px-6 py-2 text-xs font-medium text-gray-500">
+                                            {{ employee.role }}s
+                                        </td>
+                                    </tr>
+                                {% endif %}
+                            {% endwith %}
+                        {% endif %}
+                        
+                        <tr class="hover:bg-gray-50 transition duration-150 ease-in-out 
+                                   {% if employee.role == 'Supervisor' %}bg-purple-50{% endif %}">
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="flex items-center">
+                                    <div class="flex-shrink-0 h-10 w-10">
+                                        <div class="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">
+                                            <span class="text-xl font-medium text-gray-600">
+                                                {{ employee.first_name|first }}{{ employee.last_name|first }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div class="ml-4">
+                                        <div class="text-sm font-medium text-gray-900">
+                                            {{ employee.get_full_name }}
+                                        </div>
+                                        <div class="text-sm text-gray-500">
+                                            {{ employee.email }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                    {% if employee.role == 'Supervisor' %}
+                                        bg-purple-100 text-purple-800
+                                    {% else %}
+                                        bg-blue-100 text-blue-800
+                                    {% endif %}">
+                                    {{ employee.role }}
+                                </span>
+                            </td>
+                            {% if is_superuser %}
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                    {{ employee.supervisor.get_full_name|default:"N/A" }}
+                                </td>
+                            {% endif %}
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                    {% if employee.is_active %}
+                                        bg-green-100 text-green-800
+                                    {% else %}
+                                        bg-red-100 text-red-800
+                                    {% endif %}">
+                                    {{ employee.is_active|yesno:"Active,Inactive" }}
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                <div class="flex justify-end space-x-3">
+                                    <a href="{% url 'employee_update' employee.pk %}" 
+                                       class="text-blue-600 hover:text-blue-900 transition duration-150 ease-in-out">
+                                        Edit
+                                    </a>
+                                    {% if is_superuser %}
+                                        <a href="{% url 'employee_delete' employee.pk %}" 
+                                           class="text-red-600 hover:text-red-900 transition duration-150 ease-in-out">
+                                            Delete
+                                        </a>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="{% if is_superuser %}5{% else %}4{% endif %}" class="px-6 py-4 text-center text-gray-500">
+                                No employees found
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Add JavaScript for role filtering -->
+{% if is_superuser %}
+<script>
+    function filterRole(role) {
+        const rows = document.querySelectorAll('tbody tr');
+        rows.forEach(row => {
+            const roleCell = row.querySelector('td:nth-child(2)');
+            if (roleCell) {
+                if (role === 'all' || roleCell.textContent.trim() === role) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            }
+        });
+
+        // Update button styles
+        document.querySelectorAll('.role-filter').forEach(button => {
+            button.style.opacity = '0.7';
+        });
+        event.target.style.opacity = '1';
+    }
+</script>
+{% endif %}
 {% endblock %}

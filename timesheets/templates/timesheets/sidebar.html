@@ -1,57 +1,311 @@
-
-    <!-- Sidebar -->
-    <div id="sidebar" class="fixed inset-y-0 left-0 z-30 w-64 bg-gray-800 text-white transform transition-transform duration-300 ease-in-out translate-x-0">
-        <div class="flex justify-between items-center p-4">
-            <a href="/" class="flex items-center space-x-2 text-white">
-                <i data-lucide="package-2" class="h-6 w-6"></i>
-                <span class="text-2xl font-bold">NST</span>
-            </a>
-            <button id="closeSidebar" class="text-white p-1 rounded-md hover:bg-gray-700">
-                <i data-lucide="x" class="h-6 w-6"></i>
-                <span class="sr-only">Close sidebar</span>
-            </button>
-        </div>
-        <nav class="mt-5 px-2 space-y-1">
-            <a href="{% url 'dashboard' %}" class="flex items-center px-4 py-2 text-sm rounded transition duration-200 hover:bg-gray-700 hover:text-white">
-                <svg class="h-4 w-4 mr-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+<!-- sidebar.html -->
+<div id="sidebar" class="fixed inset-y-0 left-0 z-30 w-64 bg-white text-black transform transition-transform duration-300 ease-in-out translate-x-0 shadow-lg border-r border-gray-200">
+    <div class="flex justify-between items-center p-4">
+        <a href="/" class="flex items-center space-x-2 text-black">
+            <i data-lucide="package-2" class="h-6 w-6"></i>
+            <span class="text-2xl font-bold">NST</span>
+        </a>
+        <button id="closeSidebar" class="text-black p-1 rounded-md hover:bg-gray-200">
+            <i data-lucide="x" class="h-6 w-6"></i>
+            <span class="sr-only">Close sidebar</span>
+        </button>
+    </div>
+    <nav class="mt-5 px-2 space-y-1 flex flex-col h-[calc(100vh-5rem)] overflow-y-auto">
+        <!-- Main Navigation -->
+        <div class="space-y-1">
+            <a href="{% url 'dashboard' %}" class="flex items-center px-4 py-2 text-sm rounded transition duration-200 hover:bg-gray-200 hover:text-black">
+                <svg class="h-4 w-4 mr-3 text-black" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="3" width="7" height="7"></rect>
+                    <rect x="14" y="3" width="7" height="7"></rect>
+                    <rect x="14" y="14" width="7" height="7"></rect>
+                    <rect x="3" y="14" width="7" height="7"></rect>
+                </svg>
                 Dashboard
             </a>
+
             {% if user.is_authenticated %}
                 {% if user.is_superuser %}
-                    <a href="{% url 'job_details_create' %}" class="flex items-center px-4 py-2 text-sm rounded transition duration-200 hover:bg-gray-700 hover:text-white">
-                        <svg class="h-4 w-4 mr-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                    <!-- Admin Links -->
+                    <a href="{% url 'job_details_create' %}" class="flex items-center px-4 py-2 text-sm rounded transition duration-200 hover:bg-gray-200 hover:text-black">
+                        <svg class="h-4 w-4 mr-3 text-black" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                        </svg>
                         Create Job Details
                     </a>
-                    <a href="{% url 'employee_list' %}" class="flex items-center px-4 py-2 text-sm rounded transition duration-200 hover:bg-gray-700 hover:text-white">
-                        <svg class="h-4 w-4 mr-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                    <a href="{% url 'employee_list' %}" class="flex items-center px-4 py-2 text-sm rounded transition duration-200 hover:bg-gray-200 hover:text-black">
+                        <svg class="h-4 w-4 mr-3 text-black" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="9" cy="7" r="4"></circle>
+                            <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                        </svg>
                         View All Employees
                     </a>
                 {% else %}
-                    <a href="{% url 'time_entry_create' %}" class="flex items-center px-4 py-2 text-sm rounded transition duration-200 hover:bg-gray-700 hover:text-white">
-                        <svg class="h-4 w-4 mr-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="16"></line><line x1="8" y1="12" x2="16" y2="12"></line></svg>
+                    <a href="{% url 'time_entry_create' %}" class="flex items-center px-4 py-2 text-sm rounded transition duration-200 hover:bg-gray-200 hover:text-black">
+                        <svg class="h-4 w-4 mr-3 text-black" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <line x1="12" y1="8" x2="12" y2="16"></line>
+                            <line x1="8" y1="12" x2="16" y2="12"></line>
+                        </svg>
                         Create Time Entry
                     </a>
                 {% endif %}
-                <a href="{% url 'time_entry_list' %}" class="flex items-center px-4 py-2 text-sm rounded transition duration-200 hover:bg-gray-700 hover:text-white">
-                    <svg class="h-4 w-4 mr-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+
+                <!-- Common User Links -->
+                <a href="{% url 'time_entry_list' %}" class="flex items-center px-4 py-2 text-sm rounded transition duration-200 hover:bg-gray-200 hover:text-black">
+                    <svg class="w-4 h-4 mr-3 text-black" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                        <polyline points="14 2 14 8 20 8"></polyline>
+                        <line x1="16" y1="13" x2="8" y2="13"></line>
+                        <line x1="16" y1="17" x2="8" y2="17"></line>
+                        <polyline points="10 9 9 9 8 9"></polyline>
+                    </svg>
                     View Time Entries
                 </a>
-                <a href="{% url 'profile' %}" class="flex items-center px-4 py-2 text-sm rounded transition duration-200 hover:bg-gray-700 hover:text-white">
-                    <svg class="h-4 w-4 mr-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
-                    Profile
+                <a href="{% url 'user_summary_report' %}" class="flex items-center px-4 py-2 text-sm rounded-md transition duration-200 hover:bg-gray-200 hover:text-black">
+                    <!-- Updated Summary Report Icon -->
+                    <svg class="w-4 h-4 mr-3 text-black" data-lucide="bar-chart-2" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M18 20V10"></path>
+                        <path d="M12 20V4"></path>
+                        <path d="M6 20V14"></path>
+                    </svg>
+                    Summary Report
                 </a>
-                <a href="{% url 'logout' %}" class="flex items-center px-4 py-2 text-sm rounded transition duration-200 hover:bg-gray-700 hover:text-white">
-                    <svg class="h-4 w-4 mr-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+            {% endif %}
+        </div>
+
+        {% if user.is_authenticated and user.role == 'Supervisor' %}
+        <div class="mt-8 space-y-2">
+            <button 
+                id="supervisorDropdown"
+                class="w-full px-3 py-2 flex items-center justify-between text-xs font-semibold text-gray-400 uppercase tracking-wider hover:bg-gray-200 rounded-md transition-colors duration-200"
+                onclick="toggleSupervisorMenu()"
+            >
+                <span>Supervisor Tools</span>
+                <svg 
+                    id="dropdownIcon"
+                    class="w-4 h-4 transform transition-transform duration-200 text-black"
+                    fill="none" 
+                    stroke="currentColor" 
+                    viewBox="0 0 24 24"
+                >
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                </svg>
+            </button>
+            
+            <div id="supervisorMenu" 
+                class="hidden overflow-hidden space-y-1 transition-all duration-200 ease-in-out"
+                style="transition: max-height 200ms ease-in-out, opacity 200ms ease-in-out;">
+                <a href="{% url 'job_details_create' %}" 
+                   class="flex items-center px-4 py-2 text-sm rounded-md transition duration-200 
+                          {% if request.resolver_match.url_name == 'job_details_create' %}
+                              bg-gray-200 text-black
+                          {% else %}
+                              text-gray-300 hover:bg-gray-200 hover:text-black
+                          {% endif %}">
+                    <svg class="h-4 w-4 mr-3 text-black" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                    </svg>
+                    Create Job Details
+                </a>
+                
+                <a href="{% url 'employee_list' %}" 
+                   class="flex items-center px-4 py-2 text-sm rounded-md transition duration-200 
+                          {% if request.resolver_match.url_name == 'employee_list' %}
+                              bg-gray-200 text-black
+                          {% else %}
+                              text-gray-300 hover:bg-gray-200 hover:text-black
+                          {% endif %}">
+                    <svg class="h-4 w-4 mr-3 text-black" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="9" cy="7" r="4"></circle>
+                        <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                        <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                    </svg>
+                    View All Employees
+                </a>
+                
+                <a href="{% url 'pending_approvals' %}" 
+                   class="flex items-center px-4 py-2 text-sm rounded-md transition duration-200 
+                          {% if request.resolver_match.url_name == 'pending_approvals' %}
+                              bg-gray-200 text-black
+                          {% else %}
+                              text-gray-300 hover:bg-gray-200 hover:text-black
+                          {% endif %}">
+                    <svg class="w-4 h-4 mr-3 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v14a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
+                    </svg>
+                    <span class="flex-1">Pending Approvals</span>
+                    {% if pending_approvals_count > 0 %}
+                        <span class="ml-2 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-red-100 bg-red-600 rounded-full">
+                            {{ pending_approvals_count }}
+                        </span>
+                    {% endif %}
+                </a>
+            
+                <a href="{% url 'approval_history' %}" 
+                   class="flex items-center px-4 py-2 text-sm rounded-md transition duration-200 
+                          {% if request.resolver_match.url_name == 'approval_history' %}
+                              bg-gray-200 text-black
+                          {% else %}
+                              text-gray-300 hover:bg-gray-200 hover:text-black
+                          {% endif %}">
+                    <svg class="w-4 h-4 mr-3 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                    </svg>
+                    Approval History
+                </a>
+            
+                <a href="{% url 'team_timesheets' %}" 
+                   class="flex items-center px-4 py-2 text-sm rounded-md transition duration-200 
+                          {% if request.resolver_match.url_name == 'team_timesheets' %}
+                              bg-gray-200 text-black
+                          {% else %}
+                              text-gray-300 hover:bg-gray-200 hover:text-black
+                          {% endif %}">
+                    <svg class="w-4 h-4 mr-3 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+                    </svg>
+                    Team Timesheets
+                </a>
+            </div>
+        </div>
+        {% endif %}
+        
+        <!-- Bottom Links -->
+        <div class="mt-auto space-y-1">
+            <a href="{% url 'profile' %}" class="flex items-center px-4 py-2 text-sm rounded transition duration-200 hover:bg-gray-200 hover:text-black">
+                <svg class="h-4 w-4 mr-3 text-black" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="12" cy="7" r="4"></circle>
+                </svg>
+                Profile
+            </a>
+            
+            {% if user.is_authenticated %}
+                <a href="{% url 'logout' %}" class="flex items-center px-4 py-2 text-sm rounded transition duration-200 hover:bg-gray-200 hover:text-black">
+                    <svg class="h-4 w-4 mr-3 text-black" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                        <polyline points="16 17 21 12 16 7"></polyline>
+                        <line x1="21" y1="12" x2="9" y2="12"></line>
+                    </svg>
                     Logout
                 </a>
             {% else %}
-                <a href="{% url 'login' %}" class="flex items-center px-4 py-2 text-sm rounded transition duration-200 hover:bg-gray-700 hover:text-white">
-                    <svg class="h-4 w-4 mr-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path><polyline points="10 17 15 12 10 7"></polyline><line x1="15" y1="12" x2="3" y2="12"></line></svg>
+                <a href="{% url 'login' %}" class="flex items-center px-4 py-2 text-sm rounded transition duration-200 hover:bg-gray-200 hover:text-black">
+                    <svg class="h-4 w-4 mr-3 text-black" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path>
+                        <polyline points="10 17 15 12 10 7"></polyline>
+                        <line x1="15" y1="12" x2="3" y2="12"></line>
+                    </svg>
                     Login
                 </a>
-                <a href="{% url 'register' %}" class="flex items-center px-4 py-2 text-sm rounded transition duration-200 hover:bg-gray-700 hover:text-white">
-                    <svg class="h-4 w-4 mr-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><line x1="20" y1="8" x2="20" y2="14"></line><line x1="23" y1="11" x2="17" y2="11"></line></svg>
-                    Register
-                </a>
             {% endif %}
-        </nav>
+        </div>
+    </nav>
+
+    <script>
+        // State management for the menu
+        let isMenuOpen = localStorage.getItem('supervisorMenuOpen') === 'true';
+        
+        // Function to set menu state and update UI
+        function setMenuState(open) {
+            const menu = document.getElementById('supervisorMenu');
+            const icon = document.getElementById('dropdownIcon');
+            isMenuOpen = open;
+            
+            // Store state in localStorage
+            localStorage.setItem('supervisorMenuOpen', open);
+            
+            if (open) {
+                menu.classList.remove('hidden');
+                // Add a small delay before adding height and opacity for smooth animation
+                setTimeout(() => {
+                    menu.classList.add('opacity-100', 'max-h-96');
+                    menu.classList.remove('opacity-0', 'max-h-0');
+                }, 10);
+                icon.classList.add('rotate-180');
+            } else {
+                menu.classList.add('opacity-0', 'max-h-0');
+                menu.classList.remove('opacity-100', 'max-h-96');
+                icon.classList.remove('rotate-180');
+                // Add a delay before hiding the menu completely
+                setTimeout(() => {
+                    if (!isMenuOpen) { // Check again in case state changed
+                        menu.classList.add('hidden');
+                    }
+                }, 200);
+            }
+        }
+        
+        // Toggle function
+        function toggleSupervisorMenu(event) {
+            if (event) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+            setMenuState(!isMenuOpen);
+        }
+        
+        // Initialize when DOM is loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            // Style initialization
+            const menu = document.getElementById('supervisorMenu');
+            const icon = document.getElementById('dropdownIcon');
+            
+            if (menu) {
+                // Set initial state based on localStorage
+                if (isMenuOpen) {
+                    menu.classList.remove('hidden');
+                    menu.classList.add('opacity-100', 'max-h-96');
+                    menu.classList.remove('opacity-0', 'max-h-0');
+                    icon.classList.add('rotate-180');
+                } else {
+                    menu.classList.add('opacity-0', 'max-h-0');
+                }
+
+                menu.style.cssText = `
+                    transition: max-height 200ms ease-in-out,
+                                opacity 200ms ease-in-out;
+                `;
+            }
+
+            // Add click event listeners to all menu items
+            const menuItems = document.querySelectorAll('#supervisorMenu a');
+            menuItems.forEach(item => {
+                item.addEventListener('click', (e) => {
+                    // Keep menu open when navigating
+                    localStorage.setItem('supervisorMenuOpen', 'true');
+                    // Don't prevent default - let the navigation happen
+                });
+            });
+
+            // Close menu when clicking outside
+            document.addEventListener('click', (e) => {
+                const menu = document.getElementById('supervisorMenu');
+                const button = document.getElementById('supervisorDropdown');
+                
+                if (isMenuOpen && menu && button && 
+                    !menu.contains(e.target) && 
+                    !button.contains(e.target)) {
+                    setMenuState(false);
+                }
+            });
+        });
+        
+        // Optional: Close menu when pressing Escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && isMenuOpen) {
+                setMenuState(false);
+            }
+        });
+        
+        // Optional: Clear menu state when logging out
+        // Add this if you have a logout button
+        document.querySelector('a[href*="logout"]')?.addEventListener('click', () => {
+            localStorage.removeItem('supervisorMenuOpen');
+        });
+    </script>

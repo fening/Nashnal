@@ -1,92 +1,23 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Logout</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-        }
-        .container {
-            background-color: white;
-            padding: 2rem;
-            border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            width: 100%;
-            max-width: 400px;
-        }
-        h2 {
-            color: #333;
-            margin-bottom: 1.5rem;
-            text-align: center;
-        }
-        form {
-            display: flex;
-            flex-direction: column;
-        }
-        .form-group {
-            margin-bottom: 1rem;
-        }
-        input[type="text"],
-        input[type="password"] {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 20px;
-            font-size: 16px;
-        }
-        input::placeholder {
-            color: #999;
-        }
-        button {
-            background-color: #007bff;
-            color: white;
-            border: none;
-            padding: 12px;
-            font-size: 18px;
-            border-radius: 20px;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
-            margin-top: 1rem;
-        }
-        button:hover {
-            background-color: #0056b3;
-        }
-        p {
-            text-align: center;
-            margin-top: 1rem;
-        }
-        a {
-            color: #007bff;
-            text-decoration: none;
-        }
-        a:hover {
-            text-decoration: underline;
-        }
-        .error-message {
-            color: red;
-            font-size: 0.8em;
-            margin-top: 0.2em;
-        }
-    </style>
-
+    <link rel ="icon" href="{% static 'favicon.ico' %}" type="image/x-icon">
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
-    <div class="container">
-        <h2>Are you sure you want to logout?</h2>
-        <form method="POST" action="{% url 'logout' %}">
+<body class="white flex justify-center items-center min-h-screen">
+    <div class="bg-white p-8 w-full max-w-md">
+        <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">Are you sure you want to logout?</h2>
+        <form method="POST" action="{% url 'logout' %}" class="flex flex-col">
             {% csrf_token %}
-            <button type="submit">Logout</button>
+            <button type="submit" class="bg-blue-500 text-white border-none py-3 text-lg rounded-full cursor-pointer transition duration-300 hover:bg-blue-600 mt-4">Logout</button>
         </form>
-        <p><a href="{% url 'home' %}">Cancel</a></p>
+        <p class="text-center mt-4">
+            <a href="{% url 'home' %}" class="text-blue-500 hover:underline">Cancel</a>
+        </p>
     </div>
 </body>
 </html>

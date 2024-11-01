@@ -1,133 +1,201 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Register</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-        }
-        .container {
-            background-color: white;
-            padding: 2rem;
-            border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            width: 100%;
-            max-width: 600px;
-        }
-        h2 {
-            color: #333;
-            margin-bottom: 1.5rem;
-            text-align: center;
-        }
-        form {
-            display: flex;
-            flex-direction: column;
-        }
-        .form-group {
-            margin-bottom: 1rem;
-        }
-        input[type="text"],
-        input[type="email"],
-        input[type="password"],
-        select {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 20px;
-            font-size: 20px;
-        }
-        input::placeholder,
-        select::placeholder {
-            color: #999;
-        }
-        button {
-            background-color: #007bff;
-            color: white;
-            border: none;
-            padding: 10px;
-            font-size: 20px;
-            border-radius: 20px;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
-        }
-        button:hover {
-            background-color: #0056b3;
-        }
-        p {
-            text-align: center;
-            margin-top: 1rem;
-        }
-        a {
-            color: #007bff;
-            text-decoration: none;
-        }
-        a:hover {
-            text-decoration: underline;
-        }
-        .hidden {
-            display: none;
-        }
-        .error-message {
-            color: red;
-            font-size: 0.8em;
-            margin-top: 0.2em;
-        }
-    </style>
+    <link rel ="icon" href="{% static 'favicon.ico' %}" type="image/x-icon">
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
-    <div class="container">
-        <h2>Register</h2>
-        <form method="post" autocomplete="off" novalidate>
+<body class="bg-gray-100 flex justify-center items-center min-h-screen">
+    <div class="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
+        <!-- Progress Bar -->
+        <div class="mb-8">
+            <div class="flex justify-between mb-2">
+                <span class="text-sm text-blue-600" id="progress-text">Step 1 of 4</span>
+                <span class="text-sm text-gray-500" id="progress-percentage">25%</span>
+            </div>
+            <div class="w-full bg-gray-200 rounded-full h-2.5">
+                <div class="bg-blue-600 h-2.5 rounded-full transition-all duration-500" style="width: 25%" id="progress-bar"></div>
+            </div>
+        </div>
+
+        <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">Register</h2>
+        
+        <form method="post" autocomplete="off" novalidate id="registration-form" class="space-y-4">
             {% csrf_token %}
-            {% for field in form %}
-                {% if field.field.widget.input_type != 'hidden' %}
-                    <div class="form-group">
-                        {% if field.name == 'role' %}
-                            <select name="{{ field.name }}" id="{{ field.id_for_label }}" class="form-control" onchange="toggleSupervisorField(this.value)">
-                                <option value="" disabled selected>{{ field.label }}</option>
-                                {% for value, label in field.field.choices %}
-                                    <option value="{{ value }}">{{ label }}</option>
-                                {% endfor %}
-                            </select>
-                        {% elif field.name == 'supervisor' %}
-                            <select name="{{ field.name }}" id="{{ field.id_for_label }}" class="form-control">
-                                <option value="" disabled selected>{{ field.label }}</option>
-                                {% for value, label in field.field.choices %}
-                                    <option value="{{ value }}">{{ label }}</option>
-                                {% endfor %}
-                            </select>
-                        {% else %}
-                            <input type="{{ field.field.widget.input_type }}"
-                                   name="{{ field.name }}"
-                                   id="{{ field.id_for_label }}"
-                                   placeholder="{{ field.label }}"
-                                   class="form-control"
-                                   {% if field.field.required %}required{% endif %}>
-                        {% endif %}
-                        {% if field.errors %}
-                            <div class="error-message">{{ field.errors|join:", " }}</div>
-                        {% endif %}
+            
+            <!-- Step 1: Account Details -->
+            <div class="step" id="step1">
+                <div class="space-y-4">
+                    <div class="space-y-1">
+                        <input type="text" name="username" id="id_username" placeholder="Username" 
+                            class="w-full p-2 border border-gray-300 rounded-full text-lg" required>
                     </div>
-                {% endif %}
-            {% endfor %}
-            <button type="submit">Register</button>
+                    <div class="space-y-1">
+                        <input type="email" name="email" id="id_email" placeholder="Email address" 
+                            class="w-full p-2 border border-gray-300 rounded-full text-lg" required>
+                    </div>
+                    <div class="space-y-1">
+                        <input type="password" name="password1" id="id_password1" placeholder="Password" 
+                            class="w-full p-2 border border-gray-300 rounded-full text-lg" required>
+                    </div>
+                    <div class="space-y-1">
+                        <input type="password" name="password2" id="id_password2" placeholder="Password confirmation" 
+                            class="w-full p-2 border border-gray-300 rounded-full text-lg" required>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 2: Personal Information -->
+            <div class="step hidden" id="step2">
+                <div class="space-y-4">
+                    <div class="space-y-1">
+                        <input type="text" name="first_name" id="id_first_name" placeholder="First name" 
+                            class="w-full p-2 border border-gray-300 rounded-full text-lg" required>
+                    </div>
+                    <div class="space-y-1">
+                        <input type="text" name="last_name" id="id_last_name" placeholder="Last name" 
+                            class="w-full p-2 border border-gray-300 rounded-full text-lg" required>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 3: Role Selection -->
+            <div class="step hidden" id="step3">
+                <div class="space-y-4">
+                    <div class="space-y-1">
+                        <select name="role" id="id_role" 
+                            class="w-full p-2 border border-gray-300 rounded-full text-lg" 
+                            onchange="toggleSupervisorField(this.value)" required>
+                            <option value="" disabled selected>Role</option>
+                            <option value="Technician">Technician</option>
+                            <option value="Supervisor">Supervisor</option>
+                        </select>
+                    </div>
+                    <div class="space-y-1 hidden" id="supervisor_group">
+                        <select name="supervisor" id="id_supervisor" 
+                            class="w-full p-2 border border-gray-300 rounded-full text-lg">
+                            <option value="" disabled selected>Select Supervisor</option>
+                            {% for supervisor in form.supervisor.field.queryset %}
+                                <option value="{{ supervisor.id }}">{{ supervisor }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 4: Office Details -->
+            <div class="step hidden" id="step4">
+                <div class="space-y-4">
+                    <div class="space-y-1">
+                        <input type="number" step="0.01" name="distance_office" id="id_distance_office" 
+                            placeholder="Distance from office (miles)" 
+                            class="w-full p-2 border border-gray-300 rounded-full text-lg">
+                    </div>
+                    <div class="space-y-1">
+                        <input type="number" name="time_office" id="id_time_office" 
+                            placeholder="Travel time to office (minutes)" 
+                            class="w-full p-2 border border-gray-300 rounded-full text-lg">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Navigation Buttons -->
+            <div class="flex space-x-4">
+                <button type="button" id="prevBtn" onclick="nextPrev(-1)" 
+                    class="w-1/2 bg-gray-300 text-gray-700 p-2 rounded-full text-lg hover:bg-gray-400 transition duration-300 hidden">
+                    Previous
+                </button>
+                <button type="button" id="nextBtn" onclick="nextPrev(1)" 
+                    class="w-full bg-blue-500 text-white p-2 rounded-full text-lg hover:bg-blue-600 transition duration-300">
+                    Next
+                </button>
+            </div>
         </form>
-        <p>Already have an account? <a href="{% url 'login' %}">Login here</a></p>
+
+        <p class="text-center mt-4">Already have an account? 
+            <a href="{% url 'login' %}" class="text-blue-500 hover:underline">Login here</a>
+        </p>
     </div>
 
     <script>
+        let currentStep = 1;
+        const totalSteps = 4;
+        
+        function showStep(step) {
+            // Hide all steps
+            const steps = document.getElementsByClassName("step");
+            for (let i = 0; i < steps.length; i++) {
+                steps[i].classList.add("hidden");
+            }
+            
+            // Show the current step
+            document.getElementById("step" + step).classList.remove("hidden");
+            
+            // Update progress bar and text
+            const progress = (step / totalSteps) * 100;
+            document.getElementById("progress-bar").style.width = progress + "%";
+            document.getElementById("progress-text").textContent = `Step ${step} of ${totalSteps}`;
+            document.getElementById("progress-percentage").textContent = `${Math.round(progress)}%`;
+            
+            // Update buttons
+            const prevBtn = document.getElementById("prevBtn");
+            const nextBtn = document.getElementById("nextBtn");
+            
+            if (step === 1) {
+                prevBtn.classList.add("hidden");
+                nextBtn.classList.remove("w-1/2");
+                nextBtn.classList.add("w-full");
+            } else {
+                prevBtn.classList.remove("hidden");
+                nextBtn.classList.remove("w-full");
+                nextBtn.classList.add("w-1/2");
+            }
+            
+            if (step === totalSteps) {
+                nextBtn.innerHTML = "Submit";
+            } else {
+                nextBtn.innerHTML = "Next";
+            }
+        }
+        
+        function validateStep(step) {
+            const currentStepEl = document.getElementById("step" + step);
+            const inputs = currentStepEl.querySelectorAll("input, select");
+            let isValid = true;
+            
+            inputs.forEach(input => {
+                if (input.required && !input.value) {
+                    input.classList.add("border-red-500");
+                    isValid = false;
+                } else {
+                    input.classList.remove("border-red-500");
+                }
+            });
+            
+            return isValid;
+        }
+        
+        function nextPrev(n) {
+            if (n === 1 && !validateStep(currentStep)) {
+                return false;
+            }
+            
+            currentStep += n;
+            
+            if (currentStep > totalSteps) {
+                document.getElementById("registration-form").submit();
+                return false;
+            }
+            
+            showStep(currentStep);
+        }
+
         function toggleSupervisorField(role) {
-            var supervisorField = document.getElementById('id_supervisor');
-            var supervisorGroup = supervisorField.closest('.form-group');
+            const supervisorGroup = document.getElementById('supervisor_group');
+            const supervisorField = document.getElementById('id_supervisor');
             
             if (role === 'Technician') {
                 supervisorGroup.classList.remove('hidden');
@@ -138,10 +206,26 @@
                 supervisorField.value = '';
             }
         }
-        // Initialize the form state on page load
+
+        // Initialize form
         document.addEventListener('DOMContentLoaded', function() {
-            var roleField = document.getElementById('id_role');
+            showStep(currentStep);
+            const roleField = document.getElementById('id_role');
             toggleSupervisorField(roleField.value);
+
+            // Add input event listeners for validation
+            const inputs = document.querySelectorAll('input, select');
+            inputs.forEach(input => {
+                input.addEventListener('input', function() {
+                    if (this.required) {
+                        if (!this.value) {
+                            this.classList.add('border-red-500');
+                        } else {
+                            this.classList.remove('border-red-500');
+                        }
+                    }
+                });
+            });
         });
     </script>
 </body>

@@ -4,3 +4,6 @@ db.sqlite3
 /env
 *.env
 .vscode
+setup_groups.py
+verify_permissions.py
+conflict.py

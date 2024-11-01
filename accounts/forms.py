@@ -69,3 +69,14 @@ class CustomPasswordChangeForm(PasswordChangeForm):
         self.fields['old_password'].widget.attrs.update({'class': 'form-control'})
         self.fields['new_password1'].widget.attrs.update({'class': 'form-control'})
         self.fields['new_password2'].widget.attrs.update({'class': 'form-control'})
+        
+class EmployeeForm(forms.ModelForm):
+    class Meta:
+        model = CustomUser
+        fields = ['username', 'email', 'first_name', 'last_name', 'role', 
+                 'supervisor', 'distance_office', 'time_office', 'is_active']
+        
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['supervisor'].queryset = CustomUser.objects.filter(role='Supervisor')
+        self.fields['is_active'].help_text = "Uncheck this to deactivate the employee's account"

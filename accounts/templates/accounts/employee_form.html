@@ -1,0 +1,123 @@
+{% extends 'timesheets/base.html' %}
+{% load custom_filters %}
+
+{% block title %}
+<h1 class="text-xl font-semibold">{{ action }} Employee</h1>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto p-6">
+    <div class="bg-white shadow-md rounded-lg overflow-hidden">
+        <div class="p-6">
+            <form method="post" id="employeeForm">
+                {% csrf_token %}
+                
+                {% for field in form %}
+                <div class="mb-4 {% if field.name == 'supervisor' %}supervisor-field{% endif %}" 
+                     {% if field.name == 'supervisor' %}style="display: none;"{% endif %}>
+                    <label for="{{ field.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        {{ field.label }}
+                        {% if field.name == 'role' %}
+                            <span class="text-xs text-gray-500 ml-2">
+                                (Supervisors will automatically be added to the supervisor group)
+                            </span>
+                        {% endif %}
+                    </label>
+                    <div class="mt-1">
+                        {{ field|add_class:"w-full p-3 px-4 border border-gray-300 rounded-full text-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition duration-150 ease-in-out" }}
+                        {% if field.help_text %}
+                        <p class="mt-2 text-sm text-gray-500">{{ field.help_text }}</p>
+                        {% endif %}
+                        {% if field.errors %}
+                        <p class="mt-2 text-sm text-red-600">{{ field.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+                
+                {% if action == 'Update' and employee %}
+                    <div class="mb-6 p-4 bg-gray-50 rounded-lg">
+                        <h3 class="text-sm font-medium text-gray-700 mb-2">Group Memberships</h3>
+                        <div class="space-y-2">
+                            {% for group in employee.groups.all %}
+                                <div class="inline-flex items-center px-3 py-1 rounded-full text-sm 
+                                            {% if group.name == 'Supervisor' %}
+                                                bg-blue-100 text-blue-800
+                                            {% else %}
+                                                bg-gray-100 text-gray-800
+                                            {% endif %}">
+                                    {{ group.name }}
+                                </div>
+                            {% empty %}
+                                <p class="text-sm text-gray-500">No group memberships</p>
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% endif %}
+                
+                <div class="mt-8 flex items-center justify-end space-x-4">
+                    <a href="{% url 'employee_list' %}" 
+                       class="bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold py-3 px-6 rounded-full transition duration-150 ease-in-out">
+                        Cancel
+                    </a>
+                    <button type="submit" 
+                            class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-full transition duration-150 ease-in-out">
+                        {{ action }} Employee
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const roleField = document.querySelector('select[name="role"]');
+    const supervisorField = document.querySelector('.supervisor-field');
+    const form = document.getElementById('employeeForm');
+
+    function toggleSupervisorField() {
+        if (roleField.value.toLowerCase() === 'supervisor') {
+            supervisorField.style.display = 'none';
+        } else {
+            supervisorField.style.display = 'block';
+        }
+    }
+
+    // Run on page load
+    toggleSupervisorField();
+
+    // Run when role selection changes
+    roleField.addEventListener('change', function(e) {
+        toggleSupervisorField();
+        
+        // Show confirmation if changing from Supervisor to another role
+        if (e.target.getAttribute('data-original-value') === 'Supervisor' && 
+            e.target.value !== 'Supervisor') {
+            if (!confirm('Changing role from Supervisor will remove this user from the supervisor group. Continue?')) {
+                e.target.value = 'Supervisor';
+                toggleSupervisorField();
+            }
+        }
+    });
+
+    // Store original role value
+    if (roleField) {
+        roleField.setAttribute('data-original-value', roleField.value);
+    }
+
+    // Form submission handler
+    form.addEventListener('submit', function(e) {
+        if (roleField.value === 'Supervisor') {
+            const message = '{{ action }}' === 'Create' 
+                ? 'This user will be added to the supervisor group. Continue?' 
+                : 'This will add the user to the supervisor group. Continue?';
+            
+            if (!confirm(message)) {
+                e.preventDefault();
+            }
+        }
+    });
+});
+</script>
+{% endblock %}

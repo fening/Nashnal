@@ -1,28 +1,33 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Time Sheet App</title>
+    <title>{% block page_title %}Dashboard{% endblock %} - Timesheet App</title>
+    <link rel ="icon" href="{% static 'favicon.ico' %}" type="image/x-icon">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            lucide.createIcons();
+        });
+    </script>
+    <style>
+        .group:hover .group-hover\:text-gray-600 {
+            color: #4B5563;
+        }
+    </style>
 </head>
 <body>
-    <div class="flex h-screen bg-gray-100">
+    <div class="flex h-screen bg-white">
     {% include 'timesheets/sidebar.html' %}
 </div>
         <!-- Main content -->
         <div id="mainContent" class="flex-1 flex flex-col overflow-hidden transition-all duration-300 ml-64">
-            <header class="flex items-center p-4 bg-white border-b">
-                <button id="sidebarToggle" class="p-1 rounded-md hover:bg-gray-100 mr-4">
-                    <i data-lucide="menu" class="h-6 w-6"></i>
-                    <span class="sr-only">Toggle sidebar</span>
-                </button>
-                {% block title %}
-                <h1 class="text-xl font-semibold">Dashboard</h1>
-                {% endblock %}
-            </header>
-            <main class="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100 p-4">
+            {% include 'timesheets/header.html' with page_title=view_title %}
+            <main class="flex-1 overflow-x-hidden overflow-y-auto bg-white p-4">
                 {% block content %}
 
                 {% endblock %}
@@ -30,29 +35,58 @@
             {% include 'timesheets/footer.html' %}
         </div>
     </div>
-
-    <script>
-        // Initialize Lucide icons
-        lucide.createIcons();
     
-        // Sidebar functionality
+    <script>
+        // Sidebar and Hamburger Toggle Functionality
         const sidebar = document.getElementById('sidebar');
         const mainContent = document.getElementById('mainContent');
         const sidebarToggle = document.getElementById('sidebarToggle');
         const closeSidebar = document.getElementById('closeSidebar');
-        let isSidebarOpen = true;
-    
+        const hamburgerMenu = sidebarToggle; // Assuming sidebarToggle is the hamburger menu
+        let isSidebarOpen = true; // Initially, the sidebar is open
+
         function toggleSidebar() {
             isSidebarOpen = !isSidebarOpen;
             sidebar.classList.toggle('-translate-x-full');
-            mainContent.classList.toggle('ml-0');
             mainContent.classList.toggle('ml-64');
+            mainContent.classList.toggle('ml-0');
+
+            // Toggle hamburger menu visibility
+            if (isSidebarOpen) {
+                // Sidebar is open, hide the hamburger menu
+                hamburgerMenu.classList.add('hidden');
+            } else {
+                // Sidebar is closed, show the hamburger menu
+                hamburgerMenu.classList.remove('hidden');
+            }
         }
-    
+
+        // Initial state setup
+        document.addEventListener('DOMContentLoaded', function() {
+            // Assuming sidebar starts open, hide hamburger menu
+            hamburgerMenu.classList.add('hidden');
+        });
+
+        // Event listeners
         sidebarToggle.addEventListener('click', toggleSidebar);
         closeSidebar.addEventListener('click', toggleSidebar);
-    
-        // No automatic closing on resize or click outside
+
+        // Ensure hamburger menu visibility on window resize (optional)
+        window.addEventListener('resize', function() {
+            if (window.innerWidth >= 768) { // Example breakpoint
+                sidebar.classList.remove('-translate-x-full');
+                mainContent.classList.add('ml-64');
+                mainContent.classList.remove('ml-0');
+                hamburgerMenu.classList.add('hidden');
+                isSidebarOpen = true;
+            } else {
+                sidebar.classList.add('-translate-x-full');
+                mainContent.classList.remove('ml-64');
+                mainContent.classList.add('ml-0');
+                hamburgerMenu.classList.remove('hidden');
+                isSidebarOpen = false;
+            }
+        });
     </script>
 </body>
 </html>

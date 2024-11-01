@@ -5,6 +5,7 @@ from datetime import datetime, timedelta
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.forms import IntegerField
+from django.utils.functional import cached_property
 
 class JobDetails(models.Model):
     job_number = models.CharField(max_length=50, unique=True, editable=False)
@@ -78,6 +79,23 @@ class TimeEntry(models.Model):
     company_vehicle_used = models.BooleanField(choices=VEHICLE_CHOICES,default=False, verbose_name="Vehicle Used")
     comments = models.TextField(blank=True, null=True, help_text="Any additional notes or comments for this time entry.")
 
+    class Meta:
+        indexes = [
+            models.Index(fields=['user', 'date'], name='timesheet_user_date_idx'),
+            models.Index(fields=['date'], name='timesheet_date_only_idx'),
+            models.Index(fields=['start_time'], name='timesheet_start_time_idx'),
+            models.Index(fields=['end_time'], name='timesheet_end_time_idx'),
+            models.Index(fields=['hours_for_the_day'], name='timesheet_hours_day_idx'),
+            models.Index(fields=['total_miles'], name='timesheet_total_miles_idx'),
+            models.Index(fields=['miles_to_be_paid'], name='timesheet_paid_miles_idx'),
+            models.Index(fields=['hours_to_be_paid'], name='timesheet_paid_hours_idx'),
+            models.Index(fields=['start_location'], name='timesheet_start_loc_idx'),
+            models.Index(fields=['end_location'], name='timesheet_end_loc_idx'),
+            # Composite index for common search and sort patterns
+            models.Index(fields=['user', 'date', 'start_time'], name='timesheet_user_date_time_idx'),
+        ]
+        ordering = ['-date', '-start_time']
+        
     def calculate_hours(self):
         lunch_break = 0.5  # 30 minutes lunch break in hours
 
@@ -269,6 +287,44 @@ class TimeEntry(models.Model):
             return round(min(self.miles_traveled_last_leg, self.standard_distance_home_to_office), 2)
         return 0
     
+    @property
+    def approval_status(self):
+        try:
+            return self.approval.status
+        except TimeEntryApproval.DoesNotExist:
+            return None
+
+    @property
+    def can_submit_for_approval(self):
+        return (
+            self.approval_status is None or 
+            self.approval_status == 'rejected'
+        )
+
+    @property
+    def is_pending_approval(self):
+        return self.approval_status == 'pending'
+
+    @property
+    def is_approved(self):
+        return self.approval_status == 'approved'
+
+    @property
+    def is_rejected(self):
+        return self.approval_status == 'rejected'
+    
+    @cached_property
+    def total_job_count(self):
+        return self.jobs.count()
+
+    @cached_property
+    def first_job(self):
+        return self.jobs.order_by('activity_arrive_time').first()
+
+    @cached_property
+    def last_job(self):
+        return self.jobs.order_by('-activity_leave_time').first()
+    
 class LaborCode(models.Model):
     laborcode = models.IntegerField(unique=True)
     labor_code_description = models.CharField(max_length=255)
@@ -285,6 +341,22 @@ class Job(models.Model):
     activity_end_mileage = models.DecimalField(max_digits=7, decimal_places=2, null=True, blank=True)
     labor_code =  models.ForeignKey(LaborCode, on_delete=models.CASCADE)
     
+    class Meta:
+        indexes = [
+            # Primary access patterns
+            models.Index(fields=['time_entry', 'activity_arrive_time'], name='job_timeentry_arrive_idx'),
+            models.Index(fields=['time_entry', 'activity_leave_time'], name='job_timeentry_leave_idx'),
+            
+            # Individual field indexes for common queries
+            models.Index(fields=['job_number'], name='job_number_idx'),
+            models.Index(fields=['labor_code'], name='job_labor_code_idx'),
+            
+            # Composite indexes for efficient sorting and filtering
+            models.Index(fields=['time_entry', 'job_number', 'activity_arrive_time'], 
+                        name='job_entry_num_time_idx'),
+        ]
+        ordering = ['activity_arrive_time']  # Default ordering
+        
     @property
     def labor_code_description(self):
         return self.labor_code.labor_code_description
@@ -305,3 +377,94 @@ class Job(models.Model):
         if self.time_entry:
             self.time_entry.save()  # Trigger recalculation in TimeEntry
 
+class TimeEntryApproval(models.Model):
+    STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('approved', 'Approved'),
+        ('rejected', 'Rejected'),
+    ]
+
+    time_entry = models.OneToOneField(
+        TimeEntry,
+        on_delete=models.CASCADE,
+        related_name='approval'
+    )
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default='pending'
+    )
+    submitted_at = models.DateTimeField(auto_now_add=True)
+    reviewed_at = models.DateTimeField(null=True, blank=True)
+    reviewed_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='reviewed_entries'
+    )
+    submitter_comments = models.TextField(blank=True)
+    reviewer_comments = models.TextField(blank=True)
+
+    def __str__(self):
+        return f"Approval for {self.time_entry} - {self.status}"
+
+    class Meta:
+        permissions = [
+            ("can_approve_timesheet", "Can approve timesheet entries"),
+            ("can_reject_timesheet", "Can reject timesheet entries"),
+        ]
+        
+class ApprovalNotification(models.Model):
+    NOTIFICATION_TYPES = [
+        ('submission', 'Timesheet Submission'),
+        ('approval', 'Timesheet Approved'),
+        ('rejection', 'Timesheet Rejected'),
+    ]
+
+    recipient = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='notifications'
+    )
+    time_entry = models.ForeignKey(
+        'TimeEntry',
+        on_delete=models.CASCADE,
+        related_name='notifications'
+    )
+    notification_type = models.CharField(
+        max_length=20,
+        choices=NOTIFICATION_TYPES
+    )
+    message = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    read = models.BooleanField(default=False)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def mark_as_read(self):
+        self.read = True
+        self.save()
+
+    @classmethod
+    def create_approval_request(cls, time_entry):
+        """Create notification for supervisor when timesheet is submitted"""
+        notification = cls.objects.create(
+            recipient=time_entry.user.supervisor,
+            time_entry=time_entry,
+            notification_type='submission',
+            message=f'New timesheet submitted by {time_entry.user.get_full_name()} for {time_entry.date}'
+        )
+        return notification
+
+    @classmethod
+    def create_approval_response(cls, time_entry, approved=True):
+        """Create notification for employee when timesheet is approved/rejected"""
+        notification = cls.objects.create(
+            recipient=time_entry.user,
+            time_entry=time_entry,
+            notification_type='approval' if approved else 'rejection',
+            message=f'Your timesheet for {time_entry.date} has been {"approved" if approved else "rejected"}'
+        )
+        return notification

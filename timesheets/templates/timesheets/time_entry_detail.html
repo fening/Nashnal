@@ -1,7 +1,7 @@
 
 {% extends 'timesheets/base.html' %}
 
-{% block title %}
+{% block page_title %}
 <h1 class="text-xl font-semibold">Timesheet Entries - Detailed View</h1>
 {% endblock %}
 
@@ -128,18 +128,124 @@
         </div>
     </div>
 </div>
+<div class="mt-6 bg-white shadow-sm rounded-lg p-4 border {% if time_entry.approval_status == 'approved' %}border-green-200 bg-green-50{% elif time_entry.approval_status == 'rejected' %}border-red-200 bg-red-50{% elif time_entry.approval_status == 'pending' %}border-yellow-200 bg-yellow-50{% else %}border-gray-200{% endif %}">
+    <div class="flex items-center justify-between">
+        <div class="flex items-center space-x-3">
+            <span class="text-sm font-medium">Status:</span>
+            {% if time_entry.approval_status %}
+                <span class="px-3 py-1 rounded-full text-sm font-medium
+                    {% if time_entry.approval_status == 'approved' %}
+                        bg-green-100 text-green-800
+                    {% elif time_entry.approval_status == 'rejected' %}
+                        bg-red-100 text-red-800
+                    {% elif time_entry.approval_status == 'pending' %}
+                        bg-yellow-100 text-yellow-800
+                    {% endif %}">
+                    {{ time_entry.approval_status|title }}
+                </span>
+            {% else %}
+                <span class="px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-800">
+                    Not Submitted
+                </span>
+            {% endif %}
+        </div>
+        
+        {% if time_entry.approval %}
+            <div class="text-sm text-gray-600">
+                {% if time_entry.approval.reviewed_at %}
+                    <span class="font-medium">Reviewed by:</span> {{ time_entry.approval.reviewed_by.get_full_name }}
+                    <span class="font-medium ml-4">on</span> {{ time_entry.approval.reviewed_at|date:"M d, Y H:i" }}
+                {% else %}
+                    <span class="font-medium">Submitted on:</span> {{ time_entry.approval.submitted_at|date:"M d, Y H:i" }}
+                {% endif %}
+            </div>
+        {% endif %}
+    </div>
+
+    {% if time_entry.approval %}
+        {% if time_entry.approval.submitter_comments or time_entry.approval.reviewer_comments %}
+            <div class="mt-4 space-y-3">
+                {% if time_entry.approval.submitter_comments %}
+                    <div class="bg-white rounded-md p-3 border border-gray-200">
+                        <p class="text-sm font-medium text-gray-700">Submission Comments:</p>
+                        <p class="text-sm text-gray-600">{{ time_entry.approval.submitter_comments }}</p>
+                    </div>
+                {% endif %}
+                {% if time_entry.approval.reviewer_comments %}
+                    <div class="bg-white rounded-md p-3 border border-gray-200">
+                        <p class="text-sm font-medium text-gray-700">Reviewer Comments:</p>
+                        <p class="text-sm text-gray-600">{{ time_entry.approval.reviewer_comments }}</p>
+                    </div>
+                {% endif %}
+            </div>
+        {% endif %}
+    {% endif %}
+</div>
 
 <div class="mt-8 flex flex-wrap gap-4">
     <button onclick="window.print()" class="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition duration-150 ease-in-out">
         Print
     </button>
-    <a href="{% url 'time_entry_edit' time_entry.pk %}" class="px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50 transition duration-150 ease-in-out">
-        Edit
-    </a>
-    <a href="{% url 'time_entry_list' %}" class="px-6 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-opacity-50 transition duration-150 ease-in-out">
+    
+    {% if time_entry.can_submit_for_approval %}
+        <a href="{% url 'submit_for_approval' time_entry.pk %}" 
+           class="px-6 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-50 transition duration-150 ease-in-out">
+            Submit for Approval
+        </a>
+    {% endif %}
+    
+    {% if perms.timesheets.can_approve_timesheet and time_entry.is_pending_approval %}
+        <a href="{% url 'review_time_entry' time_entry.pk %}" 
+           class="px-6 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-opacity-50 transition duration-150 ease-in-out">
+            Review
+        </a>
+    {% endif %}
+    
+    {% if not time_entry.is_approved %}
+        <a href="{% url 'time_entry_edit' time_entry.pk %}" 
+           class="px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50 transition duration-150 ease-in-out">
+            Edit
+        </a>
+    {% endif %}
+    
+    <a href="{% url 'time_entry_list' %}" 
+       class="px-6 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-opacity-50 transition duration-150 ease-in-out">
         Back to List
     </a>
 </div>
+
+<!-- Add this section for supervisors to show approval history -->
+{% if perms.timesheets.can_approve_timesheet and time_entry.approval %}
+    <div class="mt-8 bg-white shadow-md rounded-lg p-6">
+        <h3 class="text-lg font-semibold text-gray-800 mb-4">Approval Details</h3>
+        <div class="space-y-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <p class="text-sm text-gray-600">
+                        <span class="font-medium">Submitted by:</span> 
+                        {{ time_entry.user.get_full_name }}
+                    </p>
+                    <p class="text-sm text-gray-600">
+                        <span class="font-medium">Submitted on:</span> 
+                        {{ time_entry.approval.submitted_at|date:"M d, Y H:i" }}
+                    </p>
+                </div>
+                {% if time_entry.approval.reviewed_at %}
+                    <div>
+                        <p class="text-sm text-gray-600">
+                            <span class="font-medium">Reviewed by:</span> 
+                            {{ time_entry.approval.reviewed_by.get_full_name }}
+                        </p>
+                        <p class="text-sm text-gray-600">
+                            <span class="font-medium">Reviewed on:</span> 
+                            {{ time_entry.approval.reviewed_at|date:"M d, Y H:i" }}
+                        </p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+{% endif %}
 
 <div class="mt-12 space-y-8">
     <div class="bg-white shadow-md rounded-lg p-6">

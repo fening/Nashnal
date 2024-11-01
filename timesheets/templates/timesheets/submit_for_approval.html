@@ -1,0 +1,77 @@
+{% extends 'timesheets/base.html' %}
+{% load custom_filters %}
+
+{% block title %}
+    <h1 class="text-xl font-semibold">Submit Time Entry for Approval</h1>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto p-6">
+    <div class="bg-white shadow-md rounded-lg overflow-hidden">
+        <!-- Time Entry Summary -->
+        <div class="p-6 border-b border-gray-200">
+            <h2 class="text-lg font-semibold mb-4">Time Entry Details</h2>
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <p class="text-gray-600">Date:</p>
+                    <p class="font-medium">{{ time_entry.date|date:"M d, Y" }}</p>
+                </div>
+                <div>
+                    <p class="text-gray-600">Total Hours:</p>
+                    <p class="font-medium">{{ time_entry.hours_to_be_paid }}</p>
+                </div>
+                <div>
+                    <p class="text-gray-600">Start Location:</p>
+                    <p class="font-medium">{{ time_entry.start_location }}</p>
+                </div>
+                <div>
+                    <p class="text-gray-600">End Location:</p>
+                    <p class="font-medium">{{ time_entry.end_location }}</p>
+                </div>
+            </div>
+            
+            <!-- Jobs List -->
+            <div class="mt-6">
+                <h3 class="text-md font-semibold mb-3">Jobs Completed:</h3>
+                <div class="space-y-2">
+                    {% for job in time_entry.jobs.all %}
+                    <div class="border border-gray-200 rounded p-3">
+                        <p><span class="text-gray-600">Job Number:</span> {{ job.job_number }}</p>
+                        <p><span class="text-gray-600">Labor Code:</span> {{ job.labor_code }}</p>
+                        <p><span class="text-gray-600">Time:</span> 
+                            {{ job.activity_arrive_time|time:"H:i" }} - {{ job.activity_leave_time|time:"H:i" }}
+                        </p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Submission Form -->
+        <form method="post" class="p-6">
+            {% csrf_token %}
+            
+            <div class="mb-6">
+                <label class="block text-gray-700 text-sm font-bold mb-2">
+                    Comments for Supervisor
+                </label>
+                {{ form.submitter_comments|add_class:"w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500" }}
+                {% if form.submitter_comments.errors %}
+                    <p class="text-red-500 text-xs mt-1">{{ form.submitter_comments.errors|join:", " }}</p>
+                {% endif %}
+            </div>
+
+            <div class="flex items-center justify-end space-x-4">
+                <a href="{% url 'time_entry_detail' time_entry.pk %}" 
+                   class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50">
+                    Cancel
+                </a>
+                <button type="submit" 
+                        class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                    Submit for Approval
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

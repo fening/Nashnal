@@ -41,5 +41,36 @@ urlpatterns = [
     path('get-job-number/<int:job_id>/', views.get_job_number, name='get_job_number'),
     path('get-labor-code/<int:description_id>/', views.get_labor_code, name='get_labor_code'),  # Fetch labor code by description ID
     
-
+    # Approval Process URLs
+    path('timesheet/<int:pk>/submit/', 
+         views.submit_for_approval, 
+         name='submit_for_approval'),
+    
+    path('timesheet/<int:pk>/review/', 
+         views.review_time_entry, 
+         name='review_time_entry'),
+    
+    path('approvals/pending/', 
+         views.pending_approvals, 
+         name='pending_approvals'),
+    
+    path('approvals/history/', 
+         views.approval_history, 
+         name='approval_history'),
+    
+        # Notification URLs
+    path('notifications/', 
+         views.all_notifications, 
+         name='all_notifications'),
+    
+    path('notifications/<int:notification_id>/mark-read/',
+         views.mark_notification_read,
+         name='mark_notification_read'),
+    
+    path('notifications/mark-all-read/',
+         views.mark_all_notifications_read,
+         name='mark_all_notifications_read'),
+    
+    path('supervisor-dashboard/', views.supervisor_dashboard, name='supervisor_dashboard'),
+    path('team-timesheets/', views.team_timesheets, name='team_timesheets'),
 ]

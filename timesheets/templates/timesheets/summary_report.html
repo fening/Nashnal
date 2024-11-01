@@ -1,225 +1,208 @@
-
 {% extends 'timesheets/base.html' %}
 
 {% block title %}<h1 class="text-xl font-semibold">Summary Report</h1>{% endblock %}
 
 {% block content %}
-{% load extra_filters %}
 {% load custom_filters %}
-<style>
-    /* Form container */
-.filter-form {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 20px; /* Space between form elements */
-    margin-bottom: 20px;
-    padding: 20px;
-    background-color: #f9f9f9; /* Light background */
-    border-radius: 8px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-}
 
-/* Labels */
-.form-label {
-    font-weight: bold;
-    font-size: 14px;
-    color: #333;
-}
+<div class="p-6 max-w-8xl mx-auto">
+    <!-- Filter Form -->
+    <form method="GET" action="" class="mb-8 p-6 bg-gray-50 rounded-lg space-y-4 md:space-y-0 md:flex md:items-center md:space-x-4">
+        {% if is_superuser or is_supervisor %}
+        <div class="flex flex-col">
+            <label for="user-select" class="text-sm font-medium text-gray-700 mb-1">Select User:</label>
+            <select name="user" id="user-select" class="form-select block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" onchange="this.form.submit()">
+                <option value="">--Select User--</option>
+                {% for user in all_users %}
+                    <option value="{{ user.id }}" {% if selected_user and user.id == selected_user.id %}selected{% endif %}>
+                        {{ user.first_name }} {{ user.last_name }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+        {% endif %}
 
-/* Unified styling for select dropdowns (including sort dropdown) */
-.form-select,
-.sort-select, /* Assuming your sort dropdown has this class */
-.form-input {
-    padding: 10px 12px; /* Match padding */
-    font-size: 14px; /* Match font size */
-    border: 1px solid #ccc; /* Match border color */
-    border-radius: 4px;
-    background-color: #fff;
-    color: #333;
-    outline: none;
-    width: 220px; /* Adjust to match the width of your sort dropdown */
-    transition: border-color 0.3s;
-}
+        <div class="flex flex-col">
+            <label for="week-start" class="text-sm font-medium text-gray-700 mb-1">Select Week Start:</label>
+            <input type="date" name="week_start" id="week-start" value="{{ week_start|date:'Y-m-d' }}" 
+                   class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                   onchange="this.form.submit()">
+        </div>
+    </form>
 
-.form-select:focus,
-.sort-select:focus,
-.form-input:focus {
-    border-color: #007BFF;
-}
+    <!-- Report Header -->
+    <h2 class="text-xl font-bold mb-6 text-gray-800">
+        Report for {{ selected_user.first_name }} {{ selected_user.last_name }} 
+        (Week of {{ week_start|date:'M d, Y' }} to {{ week_end|date:'M d, Y' }})
+    </h2>
 
-/* Responsive layout for smaller screens */
-@media (max-width: 768px) {
-    .filter-form {
-        flex-direction: column;
-        gap: 15px;
-    }
-    
-    .form-select, .form-input, .sort-select {
-        width: 100%;
-    }
-}
-
-</style>
-
-<form method="GET" action="" class="filter-form">
-    {% if users %}
-        <label for="user-select" class="form-label">Select User:</label>
-        <select name="user" id="user-select" class="form-select" onchange="this.form.submit()">
-            <option value="">--Select User--</option>
-            {% for user in users %}
-                <option value="{{ user.id }}" {% if selected_user and user.id == selected_user.id %}selected{% endif %}>
-                    {{ user.first_name }} {{ user.last_name }}
-                </option>
-            {% endfor %}
-        </select>
-    {% endif %}
-
-    <label for="week-start" class="form-label">Select Week Start:</label>
-    <input type="date" name="week_start" id="week-start" value="{{ week_start|date:'Y-m-d' }}" class="form-input" onchange="this.form.submit()">
-</form>
-    
-    <h2>Report for {{ selected_user.first_name }} {{ selected_user.last_name }} (Week of {{ week_start|date:'M d, Y' }} to {{ week_end|date:'M d, Y' }})</h2>
-    
-    <div class="summary-section">
-        <table>
-            <tr>
-                <th>Project No</th>
-                <th>Client</th>
-                <th>Project Name</th>
-                <th>Labor Code</th>
-                <th>Sunday</th>
-                <th>Monday</th>
-                <th>Tuesday</th>
-                <th>Wednesday</th>
-                <th>Thursday</th>
-                <th>Friday</th>
-                <th>Saturday</th>
-                <th>Total Hours</th>
-            </tr>
-            {% for labor_code, data in weekly_hours.items %}
-            <tr>
-                <td></td>
-                <td></td>
-                <td>{{ data.description }}</td>
-                <td>{{ labor_code }} - {{ data.labor_code_description }} </td>
-                <td>{{ data.hours.Sunday }}</td>
-                <td>{{ data.hours.Monday }}</td>
-                <td>{{ data.hours.Tuesday }}</td>
-                <td>{{ data.hours.Wednesday }}</td>
-                <td>{{ data.hours.Thursday }}</td>
-                <td>{{ data.hours.Friday }}</td>
-                <td>{{ data.hours.Saturday }}</td>
-                <td>{{ data.hours.Sunday|add:data.hours.Monday|add:data.hours.Tuesday|add:data.hours.Wednesday|add:data.hours.Thursday|add:data.hours.Friday|add:data.hours.Saturday }}</td>
-            </tr>
-            {% endfor %}
-            <!-- Add a row for daily totals -->
-            <tr>
-                <td colspan="4"><strong>Total Daily Hours</strong></td>
-                <td>{{ daily_totals.Sunday }}</td>
-                <td>{{ daily_totals.Monday }}</td>
-                <td>{{ daily_totals.Tuesday }}</td>
-                <td>{{ daily_totals.Wednesday }}</td>
-                <td>{{ daily_totals.Thursday }}</td>
-                <td>{{ daily_totals.Friday }}</td>
-                <td>{{ daily_totals.Saturday }}</td>
-                <td>{{ daily_totals.Sunday|add:daily_totals.Monday|add:daily_totals.Tuesday|add:daily_totals.Wednesday|add:daily_totals.Thursday|add:daily_totals.Friday|add:daily_totals.Saturday }}</td>
-            </tr>
-        </table>
-    </div>
-<!-- Labor Code Section -->
-        <div class="labor-code-section">
-            <table>
-                <thead>
-                    <tr>
-                        <th colspan="2">Field Technician & Engineering Codes</th>
-                        <th colspan="2">Lab Service Codes</th>
-
-                        <th colspan="6">Time Sheet Summary</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>1. Project Management/P.E.</td>
-                        <td>13. Concrete Lab</td>
-                        <td>25. Moisture Content</td>
-                        <td>37. Modified Proctor 4" Mold</td>
-                        <td colspan="3"><strong>Total Regular Hours</strong></td>
-                        <td colspan="3">{{ total_regular_hours }}</td>
-                    </tr>
-                    <tr>
-                        <td>2. Senior Engineer/P.E.</td>
-                        <td>14. Concrete Coring</td>
-                        <td>26. Particle Size Analysis</td>
-                        <td>38. Modified Proctor 6" Mold</td>
-                        <td colspan="3"><strong>Total Overtime Hours</strong></td>
-                        <td colspan="3">{{ total_overtime_hours }}</td>
-                    </tr>
-                    <tr>
-                        <td>3. Project Engineer</td>
-                        <td>15. Windsor Probe/Pin</td>
-                        <td>27. Hydrometer</td>
-                        <td>39. Unconsolidated Triaxle Shear Test</td>
-                        <td colspan="3"><strong>Double Time Hours</strong></td>
-                        <td colspan="3">{{ total_double_time_hours }}</td>
-                    </tr>
-                    <tr>
-                        <td>4. Lab Manager</td>
-                        <td>16. Schmidt Hammer</td>
-                        <td>28. Atterberg Limits</td>
-                        <td>40. Consolidated Triaxle Shear Test</td>
-                        <td colspan="3"><strong>Grand Total Hours</strong></td>
-                        <td colspan="3">{{ grand_total_hours }}</td>
-                    </tr>
-                    <tr>
-                        <td>5. Laboratory Technician</td>
-                        <td>17. Ground Penetrating Radar</td>
-                        <td>29. Specific Gravity</td>
-                        <td>41. Unconfined Compression</td>
-                    </tr>
-                    <tr>
-                        <td>6. Field Engineer</td>
-                        <td>18. Floor Flatness</td>
-                        <td>30. Organic Content</td>
-                        <td>42. One Dimensional Consolidation</td>
-                    </tr>
-                    <tr>
-                        <td>7. Field Technician Level I</td>
-                        <td>19. CAD Drawing</td>
-                        <td>31. Unit Weight</td>
-                        <td>43. Asphalt Extraction Test</td>
-                    </tr>
-                    <tr>
-                        <td>8. Field Technician Level II</td>
-                        <td>20. Administration</td>
-                        <td>32. Density, Soil Particle</td>
-                        <td>44. Gyratory Compaction</td>
-                    </tr>
-                    <tr>
-                        <td>9. CWI</td>
-                        <td>21. Marketing</td>
-                        <td>33. Fractional Organic Carbon</td>
-                        <td>45. Asphalt Bulk Specific Gravity</td>
-                    </tr>
-                    <tr>
-                        <td>10. Report / Documentation Preparation</td>
-                        <td>22. Clerical Support</td>
-                        <td>34. Hydraulic Conductivity</td>
-                        <td>46. Asphalt Apparent Specific Gravity</td>
-                    </tr>
-                    <tr>
-                        <td>11. Report / Document Quality Review</td>
-                        <td>23. Training</td>
-                        <td>35. Standard Proctor 4" Mold</td>
-                        <td>47. pH</td>
-                    </tr>
-                    <tr>
-                        <td>12. Concrete / Sample Collection Pick-Up</td>
-                        <td>24. School</td>
-                        <td>36. Standard Proctor 6" Mold</td>
-                        <td>48. Other</td>
-                    </tr>
+    <!-- Weekly Hours Table -->
+    <div class="mb-8 overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200 rounded-lg">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Project No</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Client</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Project Name</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Labor Code</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Sunday</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Monday</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tuesday</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Wednesday</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Thursday</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Friday</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Saturday</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Hours</th>
+                </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+                {% for labor_code, data in weekly_hours.items %}
+                <tr class="hover:bg-gray-50">
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ data.project_no }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ data.client }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ data.description }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ labor_code }} - {{ data.labor_code_description }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ data.hours.Sunday }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ data.hours.Monday }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ data.hours.Tuesday }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ data.hours.Wednesday }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ data.hours.Thursday }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ data.hours.Friday }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ data.hours.Saturday }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">
+                        {{ data.hours.Sunday|add:data.hours.Monday|add:data.hours.Tuesday|add:data.hours.Wednesday|add:data.hours.Thursday|add:data.hours.Friday|add:data.hours.Saturday }}
+                    </td>
+                </tr>
+                {% endfor %}
+                <!-- Daily Totals Row -->
+                <tr class="bg-gray-50 font-medium">
+                    <td colspan="4" class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">Total Daily Hours</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ daily_totals.Sunday }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ daily_totals.Monday }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ daily_totals.Tuesday }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ daily_totals.Wednesday }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ daily_totals.Thursday }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ daily_totals.Friday }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ daily_totals.Saturday }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {{ daily_totals.Sunday|add:daily_totals.Monday|add:daily_totals.Tuesday|add:daily_totals.Wednesday|add:daily_totals.Thursday|add:daily_totals.Friday|add:daily_totals.Saturday }}
+                    </td>
+                </tr>
             </tbody>
         </table>
     </div>
+<!-- Labor Code Section -->
+<div class="bg-white shadow-md rounded-lg overflow-hidden mb-8">
+    <table class="min-w-full divide-y divide-gray-200">
+        <thead class="bg-gray-50">
+            <tr>
+                <th colspan="2" class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-r text-center">Field Technician & Engineering Codes</th>
+                <th colspan="2" class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-r text-center">Lab Service Codes</th>
+                <th colspan="6" class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider text-center">Time Sheet Summary</th>
+            </tr>
+        </thead>
+        <tbody class="bg-white divide-y divide-gray-200">
+            <!-- Row 1 -->
+            <tr class="hover:bg-gray-50">
+                <td class="px-4 py-1 text-sm text-gray-900 border-r">1. Project Management/P.E.</td>
+                <td class="px-4 py-1 text-sm text-gray-900 border-r">13. Concrete Lab</td>
+                <td class="px-4 py-1 text-sm text-gray-900 border-r">25. Moisture Content</td>
+                <td class="px-4 py-1 text-sm text-gray-900 border-r">37. Modified Proctor 4" Mold</td>
+                <td colspan="3" class="px-4 py-1 text-sm font-medium text-gray-900">Total Regular Hours</td>
+                <td colspan="3" class="px-4 py-1 text-sm text-gray-900">{{ total_regular_hours }}</td>
+            </tr>
+            <!-- Row 2 -->
+            <tr class="hover:bg-gray-50">
+                <td class="px-4 py-1 text-sm text-gray-900 border-r">2. Senior Engineer/P.E.</td>
+                <td class="px-4 py-1 text-sm text-gray-900 border-r">14. Concrete Coring</td>
+                <td class="px-4 py-1 text-sm text-gray-900 border-r">26. Particle Size Analysis</td>
+                <td class="px-4 py-1 text-sm text-gray-900 border-r">38. Modified Proctor 6" Mold</td>
+                <td colspan="3" class="px-4 py-1 text-sm font-medium text-gray-900">Total Overtime Hours</td>
+                <td colspan="3" class="px-4 py-1 text-sm text-gray-900">{{ total_overtime_hours }}</td>
+            </tr>
+            <!-- Row 3 -->
+            <tr class="hover:bg-gray-50">
+                <td class="px-4 py-1 text-sm text-gray-900 border-r">3. Project Engineer</td>
+                <td class="px-4 py-1 text-sm text-gray-900 border-r">15. Windsor Probe/Pin</td>
+                <td class="px-4 py-1 text-sm text-gray-900 border-r">27. Hydrometer</td>
+                <td class="px-4 py-1 text-sm text-gray-900 border-r">39. Unconsolidated Triaxle Shear Test</td>
+                <td colspan="3" class="px-4 py-1 text-sm font-medium text-gray-900">Double Time Hours</td>
+                <td colspan="3" class="px-4 py-1 text-sm text-gray-900">{{ total_double_time_hours }}</td>
+            </tr>
+            <!-- Row 4 -->
+            <tr class="hover:bg-gray-50">
+                <td class="px-4 py-1 text-sm text-gray-900 border-r">4. Lab Manager</td>
+                <td class="px-4 py-1 text-sm text-gray-900 border-r">16. Schmidt Hammer</td>
+                <td class="px-4 py-1 text-sm text-gray-900 border-r">28. Atterberg Limits</td>
+                <td class="px-4 py-1 text-sm text-gray-900 border-r">40. Consolidated Triaxle Shear Test</td>
+                <td colspan="3" class="px-4 py-1 text-sm font-medium text-gray-900">Grand Total Hours</td>
+                <td colspan="3" class="px-4 py-1 text-sm text-gray-900">{{ grand_total_hours }}</td>
+            </tr>
+            <!-- Row 5 -->
+            <tr class="hover:bg-gray-50">
+                <td class="px-4 py-1 text-sm text-gray-900 border-r">5. Laboratory Technician</td>
+                <td class="px-4 py-1 text-sm text-gray-900 border-r">17. Ground Penetrating Radar</td>
+                <td class="px-4 py-1 text-sm text-gray-900 border-r">29. Specific Gravity</td>
+                <td class="px-4 py-1 text-sm text-gray-900 border-r">41. Unconfined Compression</td>
+                <td colspan="6" class="px-4 py-1"></td>
+            </tr>
+            <!-- Row 6 -->
+            <tr class="hover:bg-gray-50">
+                <td class="px-4 py-1 text-sm text-gray-900 border-r">6. Field Engineer</td>
+                <td class="px-4 py-1 text-sm text-gray-900 border-r">18. Floor Flatness</td>
+                <td class="px-4 py-1 text-sm text-gray-900 border-r">30. Organic Content</td>
+                <td class="px-4 py-1 text-sm text-gray-900 border-r">42. One Dimensional Consolidation</td>
+                <td colspan="6" class="px-4 py-1"></td>
+            </tr>
+            <!-- Row 7 -->
+            <tr class="hover:bg-gray-50">
+                <td class="px-4 py-1 text-sm text-gray-900 border-r">7. Field Technician Level I</td>
+                <td class="px-4 py-1 text-sm text-gray-900 border-r">19. CAD Drawing</td>
+                <td class="px-4 py-1 text-sm text-gray-900 border-r">31. Unit Weight</td>
+                <td class="px-4 py-1 text-sm text-gray-900 border-r">43. Asphalt Extraction Test</td>
+                <td colspan="6" class="px-4 py-1"></td>
+            </tr>
+            <!-- Row 8 -->
+            <tr class="hover:bg-gray-50">
+                <td class="px-4 py-1 text-sm text-gray-900 border-r">8. Field Technician Level II</td>
+                <td class="px-4 py-1 text-sm text-gray-900 border-r">20. Administration</td>
+                <td class="px-4 py-1 text-sm text-gray-900 border-r">32. Density, Soil Particle</td>
+                <td class="px-4 py-1 text-sm text-gray-900 border-r">44. Gyratory Compaction</td>
+                <td colspan="6" class="px-4 py-1"></td>
+            </tr>
+            <!-- Row 9 -->
+            <tr class="hover:bg-gray-50">
+                <td class="px-4 py-1 text-sm text-gray-900 border-r">9. CWI</td>
+                <td class="px-4 py-1 text-sm text-gray-900 border-r">21. Marketing</td>
+                <td class="px-4 py-1 text-sm text-gray-900 border-r">33. Fractional Organic Carbon</td>
+                <td class="px-4 py-1 text-sm text-gray-900 border-r">45. Asphalt Bulk Specific Gravity</td>
+                <td colspan="6" class="px-4 py-1"></td>
+            </tr>
+            <!-- Row 10 -->
+            <tr class="hover:bg-gray-50">
+                <td class="px-4 py-1 text-sm text-gray-900 border-r">10. Report / Documentation Preparation</td>
+                <td class="px-4 py-1 text-sm text-gray-900 border-r">22. Clerical Support</td>
+                <td class="px-4 py-1 text-sm text-gray-900 border-r">34. Hydraulic Conductivity</td>
+                <td class="px-4 py-1 text-sm text-gray-900 border-r">46. Asphalt Apparent Specific Gravity</td>
+                <td colspan="6" class="px-4 py-1"></td>
+            </tr>
+            <!-- Row 11 -->
+            <tr class="hover:bg-gray-50">
+                <td class="px-4 py-1 text-sm text-gray-900 border-r">11. Report / Document Quality Review</td>
+                <td class="px-4 py-1 text-sm text-gray-900 border-r">23. Training</td>
+                <td class="px-4 py-1 text-sm text-gray-900 border-r">35. Standard Proctor 4" Mold</td>
+                <td class="px-4 py-1 text-sm text-gray-900 border-r">47. pH</td>
+                <td colspan="6" class="px-4 py-1"></td>
+            </tr>
+            <!-- Row 12 -->
+            <tr class="hover:bg-gray-50">
+                <td class="px-4 py-1 text-sm text-gray-900 border-r">12. Concrete / Sample Collection Pick-Up</td>
+                <td class="px-4 py-1 text-sm text-gray-900 border-r">24. School</td>
+                <td class="px-4 py-1 text-sm text-gray-900 border-r">36. Standard Proctor 6" Mold</td>
+                <td class="px-4 py-1 text-sm text-gray-900 border-r">48. Other</td>
+                <td colspan="6" class="px-4 py-1"></td>
+            </tr>
+        </tbody>
+    </table>
+</div>
     {% endblock %}
