@@ -97,6 +97,7 @@ def profile_view(request):
 
 @login_required
 def employee_list_view(request):
+    """View for listing all employees"""
     # Check permissions
     if not (request.user.is_superuser or (hasattr(request.user, 'role') and request.user.role == 'Supervisor')):
         messages.error(request, "You don't have permission to view this page.")
@@ -110,15 +111,12 @@ def employee_list_view(request):
 
     # Query for employees based on user role
     if request.user.is_superuser:
-        # For superusers (admins), show all employees including supervisors
-        employees = CustomUser.objects.filter(
-            is_superuser=False  # Exclude other superusers
-        ).order_by('role', 'last_name', 'first_name')  # Sort by role first, then name
+        # For superusers, show all employees including other superusers
+        employees = CustomUser.objects.all().order_by('role', 'last_name', 'first_name')
     elif request.user.role == 'Supervisor':
         # For supervisors, only show their supervisees
         employees = CustomUser.objects.filter(
             supervisor=request.user,
-            is_superuser=False,
         ).order_by('last_name', 'first_name')
     else:
         employees = CustomUser.objects.none()
@@ -126,23 +124,39 @@ def employee_list_view(request):
     # Calculate statistics
     total_employees = employees.count()
     active_employees = employees.filter(is_active=True).count()
-    technicians = employees.filter(role='Technician').count()
+    
+    # Count by role
+    field_technicians = employees.filter(role='Field Technician').count()
+    lab_technicians = employees.filter(role='Lab Technician').count()
+    office_support = employees.filter(role='Office Support').count()
+    operations_support = employees.filter(role='Operations Support').count()
     supervisors = employees.filter(role='Supervisor').count()
 
     # Group employees by role for better organization
     if request.user.is_superuser:
         supervisors_list = employees.filter(role='Supervisor')
-        technicians_list = employees.filter(role='Technician')
+        field_technicians_list = employees.filter(role='Field Technician')
+        lab_technicians_list = employees.filter(role='Lab Technician')
+        office_support_list = employees.filter(role='Office Support')
+        operations_support_list = employees.filter(role='Operations Support')
         
-        employees = list(supervisors_list) + list(technicians_list)  # Combine lists with supervisors first
+        # Combine lists with supervisors first
+        employees = list(supervisors_list) + \
+                   list(field_technicians_list) + \
+                   list(lab_technicians_list) + \
+                   list(office_support_list) + \
+                   list(operations_support_list)
 
     context = {
-        'view_title': view_title,  # Added view title to context
+        'view_title': view_title,
         'employees': employees,
         'stats': {
             'total': total_employees,
             'active': active_employees,
-            'technicians': technicians,
+            'field_technicians': field_technicians,
+            'lab_technicians': lab_technicians,
+            'office_support': office_support,
+            'operations_support': operations_support,
             'supervisors': supervisors
         },
         'is_supervisor': request.user.role == 'Supervisor' if hasattr(request.user, 'role') else False,
@@ -150,49 +164,6 @@ def employee_list_view(request):
     }
     
     return render(request, 'accounts/employee_list.html', context)
-
-
-
-@login_required
-def employee_create(request):
-    if not (request.user.is_superuser or (hasattr(request.user, 'role') and request.user.role == 'Supervisor')):
-        messages.error(request, "You don't have permission to create employees.")
-        return redirect('dashboard')
-
-    if request.method == 'POST':
-        form = EmployeeForm(request.POST)
-        if form.is_valid():
-            try:
-                with transaction.atomic():
-                    employee = form.save()
-                    
-                    # Handle supervisor group assignment
-                    supervisor_group, _ = Group.objects.get_or_create(name='Supervisor')
-                    
-                    # Remove from supervisor group if not a supervisor
-                    if employee.role != 'Supervisor' and supervisor_group in employee.groups.all():
-                        employee.groups.remove(supervisor_group)
-                    
-                    # Add to supervisor group if is a supervisor
-                    if employee.role == 'Supervisor':
-                        employee.groups.add(supervisor_group)
-                        # Remove any supervisor assignment as supervisors can't have supervisors
-                        employee.supervisor = None
-                        employee.save()
-                    
-                    messages.success(request, f"Employee {employee.get_full_name()} created successfully.")
-                    return redirect('employee_list')
-            except Exception as e:
-                messages.error(request, f"Error creating employee: {str(e)}")
-    else:
-        form = EmployeeForm()
-    context = { 
-        'view_title': 'Employee Management',      
-        'form': form, 
-        'action': 'Create',
-        'is_supervisor': request.user.role == 'Supervisor' if hasattr(request.user, 'role') else False,
-        'is_superuser': request.user.is_superuser}
-    return render(request, 'accounts/employee_form.html', context)
 
 @login_required
 def employee_update(request, pk):
@@ -256,3 +227,381 @@ def employee_delete(request, pk):
         messages.success(request, f"Employee {employee.get_full_name()} deleted successfully.")
         return redirect('employee_list')
     return render(request, 'accounts/employee_confirm_delete.html', {'employee': employee})
+
+
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth import login, logout, authenticate, get_user_model
+from django.contrib.auth.decorators import login_required
+from django.contrib import messages
+from django.db import IntegrityError, transaction
+from django.contrib.auth.models import Group
+from django.utils import timezone
+from django.contrib.auth.password_validation import validate_password
+from django.core.exceptions import ValidationError
+from django.db.models import Max
+from django.http import JsonResponse
+from django.template.loader import render_to_string
+from django.conf import settings
+from django.core.mail import send_mail
+from django.urls import reverse
+from django.utils import timezone
+from datetime import datetime, timedelta
+
+from .models import RegistrationInvitation
+from .forms import (
+    CustomUserCreationForm,
+    CustomAuthenticationForm,
+    CustomPasswordChangeForm,
+    EmployeeForm,
+)
+
+CustomUser = get_user_model()
+
+# Helper function for sending invitation emails
+def send_invitation_email(invitation, request):
+    """Send invitation email to the new employee"""
+    registration_url = request.build_absolute_uri(
+        reverse('complete_registration', args=[str(invitation.token)])
+    )
+    
+    context = {
+        'invitation': invitation,
+        'registration_url': registration_url,
+    }
+    
+    # Render email templates
+    html_message = render_to_string('registration/invitation_email.html', context)
+    plain_message = render_to_string('registration/invitation_email.txt', context)
+    
+    try:
+        # Send email
+        send_mail(
+            subject='Complete Your TimeSheet App Registration',
+            message=plain_message,
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[invitation.email],
+            html_message=html_message,
+        )
+        return True
+    except Exception as e:
+        print(f"Error sending email: {str(e)}")
+        return False
+
+@login_required
+def employee_create(request):
+    """
+    View for creating new employees and sending registration invitations.
+    """
+    print("Method:", request.method)  # Debug print
+    if not (request.user.is_superuser or (hasattr(request.user, 'role') and request.user.role == 'Supervisor')):
+        messages.error(request, "You don't have permission to create employees.")
+        return redirect('dashboard')
+
+    if request.method == 'POST':
+        print("POST data:", request.POST)  # Debug print
+        form = EmployeeForm(request.POST)
+        print("Form is valid:", form.is_valid())  # Debug print
+        
+        if not form.is_valid():
+            print("Form errors:", form.errors)  # Debug print
+            messages.error(request, "Please correct the form errors.")
+            return render(request, 'accounts/employee_form.html', {
+                'form': form,
+                'action': 'Create',
+                'view_title': 'Add New Employee',
+                'is_supervisor': request.user.role == 'Supervisor' if hasattr(request.user, 'role') else False,
+                'is_superuser': request.user.is_superuser
+            })
+            
+        try:
+            with transaction.atomic():
+                email = form.cleaned_data['email']
+                force_create = request.POST.get('force_create') == 'true'
+                
+                # Check for existing invitation if not forcing creation
+                if not force_create:
+                    existing_invitation = RegistrationInvitation.objects.filter(
+                        email=email, 
+                        used=False
+                    ).first()
+                    
+                    if existing_invitation and not existing_invitation.is_expired:
+                        # If still valid and not forcing creation, show resend option
+                        messages.warning(
+                            request,
+                            f"An active invitation already exists for {email}. Would you like to resend it?"
+                        )
+                        context = {
+                            'form': form,
+                            'action': 'Create',
+                            'view_title': 'Add New Employee',
+                            'is_supervisor': request.user.role == 'Supervisor' if hasattr(request.user, 'role') else False,
+                            'is_superuser': request.user.is_superuser,
+                            'existing_invitation': existing_invitation
+                        }
+                        return render(request, 'accounts/employee_form.html', context)
+                
+                # Delete any existing invitations if forcing creation or expired
+                RegistrationInvitation.objects.filter(email=email).delete()
+                
+                print("Creating invitation...")  # Debug print
+                # Create invitation
+                invitation = RegistrationInvitation.objects.create(
+                    email=email,
+                    first_name=form.cleaned_data['first_name'],
+                    last_name=form.cleaned_data['last_name'],
+                    role=form.cleaned_data['role'],
+                    supervisor=form.cleaned_data['supervisor'],
+                    distance_office=form.cleaned_data.get('distance_office'),
+                    time_office=form.cleaned_data.get('time_office'),
+                    invited_by=request.user
+                )
+                print(f"Invitation created: {invitation}")  # Debug print
+                
+                # Send invitation email if requested
+                if form.cleaned_data.get('send_invitation', True):
+                    print("Sending invitation email...")  # Debug print
+                    email_sent = send_invitation_email(invitation, request)
+                    if email_sent:
+                        print("Email sent successfully")  # Debug print
+                        messages.success(
+                            request, 
+                            f"Employee added successfully. An invitation has been sent to {invitation.email}"
+                        )
+                    else:
+                        print("Email sending failed")  # Debug print
+                        messages.warning(
+                            request,
+                            f"Employee added but there was an error sending the invitation email to {invitation.email}"
+                        )
+                else:
+                    messages.success(request, "Employee added successfully.")
+                
+                return redirect('employee_list')
+                
+        except Exception as e:
+            print(f"Error creating employee: {str(e)}")  # Debug print
+            messages.error(request, "Error creating employee. Please try again.")
+            return render(request, 'accounts/employee_form.html', {
+                'form': form,
+                'action': 'Create',
+                'view_title': 'Add New Employee',
+                'is_supervisor': request.user.role == 'Supervisor' if hasattr(request.user, 'role') else False,
+                'is_superuser': request.user.is_superuser
+            })
+    else:
+        form = EmployeeForm()
+        
+    return render(request, 'accounts/employee_form.html', {
+        'form': form,
+        'action': 'Create',
+        'view_title': 'Add New Employee',
+        'is_supervisor': request.user.role == 'Supervisor' if hasattr(request.user, 'role') else False,
+        'is_superuser': request.user.is_superuser
+    })
+    
+def complete_registration(request, token):
+    """Handle the completion of registration by the invited employee"""
+    invitation = get_object_or_404(RegistrationInvitation, token=token)
+    
+    # Check if invitation is still valid
+    if not invitation.is_valid:
+        if invitation.used:
+            messages.error(request, "This invitation has already been used.")
+        else:
+            messages.error(request, "This invitation has expired.")
+        return redirect('login')
+    
+    if request.method == 'POST':
+        # Validate form data
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+        password_confirm = request.POST.get('password_confirm')
+        
+        # Get additional information
+        distance_office = request.POST.get('distance_office')
+        time_office = request.POST.get('time_office')
+        
+        errors = []
+        
+        # Basic validation
+        if not username:
+            errors.append("Username is required.")
+        elif CustomUser.objects.filter(username=username).exists():
+            errors.append("This username is already taken.")
+            
+        if not password:
+            errors.append("Password is required.")
+        elif password != password_confirm:
+            errors.append("Passwords do not match.")
+        else:
+            try:
+                validate_password(password)
+            except ValidationError as e:
+                errors.extend(e.messages)
+
+        # Validate distance and time if provided
+        try:
+            if distance_office:
+                distance_office = float(distance_office)
+                if distance_office < 0:
+                    errors.append("Distance to office cannot be negative.")
+        except ValueError:
+            errors.append("Invalid distance value.")
+
+        try:
+            if time_office:
+                time_office = int(time_office)
+                if time_office < 0:
+                    errors.append("Travel time to office cannot be negative.")
+        except ValueError:
+            errors.append("Invalid time value.")
+        
+        if errors:
+            for error in errors:
+                messages.error(request, error)
+        else:
+            try:
+                with transaction.atomic():
+                    # Create the user with additional information
+                    user = CustomUser.objects.create_user(
+                        username=username,
+                        email=invitation.email,
+                        password=password,
+                        first_name=invitation.first_name,
+                        last_name=invitation.last_name,
+                        role=invitation.role,
+                        supervisor=invitation.supervisor,
+                        distance_office=distance_office if distance_office else invitation.distance_office,
+                        time_office=time_office if time_office else invitation.time_office
+                    )
+                    
+                    # Mark invitation as used
+                    invitation.used = True
+                    invitation.save()
+                    
+                    # Add success message
+                    messages.success(request, "Registration completed successfully! Please log in.")
+                    
+                    # Redirect to login page
+                    return redirect('login')
+                    
+            except Exception as e:
+                messages.error(request, f"Error completing registration: {str(e)}")
+    
+    return render(request, 'registration/complete_registration.html', {
+        'invitation': invitation
+    })
+    
+# views.py
+
+@login_required
+def manage_invitations(request):
+    """View for managing pending invitations"""
+    if not (request.user.is_superuser or (hasattr(request.user, 'role') and request.user.role == 'Supervisor')):
+        messages.error(request, "You don't have permission to view this page.")
+        return redirect('dashboard')
+
+    # Get pending invitations
+    if request.user.is_superuser:
+        pending_invitations = RegistrationInvitation.objects.filter(
+            used=False
+        ).select_related('invited_by', 'supervisor').order_by('-created_at')
+    else:
+        pending_invitations = RegistrationInvitation.objects.filter(
+            used=False,
+            invited_by=request.user
+        ).select_related('invited_by', 'supervisor').order_by('-created_at')
+
+    context = {
+        'view_title': 'Manage Invitations',
+        'pending_invitations': pending_invitations,
+        'is_supervisor': request.user.role == 'Supervisor' if hasattr(request.user, 'role') else False,
+        'is_superuser': request.user.is_superuser
+    }
+    
+    return render(request, 'accounts/manage_invitations.html', context)
+
+@login_required
+def resend_invitation(request, invitation_id):
+    """Handle resending an invitation"""
+    if not request.method == 'POST':
+        return JsonResponse({'success': False, 'error': 'Invalid request method'})
+        
+    if not (request.user.is_superuser or request.user.role == 'Supervisor'):
+        return JsonResponse({'success': False, 'error': 'Permission denied'})
+
+    try:
+        invitation = RegistrationInvitation.objects.get(id=invitation_id, used=False)
+        
+        # Check permission
+        if not request.user.is_superuser and invitation.invited_by != request.user:
+            return JsonResponse({'success': False, 'error': 'Permission denied'})
+
+        # Reset expiration date
+        invitation.expires_at = timezone.now() + timedelta(days=7)
+        invitation.save()
+
+        # Resend email
+        if send_invitation_email(invitation, request):
+            messages.success(request, f"Invitation resent to {invitation.email}")
+            return JsonResponse({'success': True})
+        else:
+            return JsonResponse({'success': False, 'error': 'Failed to send email'})
+
+    except RegistrationInvitation.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'Invitation not found'})
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)})
+
+@login_required
+def cancel_invitation(request, invitation_id):
+    """Handle canceling an invitation"""
+    if not request.method == 'POST':
+        return JsonResponse({'success': False, 'error': 'Invalid request method'})
+        
+    if not (request.user.is_superuser or request.user.role == 'Supervisor'):
+        return JsonResponse({'success': False, 'error': 'Permission denied'})
+
+    try:
+        invitation = RegistrationInvitation.objects.get(id=invitation_id, used=False)
+        
+        # Check permission
+        if not request.user.is_superuser and invitation.invited_by != request.user:
+            return JsonResponse({'success': False, 'error': 'Permission denied'})
+
+        # Delete the invitation
+        invitation.delete()
+        messages.success(request, f"Invitation for {invitation.email} has been cancelled.")
+        return JsonResponse({'success': True})
+
+    except RegistrationInvitation.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'Invitation not found'})
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)})
+    
+from django.contrib.auth.views import (
+    PasswordResetView, 
+    PasswordResetDoneView,
+    PasswordResetConfirmView, 
+    PasswordResetCompleteView
+)
+from django.urls import reverse_lazy
+from django.contrib.messages.views import SuccessMessageMixin
+
+class CustomPasswordResetView(SuccessMessageMixin, PasswordResetView):
+    template_name = 'accounts/password_reset_form.html'
+    email_template_name = 'accounts/password_reset_email.html'
+    subject_template_name = 'accounts/password_reset_subject.txt'
+    success_url = reverse_lazy('password_reset_done')
+    success_message = "We've emailed you instructions for setting your password."
+    
+class CustomPasswordResetDoneView(PasswordResetDoneView):
+    template_name = 'accounts/password_reset_done.html'
+
+class CustomPasswordResetConfirmView(PasswordResetConfirmView):
+    template_name = 'accounts/password_reset_confirm.html'
+    success_url = reverse_lazy('password_reset_complete')
+    
+class CustomPasswordResetCompleteView(PasswordResetCompleteView):
+    template_name = 'accounts/password_reset_complete.html'

@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .button {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #4F46E5;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .footer { margin-top: 30px; font-size: 0.9em; color: #666; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Welcome to TimeSheet App</h2>
+        <p>Hello {{ invitation.first_name }},</p>
+        
+        <p>You've been invited to join TimeSheet App by {{ invitation.invited_by.get_full_name }}. 
+           To complete your registration and set up your account, please click the button below:</p>
+        
+        <a href="{{ registration_url }}" class="button">Complete Registration</a>
+        
+        <p>This invitation link will expire in 7 days.</p>
+        
+        <p>If you're unable to click the button, you can copy and paste this link into your browser:</p>
+        <p>{{ registration_url }}</p>
+        
+        <div class="footer">
+            <p>If you did not expect this invitation, please ignore this email.</p>
+        </div>
+    </div>
+</body>
+</html>

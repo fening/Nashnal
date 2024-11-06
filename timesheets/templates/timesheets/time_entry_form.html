@@ -6,13 +6,13 @@
 {% load custom_filters %}
 {% block content %}
 <div class="container mx-auto px-4 py-8">
-    <div class="bg-white shadow-md rounded-lg p-6">
+    <div class="bg-white p-6">
       <form method="post" class="space-y-6">
         {% csrf_token %}
         <div class="flex items-center space-x-4 mb-6">
             <label class="text-base font-medium text-gray-700 whitespace-nowrap" for="{{ form.date.id_for_label }}">Date:</label>
             <div class="w-48">
-              {{ form.date|add_class:"block w-full text-base rounded-md border-2 border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 px-3 py-2" }}
+              {{ form.date|add_class:"block w-full text-base rounded-md border-2 border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 px-3 py-2 bg-white" }}
             </div>
           </div>
         <div class="overflow-x-auto">
@@ -38,12 +38,12 @@
             <tbody id="formset-container" class="bg-white divide-y divide-gray-200">
               <tr>
                 <td class="px-6 py-4 whitespace-nowrap text-base font-medium text-gray-900">Start Location:</td>
-                <td class="px-6 py-4 whitespace-nowrap text-base text-gray-500" >{{ form.start_location|add_class:"block w-24 text-base rounded-md border-2 border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 px-3 py-2" }}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-base text-gray-500" >{{ form.start_location|add_class:"block w-24 text-base rounded-md border-2 border-gray-300 shadow-sm focus:border-orange-500 focus:ring focus:ring-orange-200 focus:ring-opacity-50 px-3 py-2 bg-white" }}</td>
                 <td class="px-6 py-4 whitespace-nowrap text-base text-gray-500" ></td>
                 <td class="px-6 py-4 whitespace-nowrap text-base text-gray-500" ></td>
-                <td class="px-6 py-4 whitespace-nowrap text-base text-gray-500">{{ form.initial_leave_time|add_class:"block w-full text-base rounded-md border-2 border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 px-3 py-2" }}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-base text-gray-500">{{ form.initial_leave_time|add_class:"block w-full text-base rounded-md border-2 border-gray-300 shadow-sm focus:border-orange-500 focus:ring focus:ring-orange-200 focus:ring-opacity-50 px-3 py-2 bg-white" }}</td>
                 <td class="px-6 py-4 whitespace-nowrap text-base text-gray-500" ></td>
-                <td class="px-6 py-4 whitespace-nowrap text-base text-gray-500">{{ form.initial_mileage|add_class:"block w-24 text-base rounded-md border-2 border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 px-3 py-2" }}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-base text-gray-500">{{ form.initial_mileage|add_class:"block w-24 text-base rounded-md border-2 border-gray-300 shadow-sm focus:border-orange-500 focus:ring focus:ring-orange-200 focus:ring-opacity-50 px-3 py-2 bg-white" }}</td>
                 <td class="px-6 py-4 whitespace-nowrap text-base text-gray-500" colspan="3"></td>
                 <td></td>
               </tr>
@@ -55,7 +55,7 @@
                 {{ job_form.id }}
                 <td class="px-6 py-4 whitespace-nowrap text-base text-gray-500 hidden">{{ job_form.DELETE }}</td>
                 <td class="px-6 py-4 whitespace-nowrap text-base text-gray-500" colspan="2">
-                  {{ job_form.job_description|add_class:"block w-full text-base rounded-md border-2 border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 px-3 py-2" }}
+                  {{ job_form.job_description|add_class:"block w-full text-base rounded-md border-2 border-gray-300 shadow-sm focus:border-orange-500 focus:ring focus:ring-orange-200 focus:ring-opacity-50 px-3 py-2 bg-white" }}
                 </td>
             <!-- Add Job Icon -->
             <td class="p-4">
@@ -68,12 +68,12 @@
                 </a>
               </div>
             </td>
-                <td class="px-6 py-4 whitespace-nowrap text-base text-gray-500">{{ job_form.activity_arrive_time|add_class:"block w-full text-base rounded-md border-2 border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 px-3 py-2" }}</td>
-                <td class="px-6 py-4 whitespace-nowrap text-base text-gray-500">{{ job_form.activity_leave_time|add_class:"block w-full text-base rounded-md border-2 border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 px-3 py-2" }}</td>
-                <td class="px-6 py-4 whitespace-nowrap text-base text-gray-500">{{ job_form.activity_start_mileage|add_class:"block w-24 text-base rounded-md border-2 border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 px-3 py-2" }}</td>
-                <td class="px-6 py-4 whitespace-nowrap text-base text-gray-500">{{ job_form.activity_end_mileage|add_class:"block w-24 text-base rounded-md border-2 border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 px-3 py-2" }}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-base text-gray-500">{{ job_form.activity_arrive_time|add_class:"block w-full text-base rounded-md border-2 border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 px-3 py-2 bg-white" }}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-base text-gray-500">{{ job_form.activity_leave_time|add_class:"block w-full text-base rounded-md border-2 border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 px-3 py-2 bg-white" }}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-base text-gray-500">{{ job_form.activity_start_mileage|add_class:"block w-24 text-base rounded-md border-2 border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 px-3 py-2 bg-white" }}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-base text-gray-500">{{ job_form.activity_end_mileage|add_class:"block w-24 text-base rounded-md border-2 border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 px-3 py-2 bg-white" }}</td>
                 <td class="px-6 py-4 whitespace-nowrap text-base text-gray-500" colspan="3">
-                  {{ job_form.labor_code_description|add_class:"block w-full text-base rounded-md border-2 border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 px-3 py-2"}}
+                  {{ job_form.labor_code_description|add_class:"block w-full text-base rounded-md border-2 border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 px-3 py-2 bg-white"}}
                 </td>
               <!-- Remove Job Icon -->
               <td class="p-4 whitespace-nowrap text-base font-medium">
@@ -105,11 +105,11 @@
               </tr>
               <tr>
                 <td class="px-6 py-4 whitespace-nowrap text-base font-medium text-gray-900">End Location:</td>
-                <td class="px-6 py-4 whitespace-nowrap text-base text-gray-500" >{{ form.end_location|add_class:"block w-24 text-base rounded-md border-2 border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 px-3 py-2"}}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-base text-gray-500" >{{ form.end_location|add_class:"block w-24 text-base rounded-md border-2 border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 px-3 py-2 bg-white"}}</td>
                 <td class="px-6 py-4 whitespace-nowrap text-base text-gray-500" ></td>
-                <td class="px-6 py-4 whitespace-nowrap text-base text-gray-500">{{ form.final_arrive_time|add_class:"block w-full text-base rounded-md border-2 border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 px-3 py-2" }}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-base text-gray-500">{{ form.final_arrive_time|add_class:"block w-full text-base rounded-md border-2 border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 px-3 py-2 bg-white" }}</td>
                 <td class="px-6 py-4 whitespace-nowrap text-base text-gray-500" ></td>
-                <td class="px-6 py-4 whitespace-nowrap text-base text-gray-500">{{ form.final_mileage|add_class:"block w-24 text-base rounded-md border-2 border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 px-3 py-2" }}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-base text-gray-500">{{ form.final_mileage|add_class:"block w-24 text-base rounded-md border-2 border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 px-3 py-2 bg-white" }}</td>
                 <td class="px-6 py-4 whitespace-nowrap text-base text-gray-500" colspan="3"></td>
                 <td></td>
               </tr>
@@ -131,14 +131,14 @@
   
         <div class="mt-6">
           <label class="block text-base font-medium text-gray-700" for="{{ form.comments.id_for_label }}">Comments:</label>
-          {{ form.comments|add_class:"mt-1 block w-full text-base rounded-md border-2 border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 px-3 py-2" }}
+          {{ form.comments|add_class:"mt-1 block w-full text-base rounded-md border-2 border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 px-3 py-2 bg-white" }}
         </div>
   
         <div class="mt-8 flex justify-center space-x-4">
-          <button type="submit" class="px-6 py-3 border-2 border-transparent text-base font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+          <button type="submit" class="px-6 py-3 rounded-full bg-orange-500 text-gray-800 hover:bg-gray-900 hover:text-white hover:border-gray-700 transition duration-200">
             Save
           </button>
-          <a href="{% url 'time_entry_list' %}" class="px-6 py-3 border-2 border-gray-300 text-base font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+          <a href="{% url 'time_entry_list' %}" class="px-6 py-3 rounded-full bg-gray-200 text-gray-700 hover:bg-gray-300 transition duration-200">
             Cancel
           </a>
         </div>

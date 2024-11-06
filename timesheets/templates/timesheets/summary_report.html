@@ -7,11 +7,11 @@
 
 <div class="p-6 max-w-8xl mx-auto">
     <!-- Filter Form -->
-    <form method="GET" action="" class="mb-8 p-6 bg-gray-50 rounded-lg space-y-4 md:space-y-0 md:flex md:items-center md:space-x-4">
+    <form method="GET" action="" class="mb-8 p-6 space-y-4 md:space-y-0 md:flex md:items-center md:space-x-4">
         {% if is_superuser or is_supervisor %}
         <div class="flex flex-col">
             <label for="user-select" class="text-sm font-medium text-gray-700 mb-1">Select User:</label>
-            <select name="user" id="user-select" class="form-select block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" onchange="this.form.submit()">
+            <select name="user" id="user-select" class="form-select block w-full rounded-md border-2 border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" onchange="this.form.submit()">
                 <option value="">--Select User--</option>
                 {% for user in all_users %}
                     <option value="{{ user.id }}" {% if selected_user and user.id == selected_user.id %}selected{% endif %}>
@@ -23,15 +23,15 @@
         {% endif %}
 
         <div class="flex flex-col">
-            <label for="week-start" class="text-sm font-medium text-gray-700 mb-1">Select Week Start:</label>
+            <label for="week-start" class="text-lg font-semibold text-gray-700 mb-1 ">Select Week Start:</label>
             <input type="date" name="week_start" id="week-start" value="{{ week_start|date:'Y-m-d' }}" 
-                   class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                   class="block w-full rounded-md border-2 border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                    onchange="this.form.submit()">
         </div>
     </form>
 
     <!-- Report Header -->
-    <h2 class="text-xl font-bold mb-6 text-gray-800">
+    <h2 class="text-xl font-semibold mb-6 text-gray-800">
         Report for {{ selected_user.first_name }} {{ selected_user.last_name }} 
         (Week of {{ week_start|date:'M d, Y' }} to {{ week_end|date:'M d, Y' }})
     </h2>
@@ -39,170 +39,295 @@
     <!-- Weekly Hours Table -->
     <div class="mb-8 overflow-x-auto">
         <table class="min-w-full divide-y divide-gray-200 rounded-lg">
-            <thead class="bg-gray-50">
+            <thead class="bg-gray-300">
                 <tr>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Project No</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Client</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Project Name</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Labor Code</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Sunday</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Monday</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tuesday</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Wednesday</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Thursday</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Friday</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Saturday</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Hours</th>
+                    <th class="px-6 py-3 text-left text-xs font-semibold text-center text-gray-800 uppercase tracking-wider">Project No</th>
+                    <th class="px-6 py-3 text-left text-xs font-semibold text-center text-gray-800 uppercase tracking-wider">Client</th>
+                    <th class="px-6 py-3 text-left text-xs font-semibold text-center text-gray-800 uppercase tracking-wider">Project Name</th>
+                    <th class="px-6 py-3 text-left text-xs font-semibold text-center text-gray-800 uppercase tracking-wider">Labor Code</th>
+                    <th class="px-6 py-3 text-left text-xs font-semibold text-center text-gray-800 uppercase tracking-wider">Sunday</th>
+                    <th class="px-6 py-3 text-left text-xs font-semibold text-center text-gray-800 uppercase tracking-wider">Monday</th>
+                    <th class="px-6 py-3 text-left text-xs font-semibold text-center text-gray-800 uppercase tracking-wider">Tuesday</th>
+                    <th class="px-6 py-3 text-left text-xs font-semibold text-center text-gray-800 uppercase tracking-wider">Wednesday</th>
+                    <th class="px-6 py-3 text-left text-xs font-semibold text-center text-gray-800 uppercase tracking-wider">Thursday</th>
+                    <th class="px-6 py-3 text-left text-xs font-semibold text-center text-gray-800 uppercase tracking-wider">Friday</th>
+                    <th class="px-6 py-3 text-left text-xs font-semibold text-center text-gray-800 uppercase tracking-wider">Saturday</th>
+                    <th class="px-6 py-3 text-left text-xs font-semibold text-center text-gray-800 uppercase tracking-wider">Total Hours</th>
                 </tr>
             </thead>
-            <tbody class="bg-white divide-y divide-gray-200">
+            <tbody class="bg-white divide-y divide-gray-300">
                 {% for labor_code, data in weekly_hours.items %}
                 <tr class="hover:bg-gray-50">
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ data.project_no }}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ data.client }}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ data.description }}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ labor_code }} - {{ data.labor_code_description }}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ data.hours.Sunday }}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ data.hours.Monday }}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ data.hours.Tuesday }}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ data.hours.Wednesday }}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ data.hours.Thursday }}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ data.hours.Friday }}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ data.hours.Saturday }}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-center text-gray-900">{{ data.hours.Sunday }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-center text-gray-900">{{ data.hours.Monday }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-center text-gray-900">{{ data.hours.Tuesday }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-center text-gray-900">{{ data.hours.Wednesday }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-center text-gray-900">{{ data.hours.Thursday }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-center text-gray-900">{{ data.hours.Friday }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-center text-gray-900">{{ data.hours.Saturday }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-center text-gray-900 font-medium">
                         {{ data.hours.Sunday|add:data.hours.Monday|add:data.hours.Tuesday|add:data.hours.Wednesday|add:data.hours.Thursday|add:data.hours.Friday|add:data.hours.Saturday }}
                     </td>
                 </tr>
                 {% endfor %}
                 <!-- Daily Totals Row -->
-                <tr class="bg-gray-50 font-medium">
-                    <td colspan="4" class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">Total Daily Hours</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ daily_totals.Sunday }}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ daily_totals.Monday }}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ daily_totals.Tuesday }}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ daily_totals.Wednesday }}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ daily_totals.Thursday }}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ daily_totals.Friday }}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ daily_totals.Saturday }}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                <tr class="bg-gray-300 font-medium">
+                    <td colspan="4" class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">Total Daily Hours</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-center font-semibold text-gray-900">{{ daily_totals.Sunday }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-center font-semibold text-gray-900">{{ daily_totals.Monday }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-center font-semibold text-gray-900">{{ daily_totals.Tuesday }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-center font-semibold text-gray-900">{{ daily_totals.Wednesday }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-center font-semibold text-gray-900">{{ daily_totals.Thursday }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-center font-semibold text-gray-900">{{ daily_totals.Friday }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-center font-semibold text-gray-900">{{ daily_totals.Saturday }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-center font-semibold text-gray-900">
                         {{ daily_totals.Sunday|add:daily_totals.Monday|add:daily_totals.Tuesday|add:daily_totals.Wednesday|add:daily_totals.Thursday|add:daily_totals.Friday|add:daily_totals.Saturday }}
                     </td>
                 </tr>
             </tbody>
         </table>
     </div>
-<!-- Labor Code Section -->
-<div class="bg-white shadow-md rounded-lg overflow-hidden mb-8">
-    <table class="min-w-full divide-y divide-gray-200">
-        <thead class="bg-gray-50">
-            <tr>
-                <th colspan="2" class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-r text-center">Field Technician & Engineering Codes</th>
-                <th colspan="2" class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-r text-center">Lab Service Codes</th>
-                <th colspan="6" class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider text-center">Time Sheet Summary</th>
-            </tr>
-        </thead>
-        <tbody class="bg-white divide-y divide-gray-200">
-            <!-- Row 1 -->
-            <tr class="hover:bg-gray-50">
-                <td class="px-4 py-1 text-sm text-gray-900 border-r">1. Project Management/P.E.</td>
-                <td class="px-4 py-1 text-sm text-gray-900 border-r">13. Concrete Lab</td>
-                <td class="px-4 py-1 text-sm text-gray-900 border-r">25. Moisture Content</td>
-                <td class="px-4 py-1 text-sm text-gray-900 border-r">37. Modified Proctor 4" Mold</td>
-                <td colspan="3" class="px-4 py-1 text-sm font-medium text-gray-900">Total Regular Hours</td>
-                <td colspan="3" class="px-4 py-1 text-sm text-gray-900">{{ total_regular_hours }}</td>
-            </tr>
-            <!-- Row 2 -->
-            <tr class="hover:bg-gray-50">
-                <td class="px-4 py-1 text-sm text-gray-900 border-r">2. Senior Engineer/P.E.</td>
-                <td class="px-4 py-1 text-sm text-gray-900 border-r">14. Concrete Coring</td>
-                <td class="px-4 py-1 text-sm text-gray-900 border-r">26. Particle Size Analysis</td>
-                <td class="px-4 py-1 text-sm text-gray-900 border-r">38. Modified Proctor 6" Mold</td>
-                <td colspan="3" class="px-4 py-1 text-sm font-medium text-gray-900">Total Overtime Hours</td>
-                <td colspan="3" class="px-4 py-1 text-sm text-gray-900">{{ total_overtime_hours }}</td>
-            </tr>
-            <!-- Row 3 -->
-            <tr class="hover:bg-gray-50">
-                <td class="px-4 py-1 text-sm text-gray-900 border-r">3. Project Engineer</td>
-                <td class="px-4 py-1 text-sm text-gray-900 border-r">15. Windsor Probe/Pin</td>
-                <td class="px-4 py-1 text-sm text-gray-900 border-r">27. Hydrometer</td>
-                <td class="px-4 py-1 text-sm text-gray-900 border-r">39. Unconsolidated Triaxle Shear Test</td>
-                <td colspan="3" class="px-4 py-1 text-sm font-medium text-gray-900">Double Time Hours</td>
-                <td colspan="3" class="px-4 py-1 text-sm text-gray-900">{{ total_double_time_hours }}</td>
-            </tr>
-            <!-- Row 4 -->
-            <tr class="hover:bg-gray-50">
-                <td class="px-4 py-1 text-sm text-gray-900 border-r">4. Lab Manager</td>
-                <td class="px-4 py-1 text-sm text-gray-900 border-r">16. Schmidt Hammer</td>
-                <td class="px-4 py-1 text-sm text-gray-900 border-r">28. Atterberg Limits</td>
-                <td class="px-4 py-1 text-sm text-gray-900 border-r">40. Consolidated Triaxle Shear Test</td>
-                <td colspan="3" class="px-4 py-1 text-sm font-medium text-gray-900">Grand Total Hours</td>
-                <td colspan="3" class="px-4 py-1 text-sm text-gray-900">{{ grand_total_hours }}</td>
-            </tr>
-            <!-- Row 5 -->
-            <tr class="hover:bg-gray-50">
-                <td class="px-4 py-1 text-sm text-gray-900 border-r">5. Laboratory Technician</td>
-                <td class="px-4 py-1 text-sm text-gray-900 border-r">17. Ground Penetrating Radar</td>
-                <td class="px-4 py-1 text-sm text-gray-900 border-r">29. Specific Gravity</td>
-                <td class="px-4 py-1 text-sm text-gray-900 border-r">41. Unconfined Compression</td>
-                <td colspan="6" class="px-4 py-1"></td>
-            </tr>
-            <!-- Row 6 -->
-            <tr class="hover:bg-gray-50">
-                <td class="px-4 py-1 text-sm text-gray-900 border-r">6. Field Engineer</td>
-                <td class="px-4 py-1 text-sm text-gray-900 border-r">18. Floor Flatness</td>
-                <td class="px-4 py-1 text-sm text-gray-900 border-r">30. Organic Content</td>
-                <td class="px-4 py-1 text-sm text-gray-900 border-r">42. One Dimensional Consolidation</td>
-                <td colspan="6" class="px-4 py-1"></td>
-            </tr>
-            <!-- Row 7 -->
-            <tr class="hover:bg-gray-50">
-                <td class="px-4 py-1 text-sm text-gray-900 border-r">7. Field Technician Level I</td>
-                <td class="px-4 py-1 text-sm text-gray-900 border-r">19. CAD Drawing</td>
-                <td class="px-4 py-1 text-sm text-gray-900 border-r">31. Unit Weight</td>
-                <td class="px-4 py-1 text-sm text-gray-900 border-r">43. Asphalt Extraction Test</td>
-                <td colspan="6" class="px-4 py-1"></td>
-            </tr>
-            <!-- Row 8 -->
-            <tr class="hover:bg-gray-50">
-                <td class="px-4 py-1 text-sm text-gray-900 border-r">8. Field Technician Level II</td>
-                <td class="px-4 py-1 text-sm text-gray-900 border-r">20. Administration</td>
-                <td class="px-4 py-1 text-sm text-gray-900 border-r">32. Density, Soil Particle</td>
-                <td class="px-4 py-1 text-sm text-gray-900 border-r">44. Gyratory Compaction</td>
-                <td colspan="6" class="px-4 py-1"></td>
-            </tr>
-            <!-- Row 9 -->
-            <tr class="hover:bg-gray-50">
-                <td class="px-4 py-1 text-sm text-gray-900 border-r">9. CWI</td>
-                <td class="px-4 py-1 text-sm text-gray-900 border-r">21. Marketing</td>
-                <td class="px-4 py-1 text-sm text-gray-900 border-r">33. Fractional Organic Carbon</td>
-                <td class="px-4 py-1 text-sm text-gray-900 border-r">45. Asphalt Bulk Specific Gravity</td>
-                <td colspan="6" class="px-4 py-1"></td>
-            </tr>
-            <!-- Row 10 -->
-            <tr class="hover:bg-gray-50">
-                <td class="px-4 py-1 text-sm text-gray-900 border-r">10. Report / Documentation Preparation</td>
-                <td class="px-4 py-1 text-sm text-gray-900 border-r">22. Clerical Support</td>
-                <td class="px-4 py-1 text-sm text-gray-900 border-r">34. Hydraulic Conductivity</td>
-                <td class="px-4 py-1 text-sm text-gray-900 border-r">46. Asphalt Apparent Specific Gravity</td>
-                <td colspan="6" class="px-4 py-1"></td>
-            </tr>
-            <!-- Row 11 -->
-            <tr class="hover:bg-gray-50">
-                <td class="px-4 py-1 text-sm text-gray-900 border-r">11. Report / Document Quality Review</td>
-                <td class="px-4 py-1 text-sm text-gray-900 border-r">23. Training</td>
-                <td class="px-4 py-1 text-sm text-gray-900 border-r">35. Standard Proctor 4" Mold</td>
-                <td class="px-4 py-1 text-sm text-gray-900 border-r">47. pH</td>
-                <td colspan="6" class="px-4 py-1"></td>
-            </tr>
-            <!-- Row 12 -->
-            <tr class="hover:bg-gray-50">
-                <td class="px-4 py-1 text-sm text-gray-900 border-r">12. Concrete / Sample Collection Pick-Up</td>
-                <td class="px-4 py-1 text-sm text-gray-900 border-r">24. School</td>
-                <td class="px-4 py-1 text-sm text-gray-900 border-r">36. Standard Proctor 6" Mold</td>
-                <td class="px-4 py-1 text-sm text-gray-900 border-r">48. Other</td>
-                <td colspan="6" class="px-4 py-1"></td>
-            </tr>
-        </tbody>
-    </table>
-</div>
-    {% endblock %}
+
+    <!-- Print Button -->
+    <div class="mb-4">
+        <button onclick="window.print()" class="print-button px-4 py-2 bg-orange-500 text-gray-800 rounded-full hover:bg-gray-900 hover:text-white  no-print">
+            Print Report
+        </button>
+    </div>
+
+    <!-- Labor Code Section - Hidden by default, visible when printing -->
+    <div class="bg-white shadow-md rounded-lg overflow-hidden mb-8 hidden print-only">
+        <table class="min-w-full divide-y divide-gray-300 ">
+            <thead class="bg-gray-300">
+                <tr>
+                    <th colspan="2" class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-r text-center ">Field Technician & Engineering Codes</th>
+                    <th colspan="2" class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-r text-center ">Lab Service Codes</th>
+                    <th colspan="6" class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider text-center ">Time Sheet Summary</th>
+                </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-300 ">
+                <!-- Row 1 -->
+                <tr class="hover:bg-gray-300">
+                    <td class="px-4 py-1 text-sm text-gray-900 border-r">1. Project Management/P.E.</td>
+                    <td class="px-4 py-1 text-sm text-gray-900 border-r ">13. Concrete Lab</td>
+                    <td class="px-4 py-1 text-sm text-gray-900 border-r ">25. Moisture Content</td>
+                    <td class="px-4 py-1 text-sm text-gray-900 border-r ">37. Modified Proctor 4" Mold</td>
+                    <td colspan="3" class="px-4 py-1 text-sm font-semibold text-gray-900 ">Total Regular Hours</td>
+                    <td colspan="3" class="px-4 py-1 text-sm font-semibold text-gray-900">{{ total_regular_hours }}</td>
+                </tr>
+                <!-- Row 2 -->
+                <tr class="hover:bg-gray-300">
+                    <td class="px-4 py-1 text-sm text-gray-900 border-r">2. Senior Engineer/P.E.</td>
+                    <td class="px-4 py-1 text-sm text-gray-900 border-r">14. Concrete Coring</td>
+                    <td class="px-4 py-1 text-sm text-gray-900 border-r">26. Particle Size Analysis</td>
+                    <td class="px-4 py-1 text-sm text-gray-900 border-r">38. Modified Proctor 6" Mold</td>
+                    <td colspan="3" class="px-4 py-1 text-sm font-semibold text-gray-900">Total Overtime Hours</td>
+                    <td colspan="3" class="px-4 py-1 text-sm font-semibold text-gray-900">{{ total_overtime_hours }}</td>
+                </tr>
+                <!-- Row 3 -->
+                <tr class="hover:bg-gray-300">
+                    <td class="px-4 py-1 text-sm text-gray-900 border-r">3. Project Engineer</td>
+                    <td class="px-4 py-1 text-sm text-gray-900 border-r">15. Windsor Probe/Pin</td>
+                    <td class="px-4 py-1 text-sm text-gray-900 border-r">27. Hydrometer</td>
+                    <td class="px-4 py-1 text-sm text-gray-900 border-r">39. Unconsolidated Triaxle Shear Test</td>
+                    <td colspan="3" class="px-4 py-1 text-sm font-semibold text-gray-900">Double Time Hours</td>
+                    <td colspan="3" class="px-4 py-1 text-sm font-semibold text-gray-900">{{ total_double_time_hours }}</td>
+                </tr>
+                <!-- Row 4 -->
+                <tr class="hover:bg-gray-300">
+                    <td class="px-4 py-1 text-sm text-gray-900 border-r">4. Lab Manager</td>
+                    <td class="px-4 py-1 text-sm text-gray-900 border-r">16. Schmidt Hammer</td>
+                    <td class="px-4 py-1 text-sm text-gray-900 border-r">28. Atterberg Limits</td>
+                    <td class="px-4 py-1 text-sm text-gray-900 border-r">40. Consolidated Triaxle Shear Test</td>
+                    <td colspan="3" class="px-4 py-1 text-sm font-semibold text-gray-900">Grand Total Hours</td>
+                    <td colspan="3" class="px-4 py-1 text-sm font-semibold text-gray-900">{{ grand_total_hours }}</td>
+                </tr>
+                <!-- Row 5 -->
+                <tr class="hover:bg-gray-300">
+                    <td class="px-4 py-1 text-sm text-gray-900 border-r">5. Laboratory Technician</td>
+                    <td class="px-4 py-1 text-sm text-gray-900 border-r">17. Ground Penetrating Radar</td>
+                    <td class="px-4 py-1 text-sm text-gray-900 border-r">29. Specific Gravity</td>
+                    <td class="px-4 py-1 text-sm text-gray-900 border-r">41. Unconfined Compression</td>
+                    <td colspan="6" class="px-4 py-1"></td>
+                </tr>
+                <!-- Row 6 -->
+                <tr class="hover:bg-gray-300">
+                    <td class="px-4 py-1 text-sm text-gray-900 border-r">6. Field Engineer</td>
+                    <td class="px-4 py-1 text-sm text-gray-900 border-r">18. Floor Flatness</td>
+                    <td class="px-4 py-1 text-sm text-gray-900 border-r">30. Organic Content</td>
+                    <td class="px-4 py-1 text-sm text-gray-900 border-r">42. One Dimensional Consolidation</td>
+                    <td colspan="6" class="px-4 py-1"></td>
+                </tr>
+                <!-- Row 7 -->
+                <tr class="hover:bg-gray-300">
+                    <td class="px-4 py-1 text-sm text-gray-900 border-r">7. Field Technician Level I</td>
+                    <td class="px-4 py-1 text-sm text-gray-900 border-r">19. CAD Drawing</td>
+                    <td class="px-4 py-1 text-sm text-gray-900 border-r">31. Unit Weight</td>
+                    <td class="px-4 py-1 text-sm text-gray-900 border-r">43. Asphalt Extraction Test</td>
+                    <td colspan="6" class="px-4 py-1"></td>
+                </tr>
+                <!-- Row 8 -->
+                <tr class="hover:bg-gray-300">
+                    <td class="px-4 py-1 text-sm text-gray-900 border-r">8. Field Technician Level II</td>
+                    <td class="px-4 py-1 text-sm text-gray-900 border-r">20. Administration</td>
+                    <td class="px-4 py-1 text-sm text-gray-900 border-r">32. Density, Soil Particle</td>
+                    <td class="px-4 py-1 text-sm text-gray-900 border-r">44. Gyratory Compaction</td>
+                    <td colspan="6" class="px-4 py-1"></td>
+                </tr>
+                <!-- Row 9 -->
+                <tr class="hover:bg-gray-300">
+                    <td class="px-4 py-1 text-sm text-gray-900 border-r">9. CWI</td>
+                    <td class="px-4 py-1 text-sm text-gray-900 border-r">21. Marketing</td>
+                    <td class="px-4 py-1 text-sm text-gray-900 border-r">33. Fractional Organic Carbon</td>
+                    <td class="px-4 py-1 text-sm text-gray-900 border-r">45. Asphalt Bulk Specific Gravity</td>
+                    <td colspan="6" class="px-4 py-1"></td>
+                </tr>
+                <!-- Row 10 -->
+                <tr class="hover:bg-gray-300">
+                    <td class="px-4 py-1 text-sm text-gray-900 border-r">10. Report / Documentation Preparation</td>
+                    <td class="px-4 py-1 text-sm text-gray-900 border-r">22. Clerical Support</td>
+                    <td class="px-4 py-1 text-sm text-gray-900 border-r">34. Hydraulic Conductivity</td>
+                    <td class="px-4 py-1 text-sm text-gray-900 border-r">46. Asphalt Apparent Specific Gravity</td>
+                    <td colspan="6" class="px-4 py-1"></td>
+                </tr>
+                <!-- Row 11 -->
+                <tr class="hover:bg-gray-300">
+                    <td class="px-4 py-1 text-sm text-gray-900 border-r">11. Report / Document Quality Review</td>
+                    <td class="px-4 py-1 text-sm text-gray-900 border-r">23. Training</td>
+                    <td class="px-4 py-1 text-sm text-gray-900 border-r">35. Standard Proctor 4" Mold</td>
+                    <td class="px-4 py-1 text-sm text-gray-900 border-r">47. pH</td>
+                    <td colspan="6" class="px-4 py-1"></td>
+                </tr>
+                <!-- Row 12 -->
+                <tr class="hover:bg-gray-300">
+                    <td class="px-4 py-1 text-sm text-gray-900 border-r">12. Concrete / Sample Collection Pick-Up</td>
+                    <td class="px-4 py-1 text-sm text-gray-900 border-r">24. School</td>
+                    <td class="px-4 py-1 text-sm text-gray-900 border-r">36. Standard Proctor 6" Mold</td>
+                    <td class="px-4 py-1 text-sm text-gray-900 border-r">48. Other</td>
+                    <td colspan="6" class="px-4 py-1"></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    <div class="p-4 screen-only">
+        <!-- Summary Grid -->
+        <div class="summary-grid grid grid-cols-1 md:grid-cols-4 gap-4">
+            <!-- Regular Hours -->
+            <div class="summary-card rounded-lg border border-gray-200 shadow-sm p-4 bg-white">
+                <div class="flex flex-col">
+                    <div class="text-sm font-medium text-gray-500 mb-1">Regular Hours</div>
+                    <div class="flex items-baseline">
+                        <span class="text-2xl font-semibold text-gray-900">{{ total_regular_hours }}</span>
+                        <span class="ml-1 text-sm text-gray-500">hrs</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Overtime Hours -->
+            <div class="summary-card rounded-lg border border-gray-200 shadow-sm p-4 bg-white">
+                <div class="flex flex-col">
+                    <div class="text-sm font-medium text-gray-500 mb-1">Overtime Hours</div>
+                    <div class="flex items-baseline">
+                        <span class="text-2xl font-semibold text-gray-900">{{ total_overtime_hours }}</span>
+                        <span class="ml-1 text-sm text-gray-500">hrs</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Double Time Hours -->
+            <div class="summary-card rounded-lg border border-gray-200 shadow-sm p-4 bg-white">
+                <div class="flex flex-col">
+                    <div class="text-sm font-medium text-gray-500 mb-1">Double Time Hours</div>
+                    <div class="flex items-baseline">
+                        <span class="text-2xl font-semibold text-gray-900">{{ total_double_time_hours }}</span>
+                        <span class="ml-1 text-sm text-gray-500">hrs</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Grand Total -->
+            <div class="summary-card rounded-lg border border-gray-200 shadow-sm p-4 bg-gradient-to-br from-blue-50 to-white">
+                <div class="flex flex-col">
+                    <div class="text-sm font-medium text-gray-500 mb-1">Grand Total Hours</div>
+                    <div class="flex items-baseline">
+                        <span class="text-2xl font-semibold text-blue-600">{{ grand_total_hours }}</span>
+                        <span class="ml-1 text-sm text-gray-500">hrs</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Compact Alternative for Space-Constrained Layouts -->
+        <div class="mt-4 hidden">
+            <div class="bg-white rounded-lg border border-gray-200 shadow-sm">
+                <div class="grid grid-cols-4 divide-x divide-gray-200">
+                    <div class="p-3 text-center">
+                        <div class="text-xs font-medium text-gray-500 mb-1">Regular</div>
+                        <div class="text-sm font-semibold text-gray-900">{{ total_regular_hours }}</div>
+                    </div>
+                    <div class="p-3 text-center">
+                        <div class="text-xs font-medium text-gray-500 mb-1">Overtime</div>
+                        <div class="text-sm font-semibold text-gray-900">{{ total_overtime_hours }}</div>
+                    </div>
+                    <div class="p-3 text-center">
+                        <div class="text-xs font-medium text-gray-500 mb-1">Double Time</div>
+                        <div class="text-sm font-semibold text-gray-900">{{ total_double_time_hours }}</div>
+                    </div>
+                    <div class="p-3 text-center">
+                        <div class="text-xs font-medium text-gray-500 mb-1">Total</div>
+                        <div class="text-sm font-semibold text-blue-600">{{ grand_total_hours }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <style>
+        @media print {
+            .no-print {
+                display: none !important;
+            }
+            .print-only {
+                display: block !important;
+            }
+        }
+        @media screen {
+            .print-only {
+                display: none;
+            }
+        }
+        @media print {
+            /* Hide non-printable elements */
+            header, footer, nav, .no-print, .screen-only, #sidebar, #sidebarToggle, #closeSidebar {
+                display: none !important;
+            }
+                            /* Set page to landscape */
+                            @page {
+                                size: A4 landscape;
+                                margin: 1cm;
+                            }
+                            /* Reset layout for printing */
+                            body, html {
+                                background: white !important;
+                                margin: 0 !important;
+                                padding: 0 !important;
+                                width: 210mm !important; /* A4 width */
+                                height: 297mm !important; /* A4 height */
+                                overflow: visible !important;
+                                font-size: 0.9em; /* Reduce font size slightly */
+                            }
+                            
+                            /* Reset main content positioning */
+                            #mainContent {
+                                margin-left: 0 !important;
+                                padding: 0 !important;
+                                width: 100% !important;
+                                position: absolute!important;
+                                left: 0 !important;
+                                top: 0 !important;
+                            }
+    </style>
+{% endblock %}

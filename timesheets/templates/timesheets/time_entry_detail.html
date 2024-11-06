@@ -1,134 +1,225 @@
-
 {% extends 'timesheets/base.html' %}
 
 {% block page_title %}
-<h1 class="text-xl font-semibold">Timesheet Entries - Detailed View</h1>
+Timesheet Entries - Detailed View
 {% endblock %}
 
 {% block content %}
 {% load custom_filters %}
+<style>
+    @media print {
+        /* Hide non-printable elements */
+        header, footer, nav, .no-print, .screen-only, #sidebar, #sidebarToggle, #closeSidebar {
+            display: none !important;
+        }
+                /* Set page to landscape */
+                @page {
+                    size: A4 landscape;
+                    margin: 1cm;
+                }
+                /* Reset layout for printing */
+                body, html {
+                    background: white !important;
+                    margin: 0 !important;
+                    padding: 0 !important;
+                    width: 210mm !important; /* A4 width */
+                    height: 297mm !important; /* A4 height */
+                    overflow: visible !important;
+                    font-size: 0.9em; /* Reduce font size slightly */
+                }
+                
+                /* Reset main content positioning */
+                #mainContent {
+                    margin-left: 0 !important;
+                    padding: 0 !important;
+                    width: 100% !important;
+                    position: absolute!important;
+                    left: 0 !important;
+                    top: 0 !important;
+                }
 
-<div class="bg-white shadow-lg rounded-lg overflow-hidden">
+                    /* Improve table layout for printing */
+    table {
+        page-break-inside: avoid;
+        width: 100% !important; /* Ensure the table width fits within the content width */
+    }
+    /* Reduce padding in table cells */
+    th, td {
+        padding: 4px 6px !important; /* Decreased padding for a compact table */
+    }
+        /* Show print-only elements */
+        .print-only {
+            display: block !important;
+        }
+        
+        /* Reset background colors and shadows for printing */
+        body {
+            background: white !important;
+            margin: 0 !important;
+            padding: 0 !important;
+        }
+        
+        .bg-white {
+            background: white !important;
+            box-shadow: none !important;
+        }
+        
+        /* Ensure the form takes up the full page */
+        .timesheet-content {
+            margin: 0 !important;
+            padding: 0.5cm !important; /* Reduced padding */
+            width: 98% !important; /* Slightly narrower width to prevent overflow */
+        }
+        
+    /* Adjust table layout */
+    table {
+        page-break-inside: avoid;
+        width: 100% !important;
+        font-size: 0.9em; /* Reduce font size slightly */
+    }
+        
+        /* Force background colors in printing */
+        * {
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+    }
+
+    /* Hide print-only elements when viewing on screen */
+    .print-only {
+        display: none;
+    }
+
+    @page {
+        margin: 1cm;
+    }
+</style>
+<!-- Main content wrapper -->
+<div class="timesheet-content bg-white rounded-lg overflow-hidden">
     <div class="p-6 space-y-8">
+        <!-- Header info -->
         <div class="flex justify-end items-center border-b pb-4">
             <p class="text-sm text-gray-600">
-                <span class="font-medium">Date:</span> {{ time_entry.date }} | 
-                <span class="font-medium">Name:</span> {{ request.user.first_name }} {{ request.user.last_name }}
+                <span class="font-semibold">Date:</span> {{ time_entry.date }} | 
+                <span class="font-semibold">Name:</span> {{ request.user.first_name }} {{ request.user.last_name }}
             </p>
         </div>
-
+        <!-- Main table -->
         <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-gray-200">
-                <thead class="bg-gray-50">
+            <table class="min-w-full divide-y divide-gray-300">
+                <thead class="bg-gray-300">
                     <tr>
-                        <th scope="col" class="px-6 py-3 text-center text-s font-medium text-gray-500 uppercase tracking-wider" colspan="2">Client/Job</th>
-                        <th scope="col" class="px-6 py-3 text-center text-s font-medium text-gray-500 uppercase tracking-wider">NST Job #</th>
-                        <th scope="col" class="px-6 py-3 text-center  text-s font-medium text-gray-500 uppercase tracking-wider" colspan="2">Time</th>
-                        <th scope="col" class="px-6 py-3 text-center  text-s font-medium text-gray-500 uppercase tracking-wider" colspan="2">Mileage</th>
-                        <th scope="col" class="px-6 py-3 text-center  text-s font-medium text-gray-500 uppercase tracking-wider" colspan="2">Services Performed</th>
+                        <th scope="col" class="px-2 py-2 text-center text-s font-semibold text-gray-800 uppercase tracking-wider" colspan="2">Client/Job</th>
+                        <th scope="col" class="px-2 py-2 text-center text-s font-semibold text-gray-800 uppercase tracking-wider">NST Job #</th>
+                        <th scope="col" class="px-2 py-2 text-center  text-s font-semibold text-gray-800 uppercase tracking-wider" colspan="2">Time</th>
+                        <th scope="col" class="px-2 py-2 text-center  text-s font-semibold text-gray-800 uppercase tracking-wider" colspan="2">Mileage</th>
+                        <th scope="col" class="px-2 py-2 text-center  text-s font-semibold text-gray-800 uppercase tracking-wider" colspan="2">Services Performed</th>
                     </tr>
                     <tr>
-                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" colspan="2"></th>
-                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"></th>
-                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Arrive</th>
-                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Leave</th>
-                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Arrive</th>
-                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Leave</th>
-                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Labor Code</th>
-                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
+                        <th scope="col" class="px-2 py-2 text-center text-sm font-semibold text-gray-800 uppercase tracking-wider" colspan="2"></th>
+                        <th scope="col" class="px-2 py-2 text-center text-sm font-semibold text-gray-800 uppercase tracking-wider"></th>
+                        <th scope="col" class="px-2 py-2 text-center text-sm font-semibold text-gray-800 uppercase tracking-wider">Arrive</th>
+                        <th scope="col" class="px-2 py-2 text-center text-sm font-semibold text-gray-800 uppercase tracking-wider">Leave</th>
+                        <th scope="col" class="px-2 py-2 text-center text-sm font-semibold text-gray-800 uppercase tracking-wider">Arrive</th>
+                        <th scope="col" class="px-2 py-2 text-center text-sm font-semibold text-gray-800 uppercase tracking-wider">Leave</th>
+                        <th scope="col" class="px-2 py-2 text-center text-sm font-semibold text-gray-800 uppercase tracking-wider">Labor Code</th>
+                        <th scope="col" class="px-2 py-2 text-center text-sm font-semibold text-gray-800 uppercase tracking-wider">Description</th>
                     </tr>
                 </thead>
-                <tbody class="bg-white divide-y divide-gray-200">
+                <tbody class="bg-white divide-y divide-gray-300">
                     <tr>
-                        <td class="px-6 py-4 whitespace-nowrap text-m font-medium text-gray-900">Start Location:</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-m text-gray-500">{{ time_entry.start_location }}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-m text-gray-500"></td>
-                        <td class="px-6 py-4 whitespace-nowrap text-m text-gray-500"></td>
-                        <td class="px-6 py-4 whitespace-nowrap text-m text-gray-500">{{ time_entry.initial_leave_time|date:"H:i" }}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-m text-gray-500"></td>
-                        <td class="px-6 py-4 whitespace-nowrap text-m text-gray-500">{{ time_entry.initial_mileage }}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-m text-gray-500" colspan="2"></td>
+                        <td class="px-2 py-2 whitespace-nowrap text-m font-semibold text-gray-800">Start Location:</td>
+                        <td class="px-2 py-2 whitespace-nowrap text-center text-m text-gray-800">{{ time_entry.start_location }}</td>
+                        <td class="px-2 py-2 whitespace-nowrap text-m text-gray-800"></td>
+                        <td class="px-2 py-2 whitespace-nowrap text-m text-gray-800"></td>
+                        <td class="px-2 py-2 whitespace-nowrap text-center text-m text-gray-800">{{ time_entry.initial_leave_time|date:"H:i" }}</td>
+                        <td class="px-2 py-2 whitespace-nowrap text-m text-gray-800"></td>
+                        <td class="px-2 py-2 whitespace-nowrap text-center text-m text-gray-800">{{ time_entry.initial_mileage }}</td>
+                        <td class="px-2 py-2 whitespace-nowrap text-m text-gray-800" colspan="2"></td>
                     </tr>
                     {% for job in time_entry.jobs.all %}
                     <tr>
-                        <td class="px-6 py-4 whitespace-nowrap text-m text-gray-500" colspan="2">{{ job.job_description }}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-m text-gray-500">{{ job.job_number }}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-m text-gray-500">{{ job.activity_arrive_time|date:"H:i" }}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-m text-gray-500">{{ job.activity_leave_time|date:"H:i" }}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-m text-gray-500">{{ job.activity_start_mileage }}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-m text-gray-500">{{ job.activity_end_mileage }}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-m text-gray-500">{{ job.labor_code }}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-m text-gray-500">{{ job.labor_code_description }}</td>
+                        <td class="px-2 py-2 whitespace-nowrap text-center text-m text-gray-800" colspan="2">{{ job.job_description }}</td>
+                        <td class="px-2 py-2 whitespace-nowrap text-center text-m text-gray-800">{{ job.job_number }}</td>
+                        <td class="px-2 py-2 whitespace-nowrap text-center text-m text-gray-800">{{ job.activity_arrive_time|date:"H:i" }}</td>
+                        <td class="px-2 py-2 whitespace-nowrap text-center text-m text-gray-800">{{ job.activity_leave_time|date:"H:i" }}</td>
+                        <td class="px-2 py-2 whitespace-nowrap text-center text-m text-gray-800">{{ job.activity_start_mileage }}</td>
+                        <td class="px-2 py-2 whitespace-nowrap text-center text-m text-gray-800">{{ job.activity_end_mileage }}</td>
+                        <td class="px-2 py-2 whitespace-nowrap text-center text-m text-gray-800">{{ job.labor_code }}</td>
+                        <td class="px-2 py-2 whitespace-nowrap text-m text-gray-800">{{ job.labor_code_description }}</td>
                     </tr>
                     {% endfor %}
                     <tr>
-                        <td class="px-6 py-4 whitespace-nowrap text-m font-medium text-gray-900">End Location:</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-m text-gray-500">{{ time_entry.end_location }}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-m text-gray-500"></td>
-                        <td class="px-6 py-4 whitespace-nowrap text-m text-gray-500">{{ time_entry.final_arrive_time|date:"H:i" }}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-m text-gray-500"></td>
-                        <td class="px-6 py-4 whitespace-nowrap text-m text-gray-500">{{ time_entry.final_mileage }}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-m text-gray-500" colspan="3"></td>
+                        <td class="px-2 py-2 whitespace-nowrap text-m font-semibold text-gray-800">End Location:</td>
+                        <td class="px-2 py-2 whitespace-nowrap text-center text-m text-gray-800">{{ time_entry.end_location }}</td>
+                        <td class="px-2 py-2 whitespace-nowrap text-m text-gray-800"></td>
+                        <td class="px-2 py-2 whitespace-nowrap text-center text-m text-gray-800">{{ time_entry.final_arrive_time|date:"H:i" }}</td>
+                        <td class="px-2 py-2 whitespace-nowrap text-m text-gray-800"></td>
+                        <td class="px-2 py-2 whitespace-nowrap text-center text-m text-gray-800">{{ time_entry.final_mileage }}</td>
+                        <td class="px-2 py-2 whitespace-nowrap text-m text-gray-800" colspan="3"></td>
                     </tr>
                 </tbody>
-                <tfoot class="bg-gray-50">
+                <tfoot class="bg-gray-300">
                     <tr>
-                        <td class="px-6 py-4 whitespace-nowrap text-center text-m text-gray-500">{{ time_entry.hours_on_site }}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-center text-m text-gray-500">{{ time_entry.hours_for_the_day }}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-center text-m text-gray-500">{{ time_entry.travel_time_subtract }}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-center text-m text-gray-500">{{ time_entry.hours_to_be_paid }}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-center text-m text-gray-500" colspan="2"></td>
-                        <td class="px-6 py-4 whitespace-nowrap text-center text-m text-gray-500">{{ time_entry.total_miles }}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-center text-m text-gray-500">{{ time_entry.travel_miles_subtract }}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-center text-m text-gray-500">{{ time_entry.miles_to_be_paid }}</td>
+                        <td class="px-2 py-2 whitespace-nowrap text-center text-m font-semibold text-gray-800">{{ time_entry.hours_on_site }}</td>
+                        <td class="px-2 py-2 whitespace-nowrap text-center text-m font-semibold text-gray-800">{{ time_entry.hours_for_the_day }}</td>
+                        <td class="px-2 py-2 whitespace-nowrap text-center text-m font-semibold text-gray-800">{{ time_entry.travel_time_subtract }}</td>
+                        <td class="px-2 py-2 whitespace-nowrap text-center text-m font-semibold text-gray-800">{{ time_entry.hours_to_be_paid }}</td>
+                        <td class="px-2 py-2 whitespace-nowrap text-center text-m font-semibold text-gray-800" colspan="2"></td>
+                        <td class="px-2 py-2 whitespace-nowrap text-center text-m font-semibold text-gray-800">{{ time_entry.total_miles }}</td>
+                        <td class="px-2 py-2 whitespace-nowrap text-center text-m font-semibold text-gray-800">{{ time_entry.travel_miles_subtract }}</td>
+                        <td class="px-2 py-2 whitespace-nowrap text-center text-m font-semibold text-gray-800">{{ time_entry.miles_to_be_paid }}</td>
                     </tr>
                     <tr>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Hours on Site:</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Hours for the Day:</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Travel Time (subtract):</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Hours to be Paid:</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900" colspan="2">Employee's Signature</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Total Miles:</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Travel Miles (subtract):</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Miles to be Paid</td>
+                        <td class="px-2 py-2 whitespace-nowrap text-center text-sm font-semibold text-gray-900">Hours on Site:</td>
+                        <td class="px-2 py-2 whitespace-nowrap text-center text-sm font-semibold text-gray-900">Hours for the Day:</td>
+                        <td class="px-2 py-2 whitespace-nowrap text-center text-sm font-semibold text-gray-900">Travel Time (subtract):</td>
+                        <td class="px-2 py-2 whitespace-nowrap text-center text-sm font-semibold text-gray-900">Hours to be Paid:</td>
+                        <td class="px-2 py-2 whitespace-nowrap text-center text-sm font-semibold text-gray-900" colspan="2">Employee's Signature</td>
+                        <td class="px-2 py-2 whitespace-nowrap text-center text-sm font-semibold text-gray-900">Total Miles:</td>
+                        <td class="px-2 py-2 whitespace-nowrap text-center text-sm font-semibold text-gray-900">Travel Miles (subtract):</td>
+                        <td class="px-2 py-2 whitespace-nowrap text-center text-sm font-semibold text-gray-900">Miles to be Paid</td>
                     </tr>
                 </tfoot>
             </table>
         </div>
 
-        <div class="workspace-section print-only space-y-6">
-            <div class="border-t pt-4">
-                <p class="text-center text-sm font-medium text-gray-700 mb-2">Supervisor's Initials</p>
-                <div class="h-10 border-b-2 border-gray-300"></div>
+        <div class="workspace-section space-y-6">
+            <div class="border-t pt-10 print-only">
+                <div class="text-center">
+                    <p class="text-sm font-medium text-gray-700 dashes mb-0">------------------------</p>
+                    <p class="text-sm font-semibold text-gray-700 leading-none">Supervisor's Initials</p>
+                    <div class="border-b-2 border-gray-300 mt-1"></div>
+                </div>
             </div>
-            <div class="grid grid-cols-1 md:grid-cols-7 gap-4">
+            <div class="grid grid-cols-1 md:grid-cols-7 gap-4 mt-0">
                 <div class="md:col-span-4">
-                    <p class="text-sm font-medium text-gray-700 mb-2">Technician's Workspace</p>
-                    <div class="h-20 border-2 border-gray-300 rounded-md p-2 bg-gray-50 overflow-auto">{{ time_entry.comments }}</div>
+                    <p class="text-sm font-semibold text-gray-700 mb-2">Technician's Workspace</p>
+                    <div class="h-20 border-2 border-gray-300 rounded-md p-2 overflow-auto  bg-white">{{ time_entry.comments }}</div>
                 </div>
-                <div class="md:col-span-3">
-                    <p class="text-sm font-medium text-gray-700 mb-2">Accounting Workspace - Do Not Write Here</p>
-                    <div class="h-20 border-2 border-gray-300 rounded-md bg-gray-100"></div>
+                <div class="md:col-span-3 print-only">
+                    <p class="text-sm font-semibold text-gray-700 mb-2">Accounting Workspace - Do Not Write Here</p>
+                    <div class="h-20 border-2 border-gray-300 rounded-md bg-white"></div>
                 </div>
             </div>
             <div class="grid grid-cols-1 md:grid-cols-7 gap-4">
-                <div class="md:col-span-3">
-                    <p class="text-sm font-medium text-gray-700 mb-2">Supervisor's Workspace</p>
-                    <div class="h-20 border-2 border-gray-300 rounded-md bg-gray-50"></div>
+                <div class="md:col-span-3 print-only">
+                    <p class="text-sm font-semibold text-gray-700 mb-2">Supervisor's Workspace</p>
+                    <div class="h-20 border-2 border-gray-300 rounded-md bg-white"></div>
                 </div>
-                <div class="md:col-span-2">
-                    <p class="text-sm font-medium text-gray-700 mb-2">Accounting Manager's Initials</p>
-                    <div class="h-20 border-2 border-gray-300 rounded-md bg-gray-50"></div>
+                <div class="md:col-span-2 print-only">
+                    <p class="text-sm font-semibold text-gray-700 mb-2">Accounting Manager's Initials</p>
+                    <div class="h-20 border-2 border-gray-300 rounded-md  bg-white"></div>
                 </div>
-                <div class="md:col-span-2">
-                    <p class="text-sm font-medium text-gray-700 mb-2">Controller's Initials</p>
-                    <div class="h-20 border-2 border-gray-300 rounded-md bg-gray-50"></div>
+                <div class="md:col-span-2 print-only">
+                    <p class="text-sm font-semibold text-gray-700 mb-2">Controller's Initials</p>
+                    <div class="h-20 border-2 border-gray-300 rounded-md  bg-white"></div>
                 </div>
             </div>
         </div>
     </div>
 </div>
-<div class="mt-6 bg-white shadow-sm rounded-lg p-4 border {% if time_entry.approval_status == 'approved' %}border-green-200 bg-green-50{% elif time_entry.approval_status == 'rejected' %}border-red-200 bg-red-50{% elif time_entry.approval_status == 'pending' %}border-yellow-200 bg-yellow-50{% else %}border-gray-200{% endif %}">
+<div class="mt-6 bg-white shadow-sm rounded-lg p-4 border {% if time_entry.approval_status == 'approved' %}border-green-200 bg-green-50{% elif time_entry.approval_status == 'rejected' %}border-red-200 bg-red-50{% elif time_entry.approval_status == 'pending' %}border-yellow-200 bg-yellow-50{% else %}border-gray-200{% endif %} screen-only">
     <div class="flex items-center justify-between">
         <div class="flex items-center space-x-3">
             <span class="text-sm font-medium">Status:</span>
@@ -182,41 +273,42 @@
     {% endif %}
 </div>
 
-<div class="mt-8 flex flex-wrap gap-4">
-    <button onclick="window.print()" class="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition duration-150 ease-in-out">
+<div class="mt-8 flex flex-wrap gap-4 screen-only">
+    <button onclick="window.print()" 
+            class="px-6 py-2 rounded-full bg-orange-500 text-gray-800 hover:bg-gray-900 hover:text-white hover:border-gray-700 transition duration-200">
         Print
     </button>
     
     {% if time_entry.can_submit_for_approval %}
         <a href="{% url 'submit_for_approval' time_entry.pk %}" 
-           class="px-6 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-50 transition duration-150 ease-in-out">
+           class="px-6 py-2 rounded-full bg-orange-500 text-gray-800 hover:bg-gray-900 hover:text-white hover:border-gray-700 transition duration-200">
             Submit for Approval
         </a>
     {% endif %}
     
     {% if perms.timesheets.can_approve_timesheet and time_entry.is_pending_approval %}
         <a href="{% url 'review_time_entry' time_entry.pk %}" 
-           class="px-6 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-opacity-50 transition duration-150 ease-in-out">
+           class="px-6 py-2 rounded-full bg-orange-500 text-gray-800 hover:bg-gray-900 hover:text-white hover:border-gray-700 transition duration-200">
             Review
         </a>
     {% endif %}
     
     {% if not time_entry.is_approved %}
         <a href="{% url 'time_entry_edit' time_entry.pk %}" 
-           class="px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50 transition duration-150 ease-in-out">
+           class="px-6 py-2 rounded-full bg-orange-500 text-gray-800 hover:bg-gray-900 hover:text-white hover:border-gray-700 transition duration-200">
             Edit
         </a>
     {% endif %}
     
     <a href="{% url 'time_entry_list' %}" 
-       class="px-6 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-opacity-50 transition duration-150 ease-in-out">
+       class="px-6 py-2 rounded-full bg-gray-200 text-gray-700 hover:bg-gray-300 transition duration-200">
         Back to List
     </a>
 </div>
 
 <!-- Add this section for supervisors to show approval history -->
 {% if perms.timesheets.can_approve_timesheet and time_entry.approval %}
-    <div class="mt-8 bg-white shadow-md rounded-lg p-6">
+    <div class="mt-8 bg-white shadow-md rounded-lg p-6 screen-only">
         <h3 class="text-lg font-semibold text-gray-800 mb-4">Approval Details</h3>
         <div class="space-y-4">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -246,72 +338,5 @@
         </div>
     </div>
 {% endif %}
-
-<div class="mt-12 space-y-8">
-    <div class="bg-white shadow-md rounded-lg p-6">
-        <h3 class="text-lg font-semibold text-gray-800 mb-4">Employee Information</h3>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <p class="text-sm text-gray-600"><span class="font-medium">Employee Name:</span> {{ time_entry.user.get_full_name }}</p>
-            <p class="text-sm text-gray-600"><span class="font-medium">Distance to Office:</span> {{ time_entry.standard_distance_home_to_office }} miles</p>
-            <p class="text-sm text-gray-600"><span class="font-medium">Time to Office:</span> {{ time_entry.standard_time_home_to_office|floatformat:2 }} hours</p>
-        </div>
-    </div>
-
-    <div class="bg-white shadow-md rounded-lg p-6">
-        <h3 class="text-lg font-semibold text-gray-800 mb-4">Time Calculations</h3>
-        <div class="space-y-6">
-            <div>
-                <h4 class="text-md font-medium text-gray-700 mb-2">First Leg Calculations</h4>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <p class="text-sm text-gray-600"><span class="font-medium">Travel Time First Leg:</span> {{ time_entry.travel_time_first_leg|floatformat:2 }} hours</p>
-                    <p class="text-sm text-gray-600"><span class="font-medium">Standard Time from Home to Office:</span> {{ time_entry.standard_time_home_to_office|floatformat:2 }} hours</p>
-                    <p class="text-sm text-gray-600"><span class="font-medium">Time to Subtract First Leg:</span> {{ time_entry.time_to_subtract_first_leg|floatformat:2 }} hours</p>
-                </div>
-            </div>
-            <div>
-                <h4 class="text-md font-medium text-gray-700 mb-2">Last Leg Calculations</h4>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <p class="text-sm text-gray-600"><span class="font-medium">Travel Time Last Leg:</span> {{ time_entry.travel_time_last_leg|floatformat:2 }} hours</p>
-                    <p class="text-sm text-gray-600"><span class="font-medium">Standard Time from Home to Office:</span> {{ time_entry.standard_time_home_to_office|floatformat:2 }} hours</p>
-                    <p class="text-sm text-gray-600"><span class="font-medium">Time to Subtract Last Leg:</span> {{ time_entry.time_to_subtract_last_leg|floatformat:2 }} hours</p>
-                </div>
-            </div>
-            <div>
-                <h4 class="text-md font-medium text-gray-700 mb-2">Total Travel Time</h4>
-                <p class="text-sm text-gray-600"><span class="font-medium">Total Travel Time to Subtract:</span> {{ time_entry.travel_time_subtract|floatformat:2 }} hours</p>
-            </div>
-        </div>
-    </div>
-
-    <div class="bg-white shadow-md rounded-lg p-6">
-        <h3 class="text-lg font-semibold text-gray-800 mb-4">Mileage Calculations</h3>
-        <div class="space-y-6">
-            <div>
-                <h4 class="text-md font-medium text-gray-700 mb-2">First Leg Calculations</h4>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <p class="text-sm text-gray-600"><span class="font-medium">Miles Traveled First Leg:</span> {{ time_entry.miles_traveled_first_leg|floatformat:2 }} miles</p>
-                    <p class="text-sm text-gray-600"><span class="font-medium">Standard Distance from Home to Office:</span> {{ time_entry.standard_distance_home_to_office|floatformat:2 }} miles</p>
-                    <p class="text-sm text-gray-600"><span class="font-medium">Miles to Subtract First Leg:</span> {{ time_entry.miles_to_subtract_first_leg|floatformat:2 }} miles</p>
-                </div>
-            </div>
-            <div>
-                <h4 class="text-md font-medium text-gray-700 mb-2">Last Leg Calculations</h4>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <p class="text-sm text-gray-600"><span class="font-medium">Miles Traveled Last Leg:</span> {{ time_entry.miles_traveled_last_leg|floatformat:2 }} miles</p>
-                    <p class="text-sm text-gray-600"><span class="font-medium">Standard Distance from Home to Office:</span> {{ time_entry.standard_distance_home_to_office|floatformat:2 }} miles</p>
-                    <p class="text-sm text-gray-600"><span class="font-medium">Miles to Subtract Last Leg:</span> {{ time_entry.miles_to_subtract_last_leg|floatformat:2 }} miles</p>
-                </div>
-            </div>
-            <div>
-                <h4 class="text-md font-medium text-gray-700 mb-2">Total Mileage</h4>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <p class="text-sm text-gray-600"><span class="font-medium">Total Miles:</span> {{ time_entry.total_miles|floatformat:2 }} miles</p>
-                    <p class="text-sm text-gray-600"><span class="font-medium">Total Miles to Subtract:</span> {{ time_entry.travel_miles_subtract|floatformat:2 }} miles</p>
-                    <p class="text-sm text-gray-600"><span class="font-medium">Miles to be Paid:</span> {{ time_entry.miles_to_be_paid|floatformat:2 }} miles</p>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
 
 {% endblock %}

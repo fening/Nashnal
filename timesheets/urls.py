@@ -1,14 +1,8 @@
 from django.urls import path, include
 from . import views
-from .views import HelloWorldView
 
 
 urlpatterns = [
-
-    
-    path('hello/', HelloWorldView.as_view(), name='hello_world'),
-    # Home page
-    path('', views.home, name='home'),
     
     # Time Entry CRUD
     path('entries/', views.time_entry_list, name='time_entry_list'),  # List of time entries

@@ -1,5 +1,5 @@
 {% extends 'timesheets/base.html' %}
-{% load custom_filters %}  {# Add this line at the top #}
+{% load custom_filters %}
 
 {% block title %}
     <h1 class="text-xl font-semibold">
@@ -14,22 +14,35 @@
 {% block content %}
 <div class="max-w-7xl mx-auto p-6">
     <!-- Stats Section -->
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+    <div class="grid grid-cols-1 md:grid-cols-7 gap-4 mb-6">
         <div class="bg-white rounded-lg shadow-sm p-4">
             <div class="text-sm text-gray-500">Total Employees</div>
             <div class="text-2xl font-bold text-gray-800">{{ stats.total }}</div>
-        </div>
-        <div class="bg-white rounded-lg shadow-sm p-4">
-            <div class="text-sm text-gray-500">Active Employees</div>
-            <div class="text-2xl font-bold text-green-600">{{ stats.active }}</div>
-        </div>
-        <div class="bg-white rounded-lg shadow-sm p-4">
-            <div class="text-sm text-gray-500">Technicians</div>
-            <div class="text-2xl font-bold text-blue-600">{{ stats.technicians }}</div>
+            <div class="text-xs text-gray-400">{{ stats.active }} active</div>
         </div>
         <div class="bg-white rounded-lg shadow-sm p-4">
             <div class="text-sm text-gray-500">Supervisors</div>
-            <div class="text-2xl font-bold text-purple-600">{{ stats.supervisors }}</div>
+            <div class="text-2xl font-bold text-gray-800">{{ stats.supervisors }}</div>
+        </div>
+        <div class="bg-white rounded-lg shadow-sm p-4">
+            <div class="text-sm text-gray-500">Field Technicians</div>
+            <div class="text-2xl font-bold text-gray-800">{{ stats.field_technicians }}</div>
+        </div>
+        <div class="bg-white rounded-lg shadow-sm p-4">
+            <div class="text-sm text-gray-500">Lab Technicians</div>
+            <div class="text-2xl font-bold text-gray-800">{{ stats.lab_technicians }}</div>
+        </div>
+        <div class="bg-white rounded-lg shadow-sm p-4">
+            <div class="text-sm text-gray-500">Office Support</div>
+            <div class="text-2xl font-bold text-gray-800">{{ stats.office_support }}</div>
+        </div>
+        <div class="bg-white rounded-lg shadow-sm p-4">
+            <div class="text-sm text-gray-500">Operations Support</div>
+            <div class="text-2xl font-bold text-gray-800">{{ stats.operations_support }}</div>
+        </div>
+        <div class="bg-white rounded-lg shadow-sm p-4">
+            <div class="text-sm text-gray-500">Active Employees</div>
+            <div class="text-2xl font-bold text-gray-800">{{ stats.active }}</div>
         </div>
     </div>
 
@@ -54,7 +67,7 @@
                 
                 {% if is_superuser or is_supervisor %}
                     <a href="{% url 'employee_create' %}" 
-                       class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded inline-flex items-center transition duration-150 ease-in-out">
+                       class="bg-orange-500 text-gray-800 hover:bg-gray-900 hover:text-white hover:border-gray-700 font-semibold py-2 px-4 rounded-full inline-flex items-center transition duration-150 ease-in-out ">
                         <svg class="h-4 w-4 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
                             <circle cx="8.5" cy="7" r="4"></circle>
@@ -67,31 +80,46 @@
             </div>
         </div>
 
-        <!-- Add Role Filter Section for Admins -->
-        {% if is_superuser %}
-            <div class="px-6 py-3 bg-gray-50 border-b border-gray-200">
-                <div class="flex items-center space-x-4">
-                    <span class="text-sm font-medium text-gray-600">Filter by Role:</span>
-                    <div class="flex space-x-2">
-                        <button onclick="filterRole('all')" 
-                                class="role-filter px-3 py-1 text-sm rounded-full border transition-colors duration-150
-                                       bg-blue-100 text-blue-800 border-blue-200 hover:bg-blue-200">
-                            All
-                        </button>
-                        <button onclick="filterRole('Supervisor')" 
-                                class="role-filter px-3 py-1 text-sm rounded-full border transition-colors duration-150
-                                       bg-purple-100 text-purple-800 border-purple-200 hover:bg-purple-200">
-                            Supervisors
-                        </button>
-                        <button onclick="filterRole('Technician')" 
-                                class="role-filter px-3 py-1 text-sm rounded-full border transition-colors duration-150
-                                       bg-green-100 text-green-800 border-green-200 hover:bg-green-200">
-                            Technicians
-                        </button>
-                    </div>
-                </div>
-            </div>
-        {% endif %}
+         <!-- Add Role Filter Section for Admins -->
+         {% if is_superuser %}
+         <div class="px-6 py-3 bg-gray-50 border-b border-gray-200">
+             <div class="flex items-center space-x-4">
+                 <span class="text-sm font-medium text-gray-600">Filter by Role:</span>
+                 <div class="flex flex-wrap gap-2">
+                     <button onclick="filterRole('all')" 
+                             class="role-filter px-3 py-1 text-sm rounded-full border transition-colors duration-150
+                                    bg-blue-100 text-blue-800 border-blue-200 hover:bg-blue-200">
+                         All
+                     </button>
+                     <button onclick="filterRole('Supervisor')" 
+                             class="role-filter px-3 py-1 text-sm rounded-full border transition-colors duration-150
+                                    bg-blue-100 text-blue-800 border-blue-200 hover:bg-blue-200">
+                         Supervisors
+                     </button>
+                     <button onclick="filterRole('Field Technician')" 
+                             class="role-filter px-3 py-1 text-sm rounded-full border transition-colors duration-150
+                                    bg-blue-100 text-blue-800 border-blue-200 hover:bg-blue-200">
+                         Field Technicians
+                     </button>
+                     <button onclick="filterRole('Lab Technician')" 
+                             class="role-filter px-3 py-1 text-sm rounded-full border transition-colors duration-150
+                                    bg-blue-100 text-blue-800 border-blue-200 hover:bg-blue-200">
+                         Lab Technicians
+                     </button>
+                     <button onclick="filterRole('Office Support')" 
+                             class="role-filter px-3 py-1 text-sm rounded-full border transition-colors duration-150
+                                    bg-blue-100 text-blue-800 border-blue-200 hover:bg-blue-200">
+                         Office Support
+                     </button>
+                     <button onclick="filterRole('Operations Support')" 
+                             class="role-filter px-3 py-1 text-sm rounded-full border transition-colors duration-150
+                                    bg-blue-100 text-blue-800 border-blue-200 hover:bg-blue-200">
+                         Operations Support
+                     </button>
+                 </div>
+             </div>
+         </div>
+     {% endif %}
         
         <!-- Table Section -->
         <div class="overflow-x-auto">
@@ -208,9 +236,20 @@
 <!-- Add JavaScript for role filtering -->
 {% if is_superuser %}
 <script>
-    function filterRole(role) {
-        const rows = document.querySelectorAll('tbody tr');
-        rows.forEach(row => {
+function filterRole(role) {
+    const rows = document.querySelectorAll('tbody tr');
+    rows.forEach(row => {
+        if (row.classList.contains('bg-gray-50')) {
+            // Handle header rows
+            const header = row.querySelector('td');
+            if (role === 'all') {
+                row.style.display = '';
+            } else {
+                const headerText = header.textContent.trim();
+                row.style.display = headerText.includes(role) ? '' : 'none';
+            }
+        } else {
+            // Handle employee rows
             const roleCell = row.querySelector('td:nth-child(2)');
             if (roleCell) {
                 if (role === 'all' || roleCell.textContent.trim() === role) {
@@ -219,14 +258,23 @@
                     row.style.display = 'none';
                 }
             }
-        });
+        }
+    });
 
-        // Update button styles
-        document.querySelectorAll('.role-filter').forEach(button => {
-            button.style.opacity = '0.7';
-        });
-        event.target.style.opacity = '1';
+    // Update button styles
+    document.querySelectorAll('.role-filter').forEach(button => {
+        button.classList.remove('ring-2', 'ring-offset-2');
+    });
+    event.target.classList.add('ring-2', 'ring-offset-2');
+}
+
+// Set initial active state
+document.addEventListener('DOMContentLoaded', () => {
+    const allButton = document.querySelector('.role-filter');
+    if (allButton) {
+        allButton.classList.add('ring-2', 'ring-offset-2');
     }
+});
 </script>
 {% endif %}
 {% endblock %}

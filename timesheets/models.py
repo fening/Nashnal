@@ -377,94 +377,189 @@ class Job(models.Model):
         if self.time_entry:
             self.time_entry.save()  # Trigger recalculation in TimeEntry
 
-class TimeEntryApproval(models.Model):
-    STATUS_CHOICES = [
-        ('pending', 'Pending'),
-        ('approved', 'Approved'),
-        ('rejected', 'Rejected'),
-    ]
+# models.py
 
-    time_entry = models.OneToOneField(
-        TimeEntry,
-        on_delete=models.CASCADE,
-        related_name='approval'
-    )
-    status = models.CharField(
-        max_length=20,
-        choices=STATUS_CHOICES,
-        default='pending'
-    )
-    submitted_at = models.DateTimeField(auto_now_add=True)
-    reviewed_at = models.DateTimeField(null=True, blank=True)
-    reviewed_by = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name='reviewed_entries'
-    )
-    submitter_comments = models.TextField(blank=True)
-    reviewer_comments = models.TextField(blank=True)
+from django.db import models
+from django.contrib.auth import get_user_model
+from django.utils import timezone
 
-    def __str__(self):
-        return f"Approval for {self.time_entry} - {self.status}"
+User = get_user_model()
 
-    class Meta:
-        permissions = [
-            ("can_approve_timesheet", "Can approve timesheet entries"),
-            ("can_reject_timesheet", "Can reject timesheet entries"),
-        ]
-        
 class ApprovalNotification(models.Model):
-    NOTIFICATION_TYPES = [
-        ('submission', 'Timesheet Submission'),
+    NOTIFICATION_TYPES = (
+        ('submission', 'Timesheet Submitted'),
+        ('first_approval', 'First Approval'),
         ('approval', 'Timesheet Approved'),
         ('rejection', 'Timesheet Rejected'),
-    ]
-
-    recipient = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.CASCADE,
-        related_name='notifications'
+        ('review_needed', 'Review Needed'),
     )
-    time_entry = models.ForeignKey(
-        'TimeEntry',
-        on_delete=models.CASCADE,
-        related_name='notifications'
-    )
-    notification_type = models.CharField(
-        max_length=20,
-        choices=NOTIFICATION_TYPES
-    )
+    
+    recipient = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notifications')
     message = models.TextField()
-    created_at = models.DateTimeField(auto_now_add=True)
+    notification_type = models.CharField(
+        max_length=20, 
+        choices=NOTIFICATION_TYPES,
+        default='submission'  # Adding default here
+    )
     read = models.BooleanField(default=False)
-
-    class Meta:
-        ordering = ['-created_at']
-
+    time_entry_approval = models.ForeignKey('TimeEntryApproval', on_delete=models.CASCADE, related_name='notifications')
+    created_at = models.DateTimeField(auto_now_add=True)
+    
     def mark_as_read(self):
         self.read = True
         self.save()
 
-    @classmethod
-    def create_approval_request(cls, time_entry):
-        """Create notification for supervisor when timesheet is submitted"""
-        notification = cls.objects.create(
-            recipient=time_entry.user.supervisor,
-            time_entry=time_entry,
-            notification_type='submission',
-            message=f'New timesheet submitted by {time_entry.user.get_full_name()} for {time_entry.date}'
-        )
-        return notification
-
-    @classmethod
-    def create_approval_response(cls, time_entry, approved=True):
-        """Create notification for employee when timesheet is approved/rejected"""
-        notification = cls.objects.create(
-            recipient=time_entry.user,
-            time_entry=time_entry,
-            notification_type='approval' if approved else 'rejection',
-            message=f'Your timesheet for {time_entry.date} has been {"approved" if approved else "rejected"}'
-        )
-        return notification
+class TimeEntryApproval(models.Model):
+    PENDING_FIRST = 'pending_first'
+    PENDING_SECOND = 'pending_second'
+    APPROVED = 'approved'
+    REJECTED = 'rejected'
+    
+    STATUS_CHOICES = [
+        (PENDING_FIRST, 'Pending First Approval'),
+        (PENDING_SECOND, 'Pending Second Approval'),
+        (APPROVED, 'Approved'),
+        (REJECTED, 'Rejected'),
+    ]
+    
+    time_entry = models.OneToOneField('TimeEntry', on_delete=models.CASCADE, related_name='approval')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default=PENDING_FIRST)
+    submitted_at = models.DateTimeField(auto_now_add=True)
+    first_reviewed_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='first_reviews')
+    first_reviewed_at = models.DateTimeField(null=True, blank=True)
+    first_reviewer_comments = models.TextField(blank=True, null=True)
+    second_reviewed_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='second_reviews')
+    second_reviewed_at = models.DateTimeField(null=True, blank=True)
+    second_reviewer_comments = models.TextField(blank=True, null=True)
+    submitter_comments = models.TextField(blank=True, null=True)
+    
+    def can_approve(self, user):
+        if self.status == self.PENDING_FIRST:
+            return user.is_superuser
+        elif self.status == self.PENDING_SECOND:
+            return hasattr(user, 'role') and user.role == 'Supervisor'
+        return False
+    
+    def create_approval_notification(self, action):
+        """
+        Create a notification based on the approval action.
+        
+        Actions:
+        - 'first_approve': Notify supervisor for final approval.
+        - 'final_approve': Notify employee that their time entry has been approved.
+        - 'reject': Notify employee that their time entry has been rejected.
+        """
+        if action == 'first_approve':
+            # Notify supervisor for final approval
+            supervisor = self.time_entry.user.supervisor
+            if supervisor:
+                message = (
+                    f"Time entry on {self.time_entry.date.strftime('%Y-%m-%d')} "
+                    f"has been approved by {self.first_reviewed_by.get_full_name()} "
+                    f"and requires your final approval."
+                )
+                ApprovalNotification.objects.create(
+                    recipient=supervisor,
+                    message=message,
+                    time_entry_approval=self
+                )
+        elif action == 'final_approve':
+            # Notify employee that their time entry has been approved
+            employee = self.time_entry.user
+            message = (
+                f"Your time entry on {self.time_entry.date.strftime('%Y-%m-%d')} "
+                f"has been fully approved by {self.second_reviewed_by.get_full_name()}."
+            )
+            ApprovalNotification.objects.create(
+                recipient=employee,
+                message=message,
+                time_entry_approval=self
+            )
+        elif action == 'reject':
+            # Notify employee that their time entry has been rejected
+            employee = self.time_entry.user
+            reviewer = self.first_reviewed_by or self.second_reviewed_by
+            comments = self.first_reviewer_comments or self.second_reviewer_comments
+            message = (
+                f"Your time entry on {self.time_entry.date.strftime('%Y-%m-%d')} "
+                f"has been rejected by {reviewer.get_full_name()}. "
+                f"Comments: {comments}"
+            )
+            ApprovalNotification.objects.create(
+                recipient=employee,
+                message=message,
+                time_entry_approval=self
+            )
+    
+    def create_notifications(self, action, reviewer=None, comments=None):
+        """
+        Create notifications for all relevant parties based on the approval action.
+        """
+        time_entry = self.time_entry
+        employee = time_entry.user
+        superusers = User.objects.filter(is_superuser=True)
+        
+        if action == 'submit':
+            # Notify superusers about new submission
+            message = f"{employee.get_full_name()} submitted a timesheet for {time_entry.date}"
+            for superuser in superusers:
+                ApprovalNotification.objects.create(
+                    recipient=superuser,
+                    message=message,
+                    notification_type='submission',
+                    time_entry_approval=self
+                )
+                
+        elif action == 'first_approve':
+            # Notify employee and supervisor about first approval
+            supervisor = employee.supervisor
+            message = f"Your timesheet for {time_entry.date} passed first approval by {reviewer.get_full_name()}"
+            
+            ApprovalNotification.objects.create(
+                recipient=employee,
+                message=message,
+                notification_type='first_approval',
+                time_entry_approval=self
+            )
+            
+            if supervisor:
+                supervisor_message = f"Timesheet from {employee.get_full_name()} needs your review"
+                ApprovalNotification.objects.create(
+                    recipient=supervisor,
+                    message=supervisor_message,
+                    notification_type='review_needed',
+                    time_entry_approval=self
+                )
+                
+        elif action == 'final_approve':
+            # Notify employee and superusers about final approval
+            message = f"Your timesheet for {time_entry.date} has been approved by {reviewer.get_full_name()}"
+            ApprovalNotification.objects.create(
+                recipient=employee,
+                message=message,
+                notification_type='approval',
+                time_entry_approval=self
+            )
+            
+            for superuser in superusers:
+                if superuser != reviewer:
+                    superuser_message = f"Timesheet from {employee.get_full_name()} for {time_entry.date} has been approved"
+                    ApprovalNotification.objects.create(
+                        recipient=superuser,
+                        message=superuser_message,
+                        notification_type='approval',
+                        time_entry_approval=self
+                    )
+                    
+        elif action == 'reject':
+            # Notify employee about rejection
+            message = f"Your timesheet for {time_entry.date} was rejected by {reviewer.get_full_name()}"
+            if comments:
+                message += f"\nComments: {comments}"
+                
+            ApprovalNotification.objects.create(
+                recipient=employee,
+                message=message,
+                notification_type='rejection',
+                time_entry_approval=self
+            )

@@ -1,0 +1,15 @@
+Welcome to TimeSheet App
+
+Hello {{ invitation.first_name }},
+
+You've been invited to join TimeSheet App by {{ invitation.invited_by.get_full_name }}. 
+To complete your registration and set up your account, please visit the following link:
+
+{{ registration_url }}
+
+This invitation link will expire in 7 days.
+
+If you did not expect this invitation, please ignore this email.
+
+Best regards,
+TimeSheet App Team

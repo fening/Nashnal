@@ -13,7 +13,7 @@
                 <h2 class="text-lg font-semibold text-gray-800">All Notifications</h2>
                 {% if unread_notifications_count > 0 %}
                     <a href="{% url 'mark_all_notifications_read' %}" 
-                       class="px-4 py-2 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700 transition duration-150 ease-in-out">
+                       class="px-4 py-2 rounded-full bg-orange-500 text-gray-800 hover:bg-gray-900 hover:text-white hover:border-gray-700 transition duration-200">
                         Mark all as read
                     </a>
                 {% endif %}
@@ -54,10 +54,12 @@
                         </div>
 
                         <div class="ml-4 flex items-center space-x-4">
-                            <a href="{% url 'time_entry_detail' notification.time_entry.pk %}" 
-                               class="text-sm text-blue-600 hover:text-blue-800">
-                                View Timesheet
-                            </a>
+                            {% if notification.time_entry %}
+                                <a href="{% url 'time_entry_detail' notification.time_entry.pk %}" 
+                                   class="text-sm text-blue-600 hover:text-blue-800">
+                                    View Timesheet
+                                </a>
+                            {% endif %}
                             
                             {% if not notification.read %}
                                 <button onclick="markAsRead('{{ notification.id }}')"

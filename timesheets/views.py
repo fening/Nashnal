@@ -66,17 +66,6 @@ class TimeEntryViewSet(viewsets.ModelViewSet):
     queryset = TimeEntry.objects.all()
     serializer_class = TimeEntrySerializer
     
-class HelloWorldView(APIView):
-    def get(self, request):
-        return Response({"message": "Hello, World!"})
-
-@login_required
-def home(request):
-    context = {
-        'view_title': 'Home',
-        'time_entries': TimeEntry.objects.filter(user=request.user) if not request.user.is_superuser else TimeEntry.objects.all()
-    }
-    return render(request, 'timesheets/home.html', context)
 
 @login_required
 def time_entry_detail(request, pk):
@@ -90,6 +79,10 @@ def time_entry_detail(request, pk):
 @login_required
 @cache_per_user(timeout=300)
 def time_entry_list(request):
+    # Initialize role flags
+    is_superuser = request.user.is_superuser
+    is_supervisor = hasattr(request.user, 'role') and request.user.role == 'Supervisor'
+    
     # Get pagination parameters
     page_number = request.GET.get('page', 1)
     entries_per_page = 25
@@ -105,8 +98,16 @@ def time_entry_list(request):
         )
     )
 
-    # Filter by user unless superuser
-    if not request.user.is_superuser:
+    # Filter queryset based on user role
+    if is_superuser:
+        # Superusers can see all time entries
+        pass  # No additional filtering
+    elif is_supervisor:
+        # Supervisors can see their team members' time entries
+        team_member_ids = User.objects.filter(supervisor=request.user).values_list('id', flat=True)
+        queryset = queryset.filter(user__in=team_member_ids)
+    else:
+        # Regular users can only see their own time entries
         queryset = queryset.filter(user=request.user)
 
     # Search functionality
@@ -143,7 +144,7 @@ def time_entry_list(request):
         '-hours_to_be_paid': '-hours_to_be_paid',
     }
     
-    if request.user.is_superuser:
+    if is_superuser or is_supervisor:
         valid_sort_fields.update({
             'user': 'user__username',
             '-user': '-user__username'
@@ -159,6 +160,13 @@ def time_entry_list(request):
     except:
         page_obj = paginator.page(1)
 
+    # If supervisor, include list of team members for filtering
+    all_users = None
+    if is_superuser:
+        all_users = User.objects.all().order_by('first_name', 'last_name')
+    elif is_supervisor:
+        all_users = User.objects.filter(supervisor=request.user).order_by('first_name', 'last_name')
+
     context = {
         'view_title': 'Time Entries',
         'page_obj': page_obj,
@@ -169,10 +177,13 @@ def time_entry_list(request):
         'total_entries': paginator.count,
         'start_index': page_obj.start_index(),
         'end_index': page_obj.end_index(),
+        'is_superuser': is_superuser,
+        'is_supervisor': is_supervisor,
+        'all_users': all_users,
+        'selected_user_id': request.GET.get('user'),
     }
 
     return render(request, 'timesheets/time_entry_list.html', context)
-
 
 @login_required
 def time_entry_create(request):
@@ -293,34 +304,81 @@ def time_entry_delete(request, pk):
 
 @login_required
 def supervisor_dashboard(request):
-    if not hasattr(request.user, 'role') or request.user.role != 'Supervisor':
+    """
+    View for supervisor dashboard showing team members, pending approvals, and recent activity
+    """
+    # Allow both superusers and supervisors to access
+    if not (request.user.is_superuser or (hasattr(request.user, 'role') and request.user.role == 'Supervisor')):
         messages.error(request, "You don't have permission to access this page.")
         return redirect('dashboard')
 
-    # Get supervisor's team members
-    team_members = User.objects.filter(supervisor=request.user)
-    
-    # Get pending approvals
-    pending_approvals = TimeEntryApproval.objects.filter(
-        time_entry__user__supervisor=request.user,
-        status='pending'
-    ).select_related('time_entry', 'time_entry__user').order_by('-time_entry__date')
+    # Get supervisor's team members with caching
+    cache_key = f'team_members_{request.user.id}'
+    team_members = cache.get(cache_key)
+    if team_members is None:
+        if request.user.is_superuser:
+            # Superuser can see all users
+            team_members = CustomUser.objects.all()
+        else:
+            # Regular supervisor sees their team members
+            team_members = CustomUser.objects.filter(supervisor=request.user)
+        team_members = team_members.filter(is_active=True).select_related('supervisor').order_by('first_name', 'last_name')
+        cache.set(cache_key, team_members, 300)  # Cache for 5 minutes
+
+    # Get pending approvals with related data
+    if request.user.is_superuser:
+        # Superuser sees all pending approvals
+        pending_approvals = TimeEntryApproval.objects.filter(status='pending')
+    else:
+        # Regular supervisor sees their team's pending approvals
+        pending_approvals = TimeEntryApproval.objects.filter(
+            time_entry__user__supervisor=request.user,
+            status='pending'
+        )
 
     # Get recent approved/rejected entries
-    recent_reviews = TimeEntryApproval.objects.filter(
-        time_entry__user__supervisor=request.user,
-        status__in=['approved', 'rejected']
-    ).select_related('time_entry', 'time_entry__user').order_by('-reviewed_at')[:5]
+    if request.user.is_superuser:
+        # Superuser sees all recent reviews
+        recent_reviews = TimeEntryApproval.objects.filter(
+            status__in=['approved', 'rejected']
+        )
+    else:
+        # Regular supervisor sees their team's recent reviews
+        recent_reviews = TimeEntryApproval.objects.filter(
+            time_entry__user__supervisor=request.user,
+            status__in=['approved', 'rejected']
+        )
+    recent_reviews = recent_reviews.select_related(
+        'time_entry',
+        'time_entry__user',
+        'reviewed_by'
+    ).order_by('-reviewed_at')[:5]
 
-    # Get team statistics
+    # Calculate team statistics
+    if request.user.is_superuser:
+        # Calculate stats for all users
+        total_hours_this_month = TimeEntry.objects.filter(
+            date__month=timezone.now().month,
+            date__year=timezone.now().year
+        )
+    else:
+        # Calculate stats for supervisor's team only
+        total_hours_this_month = TimeEntry.objects.filter(
+            user__in=team_members,
+            date__month=timezone.now().month,
+            date__year=timezone.now().year
+        )
+    total_hours = total_hours_this_month.aggregate(total_hours=Sum('hours_to_be_paid'))['total_hours'] or 0
+
     team_stats = {
         'total_members': team_members.count(),
         'active_members': team_members.filter(is_active=True).count(),
         'pending_approvals': pending_approvals.count(),
         'total_approved': TimeEntryApproval.objects.filter(
-            time_entry__user__supervisor=request.user,
+            time_entry__user__in=team_members,
             status='approved'
         ).count(),
+        'total_hours_this_month': round(total_hours, 2)
     }
 
     context = {
@@ -339,13 +397,17 @@ def supervisor_dashboard(request):
 CustomUser = get_user_model()
 @login_required
 def team_timesheets(request):
-    """View for supervisors to see their team's timesheets"""
-    if not hasattr(request.user, 'role') or request.user.role != 'Supervisor':
+    """View for supervisors and superusers to see team timesheets"""
+    # Allow both superusers and supervisors to access
+    if not (request.user.is_superuser or (hasattr(request.user, 'role') or request.user.role == 'Supervisor')):
         messages.error(request, "You don't have permission to view this page.")
         return redirect('dashboard')
 
-    # Get all team members
-    team_members = CustomUser.objects.filter(supervisor=request.user)
+    # Get all team members based on role
+    if request.user.is_superuser:
+        team_members = CustomUser.objects.all().order_by('first_name', 'last_name')
+    else:
+        team_members = CustomUser.objects.filter(supervisor=request.user).order_by('first_name', 'last_name')
 
     # Get date range from request or default to current month
     start_date = request.GET.get('start_date')
@@ -362,13 +424,22 @@ def team_timesheets(request):
     # Get selected team member if any
     selected_member_id = request.GET.get('member')
     if selected_member_id:
-        team_members = team_members.filter(id=selected_member_id)
+        timesheets = TimeEntry.objects.filter(
+            user_id=selected_member_id,
+            date__range=[start_date, end_date]
+        )
+    else:
+        # Get all timesheets for the date range
+        if request.user.is_superuser:
+            timesheets = TimeEntry.objects.filter(date__range=[start_date, end_date])
+        else:
+            timesheets = TimeEntry.objects.filter(
+                user__in=team_members,
+                date__range=[start_date, end_date]
+            )
 
-    # Get timesheets for team members
-    timesheets = TimeEntry.objects.filter(
-        user__in=team_members,
-        date__range=[start_date, end_date]
-    ).select_related('user').prefetch_related('jobs').order_by('-date')
+    # Add select_related and prefetch_related for optimization
+    timesheets = timesheets.select_related('user').prefetch_related('jobs').order_by('-date')
 
     # Calculate statistics
     stats = {
@@ -388,7 +459,8 @@ def team_timesheets(request):
         'stats': stats,
         'start_date': start_date,
         'end_date': end_date,
-        'selected_member_id': selected_member_id
+        'selected_member_id': selected_member_id,
+        'is_superuser': request.user.is_superuser
     }
 
     return render(request, 'timesheets/team_timesheets.html', context)
@@ -504,6 +576,7 @@ def user_summary_report(request):
     }
 
     return render(request, 'timesheets/summary_report.html', context)
+
 @login_required
 def add_job_to_time_entry(request):
     today = timezone.now().date()
@@ -559,8 +632,23 @@ def add_job_to_time_entry(request):
         'created': created,
     })
     
+import json
+from django.shortcuts import render
+from django.contrib.auth.decorators import login_required
+from django.db.models import Sum, Avg
+from django.utils import timezone
+from datetime import datetime, timedelta
+import logging
+
+# Initialize logger
+logger = logging.getLogger(__name__)
+
 @login_required
 def dashboard(request):
+    # Initialize permission flags
+    is_superuser = request.user.is_superuser
+    is_supervisor = hasattr(request.user, 'role') and request.user.role == 'Supervisor'
+    
     # Get date range from request, default to current week if not provided
     start_date = request.GET.get('start_date')
     end_date = request.GET.get('end_date')
@@ -569,64 +657,200 @@ def dashboard(request):
         today = timezone.now().date()
         start_date = today - timedelta(days=today.weekday())
         end_date = start_date + timedelta(days=6)
+        logger.debug(f"No date range provided. Using default: {start_date} to {end_date}")
     else:
         try:
             start_date = datetime.strptime(start_date, '%Y-%m-%d').date()
             end_date = datetime.strptime(end_date, '%Y-%m-%d').date()
+            logger.debug(f"Received date range: {start_date} to {end_date}")
         except ValueError:
             logger.error(f"Invalid date format: start_date={start_date}, end_date={end_date}")
-            # Fall back to current week if date parsing fails
             today = timezone.now().date()
             start_date = today - timedelta(days=today.weekday())
             end_date = start_date + timedelta(days=6)
+            logger.debug(f"Using default date range due to error: {start_date} to {end_date}")
 
-    logger.info(f"Date range: {start_date} to {end_date}")
+    # Determine available users based on permissions
+    if is_superuser:
+        all_users = User.objects.all().order_by('first_name', 'last_name')
+        logger.debug(f"User is superuser. Total users: {all_users.count()}")
+    elif is_supervisor:
+        # Get supervisor's team members
+        all_users = User.objects.filter(
+            supervisor=request.user,
+            is_active=True
+        ).select_related('supervisor').order_by('first_name', 'last_name')
+        logger.debug(f"User is supervisor. Team members: {all_users.count()}")
+    else:
+        all_users = None
+        logger.debug("User is neither superuser nor supervisor.")
 
-    if request.user.is_superuser:
-        selected_user_id = request.GET.get('user_id')
-        if selected_user_id:
-            selected_user = User.objects.get(id=selected_user_id)
+    # Get and validate selected user
+    selected_user_id = request.GET.get('user_id')  # Changed from 'user' to 'user_id'
+    logger.debug(f"Selected user_id from GET: {selected_user_id}")
+    if selected_user_id:
+        try:
+            selected_user_id = int(selected_user_id)
+            logger.debug(f"Parsed user_id as integer: {selected_user_id}")
+        except ValueError:
+            logger.error(f"Invalid user_id value: {selected_user_id}")
+            selected_user_id = None
+
+    if selected_user_id:
+        if is_superuser:
+            selected_user = User.objects.filter(id=selected_user_id).first()
+            logger.debug(f"Superuser selected user: {selected_user}")
+        elif is_supervisor:
+            selected_user = User.objects.filter(
+                id=selected_user_id,
+                supervisor=request.user
+            ).first()
+            logger.debug(f"Supervisor selected user: {selected_user}")
         else:
-            selected_user = request.user
-
-        all_users = User.objects.all()
-        user_stats = []
-        for user in all_users:
-            user_entries = TimeEntry.objects.filter(
-                user=user,
-                date__range=[start_date, end_date]
-            )
-            total_hours = user_entries.aggregate(Sum('hours_for_the_day'))['hours_for_the_day__sum'] or 0
-            total_entries = user_entries.count()
-            user_stats.append({
-                'user': user,
-                'total_hours': round(total_hours, 2),
-                'total_entries': total_entries
-            })
+            selected_user = None
+            logger.debug("User is neither superuser nor supervisor. Selected user set to None.")
     else:
         selected_user = request.user
-        user_stats = None
-        all_users = None
+        logger.debug(f"No user_id provided or invalid. Defaulting to current user: {selected_user}")
 
+    # Default to current user if no valid selection
+    if not selected_user:
+        selected_user = request.user
+        logger.debug("Selected user was None. Defaulting to current user.")
+
+    logger.debug(f"Final selected user: {selected_user}")
+
+    # Get time entries for selected user
     entries = TimeEntry.objects.filter(
         user=selected_user,
         date__range=[start_date, end_date]
     )
-    
+    logger.debug(f"Time entries found: {entries.count()}")
+
+    # Calculate statistics
     total_hours = entries.aggregate(Sum('hours_for_the_day'))['hours_for_the_day__sum'] or 0
     total_entries = entries.count()
     recent_entries = entries.order_by('-date')[:5]
-    
+    logger.debug(f"Total hours: {total_hours}, Total entries: {total_entries}")
+
+    # Calculate labor code distribution
     labor_code_data = list(Job.objects.filter(
         time_entry__user=selected_user,
         time_entry__date__range=[start_date, end_date]
-    ).values('labor_code').annotate(count=Sum('time_entry__hours_for_the_day')))
-    
-    daily_hours_data = list(entries.values('date').annotate(hours=Sum('hours_for_the_day')).order_by('date'))
+    ).values('labor_code__laborcode', 'labor_code__labor_code_description').annotate(
+        count=Sum('time_entry__hours_for_the_day')
+    ))
+    logger.debug(f"Labor code data: {labor_code_data}")
 
-    # Log the data being sent to the template
-    logger.info(f"Labor Code Data: {json.dumps(labor_code_data, cls=DecimalEncoder)}")
-    logger.info(f"Daily Hours Data: {json.dumps(daily_hours_data, cls=DecimalEncoder, default=str)}")
+    # Calculate daily hours
+    daily_hours_data = list(entries.values('date')
+        .annotate(hours=Sum('hours_for_the_day'))
+        .order_by('date'))
+    logger.debug(f"Daily hours data: {daily_hours_data}")
+
+    # Initialize additional context variables
+    hours_trend = 0
+    jobs_trend = 0
+    avg_daily_hours = 0
+    daily_hours_trend = 0
+    total_jobs = 0
+    mileage_efficiency = 0
+    total_mileage = 0
+    unread_notifications_count = 0
+    recent_notifications = None
+    pending_approvals = None
+    team_members = None
+    approved_entries = 0
+
+    # Get team statistics and additional data for supervisors
+    if is_supervisor:
+        pending_approvals = TimeEntryApproval.objects.filter(
+            time_entry__user__supervisor=request.user,
+            status='pending'
+        )
+        approved_entries = TimeEntryApproval.objects.filter(
+            time_entry__user__supervisor=request.user,
+            status='approved'
+        ).count()
+        total_mileage = TimeEntry.objects.filter(
+            user__in=all_users,
+            date__range=[start_date, end_date]
+        ).aggregate(Sum('miles_to_be_paid'))['miles_to_be_paid__sum'] or 0
+        team_members = all_users
+        unread_notifications_count = ApprovalNotification.objects.filter(
+            recipient=request.user,
+            read=False
+        ).count()
+        recent_notifications = ApprovalNotification.objects.filter(
+            recipient=request.user
+        ).order_by('-created_at')[:5]
+        logger.debug(f"Supervisor team stats: Total Members={all_users.count()}, Active Members={all_users.filter(is_active=True).count()}, Pending Approvals={pending_approvals.count()}, Total Approved={approved_entries}")
+
+        team_stats = {
+            'total_members': all_users.count(),
+            'active_members': all_users.filter(is_active=True).count(),
+            'pending_approvals': pending_approvals.count(),
+            'total_hours': TimeEntry.objects.filter(
+                user__in=all_users,
+                date__range=[start_date, end_date]
+            ).aggregate(Sum('hours_for_the_day'))['hours_for_the_day__sum'] or 0,
+            'total_approved': approved_entries,
+        }
+    else:
+        team_stats = None
+
+    # Calculate trends and additional stats for regular users and supervisors viewing a team member
+    if (not is_supervisor and not is_superuser) or (is_supervisor and selected_user != request.user):
+        # Define the previous period (e.g., previous week)
+        previous_start_date = start_date - timedelta(days=7)
+        previous_end_date = end_date - timedelta(days=7)
+
+        # Hours Trend
+        last_period_hours = TimeEntry.objects.filter(
+            user=selected_user,
+            date__range=[previous_start_date, previous_end_date]
+        ).aggregate(Sum('hours_for_the_day'))['hours_for_the_day__sum'] or 0
+        hours_trend = ((total_hours - last_period_hours) / last_period_hours * 100) if last_period_hours else 100
+        logger.debug(f"Hours trend: {hours_trend}% (Current: {total_hours}, Previous: {last_period_hours})")
+
+        # Jobs Trend
+        total_jobs = Job.objects.filter(
+            time_entry__user=selected_user,
+            time_entry__date__range=[start_date, end_date]
+        ).count()
+        last_period_jobs = Job.objects.filter(
+            time_entry__user=selected_user,
+            time_entry__date__range=[previous_start_date, previous_end_date]
+        ).count()
+        jobs_trend = ((total_jobs - last_period_jobs) / last_period_jobs * 100) if last_period_jobs else 100
+        logger.debug(f"Jobs trend: {jobs_trend}% (Current: {total_jobs}, Previous: {last_period_jobs})")
+
+        # Average Daily Hours
+        avg_daily_hours = entries.aggregate(Avg('hours_for_the_day'))['hours_for_the_day__avg'] or 0
+        logger.debug(f"Average daily hours: {avg_daily_hours}")
+
+        # Daily Hours Trend
+        last_period_avg_daily_hours = TimeEntry.objects.filter(
+            user=selected_user,
+            date__range=[previous_start_date, previous_end_date]
+        ).aggregate(Avg('hours_for_the_day'))['hours_for_the_day__avg'] or 0
+        daily_hours_trend = ((avg_daily_hours - last_period_avg_daily_hours) / last_period_avg_daily_hours * 100) if last_period_avg_daily_hours else 100
+        logger.debug(f"Daily hours trend: {daily_hours_trend}% (Current: {avg_daily_hours}, Previous: {last_period_avg_daily_hours})")
+
+        # Mileage Statistics
+        total_mileage = TimeEntry.objects.filter(
+            user=selected_user,
+            date__range=[start_date, end_date]
+        ).aggregate(Sum('miles_to_be_paid'))['miles_to_be_paid__sum'] or 0
+        target_mileage = 100  # Example target, adjust as needed
+        mileage_efficiency = (total_mileage / target_mileage * 100) if target_mileage else 0
+        logger.debug(f"Total mileage: {total_mileage}, Mileage efficiency: {mileage_efficiency}%")
+
+        # Recent Notifications
+        recent_notifications = ApprovalNotification.objects.filter(
+            recipient=selected_user
+        ).order_by('-created_at')[:5]
+        logger.debug(f"Recent notifications count: {recent_notifications.count()}")
 
     context = {
         'view_title': 'Dashboard',
@@ -638,12 +862,30 @@ def dashboard(request):
         'daily_hours_data': json.dumps(daily_hours_data, cls=DecimalEncoder, default=str),
         'start_date': start_date,
         'end_date': end_date,
-        'user_stats': user_stats,
         'all_users': all_users,
-        'is_admin': request.user.is_superuser
+        'team_stats': team_stats,
+        'is_admin': is_superuser,
+        'is_supervisor': is_supervisor,
+        # Supervisor specific
+        'pending_approvals': pending_approvals if is_supervisor else None,
+        'team_members': team_members if is_supervisor else None,
+        'unread_notifications_count': unread_notifications_count if is_supervisor else 0,
+        'recent_notifications': recent_notifications if is_supervisor else None,
+        # Regular user and supervisor viewing a team member
+        'hours_trend': round(hours_trend, 2),
+        'jobs_trend': round(jobs_trend, 2),
+        'avg_daily_hours': round(avg_daily_hours, 2),
+        'daily_hours_trend': round(daily_hours_trend, 2),
+        'total_jobs': total_jobs,
+        'mileage_efficiency': round(mileage_efficiency, 2),
+        'total_mileage': round(total_mileage, 2),
     }
-    
+
+    logger.debug("Context data prepared for template.")
+
     return render(request, 'timesheets/dashboard.html', context)
+
+
 
 @login_required
 def job_details_create_or_edit(request, pk=None):
@@ -783,72 +1025,169 @@ def submit_for_approval(request, pk):
 @login_required
 @permission_required('timesheets.can_approve_timesheet', raise_exception=True)
 def review_time_entry(request, pk):
-    """Review a submitted time entry (supervisor only)"""
-    approval = get_object_or_404(TimeEntryApproval, time_entry_id=pk)
+    """Handle time entry review process"""
+    time_entry = get_object_or_404(TimeEntry, pk=pk)
+    approval = time_entry.approval
     
-    # Check if reviewer is the supervisor of the time entry owner
-    if request.user != approval.time_entry.user.supervisor:
-        raise PermissionDenied
+    if not approval:
+        messages.error(request, "This time entry hasn't been submitted for approval.")
+        return redirect('time_entry_detail', pk=pk)
+    
+    # Check if user can approve this time entry
+    if not approval.can_approve(request.user):
+        messages.error(request, "You don't have permission to review this time entry.")
+        return redirect('pending_approvals')
     
     if request.method == 'POST':
-        form = TimeEntryReviewForm(request.POST, instance=approval)
+        form = TimeEntryReviewForm(request.POST)
         if form.is_valid():
-            approval = form.save(commit=False)
-            approval.reviewed_by = request.user
-            approval.reviewed_at = timezone.now()
-            approval.save()
+            review_action = form.cleaned_data['review_action']
+            comments = form.cleaned_data['comments']
             
-            # Send notification to the employee
-            messages.success(request, f'Time entry {approval.status}.')
-            return redirect('supervisor_dashboard')
+            try:
+                with transaction.atomic():
+                    if approval.status == TimeEntryApproval.PENDING_FIRST:
+                        if review_action == 'approve':
+                            approval.status = TimeEntryApproval.PENDING_SECOND
+                            approval.first_reviewed_by = request.user
+                            approval.first_reviewed_at = timezone.now()
+                            approval.first_reviewer_comments = comments
+                            approval.create_notifications('first_approve', reviewer=request.user, comments=comments)
+                            messages.success(request, "First approval completed. Time entry sent to supervisor for final approval.")
+                        else:
+                            approval.status = TimeEntryApproval.REJECTED
+                            approval.first_reviewed_by = request.user
+                            approval.first_reviewed_at = timezone.now()
+                            approval.first_reviewer_comments = comments
+                            approval.create_notifications('reject', reviewer=request.user, comments=comments)
+                            messages.warning(request, "Time entry rejected.")
+                    
+                    elif approval.status == TimeEntryApproval.PENDING_SECOND:
+                        if review_action == 'approve':
+                            approval.status = TimeEntryApproval.APPROVED
+                            approval.second_reviewed_by = request.user
+                            approval.second_reviewed_at = timezone.now()
+                            approval.second_reviewer_comments = comments
+                            approval.create_notifications('final_approve', reviewer=request.user, comments=comments)
+                            messages.success(request, "Time entry fully approved.")
+                        else:
+                            approval.status = TimeEntryApproval.REJECTED
+                            approval.second_reviewed_by = request.user
+                            approval.second_reviewed_at = timezone.now()
+                            approval.second_reviewer_comments = comments
+                            approval.create_notifications('reject', reviewer=request.user, comments=comments)
+                            messages.warning(request, "Time entry rejected.")
+                    
+                    approval.save()
+                    return redirect('pending_approvals')
+                    
+            except Exception as e:
+                messages.error(request, f"Error processing approval: {str(e)}")
+                logger.error(f"Error processing approval: {str(e)}")
     else:
-        form = TimeEntryReviewForm(instance=approval)
+        form = TimeEntryReviewForm()
     
     context = {
-        'view_title': 'Review Time Entry',
+        'time_entry': time_entry,
+        'approval': approval,
         'form': form,
-        'approval': approval
+        'view_title': 'Review Time Entry',
+        'is_first_approval': approval.status == TimeEntryApproval.PENDING_FIRST,
+        'is_second_approval': approval.status == TimeEntryApproval.PENDING_SECOND,
+        'is_supervisor': request.user.role == 'Supervisor' if hasattr(request.user, 'role') else False,
+        'is_superuser': request.user.is_superuser,
     }
+    
     return render(request, 'timesheets/review_time_entry.html', context)
+
 
 @login_required
 def pending_approvals(request):
-    """View pending approvals (different views for supervisors and employees)"""
-    if request.user.role == 'Supervisor':
-        # Get all pending approvals for supervisees
-        pending = TimeEntryApproval.objects.filter(
-            time_entry__user__supervisor=request.user,
-            status='pending'
-        ).select_related('time_entry', 'time_entry__user')
-    else:
-        # Get user's own pending approvals
-        pending = TimeEntryApproval.objects.filter(
-            time_entry__user=request.user
-        ).select_related('time_entry')
+    """View for managing pending time entry approvals"""
     
+    # Check if user has permission to view approvals
+    if not (request.user.is_superuser or (hasattr(request.user, 'role') and request.user.role == 'Supervisor')):
+        messages.error(request, "You don't have permission to view this page.")
+        return redirect('dashboard')
+
+    # Initialize context
     context = {
-        'view_title': 'Pending Approvals',
-        'pending_approvals': pending
+        'view_title': 'Pending Time Entry Approvals',
+        'is_supervisor': request.user.role == 'Supervisor' if hasattr(request.user, 'role') else False,
+        'is_superuser': request.user.is_superuser,
+        'pending_approvals': []  # Initialize empty list
     }
+
+    try:
+        # Get pending approvals based on user role
+        if request.user.is_superuser:
+            # Superuser (Nida) sees entries pending first approval
+            context['pending_approvals'] = TimeEntryApproval.objects.filter(
+                status=TimeEntryApproval.PENDING_FIRST
+            ).select_related(
+                'time_entry',
+                'time_entry__user',
+                'first_reviewed_by',
+                'second_reviewed_by'
+            ).order_by('-submitted_at')
+        
+        elif request.user.role == 'Supervisor':
+            # Supervisors see entries pending second approval for their team
+            context['pending_approvals'] = TimeEntryApproval.objects.filter(
+                status=TimeEntryApproval.PENDING_SECOND,
+                time_entry__user__supervisor=request.user,
+                first_reviewed_by__isnull=False  # Ensure first approval is done
+            ).select_related(
+                'time_entry',
+                'time_entry__user',
+                'first_reviewed_by',
+                'second_reviewed_by'
+            ).order_by('-submitted_at')
+
+    except Exception as e:
+        messages.error(request, f"An error occurred while fetching approvals: {str(e)}")
+        context['pending_approvals'] = []
+
+    # Always return a response
     return render(request, 'timesheets/pending_approvals.html', context)
 
 @login_required
 def approval_history(request):
     """View approval history"""
-    if request.user.role == 'Supervisor':
+    # Handle superuser case first
+    if request.user.is_superuser:
+        # Superusers can see all approvals
+        approvals = TimeEntryApproval.objects.all().exclude(
+            status='pending'
+        ).select_related(
+            'time_entry',
+            'time_entry__user',
+            'first_reviewed_by',
+            'second_reviewed_by'
+        ).order_by('-submitted_at')
+    elif hasattr(request.user, 'role') and request.user.role == 'Supervisor':
         # Get all approvals for supervisees
         approvals = TimeEntryApproval.objects.filter(
             time_entry__user__supervisor=request.user
         ).exclude(
             status='pending'
-        ).select_related('time_entry', 'time_entry__user')
+        ).select_related(
+            'time_entry',
+            'time_entry__user',
+            'first_reviewed_by',
+            'second_reviewed_by'
+        ).order_by('-submitted_at')
     else:
         # Get user's own approval history
         approvals = TimeEntryApproval.objects.filter(
             time_entry__user=request.user
         ).exclude(
             status='pending'
-        ).select_related('time_entry')
+        ).select_related(
+            'time_entry',
+            'first_reviewed_by',
+            'second_reviewed_by'
+        ).order_by('-submitted_at')
     
     context = {
         'view_title': 'Approval History',
@@ -873,31 +1212,55 @@ def mark_all_notifications_read(request):
 
 @login_required
 def all_notifications(request):
-    """View all notifications"""
-    notifications = ApprovalNotification.objects.filter(recipient=request.user)
+    notifications = ApprovalNotification.objects.filter(
+        recipient=request.user
+    ).select_related('time_entry').order_by('-created_at')
+    
+    # Add filtering options
+    filter_type = request.GET.get('type', 'all')
+    if filter_type == 'unread':
+        notifications = notifications.filter(read=False)
+    
+    # Add search functionality
+    search_query = request.GET.get('search', '')
+    if search_query:
+        notifications = notifications.filter(message__icontains=search_query)
+    
+    # Pagination
+    paginator = Paginator(notifications, 20)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
     context = {
-        'view_title': 'Notifications',
-        'notifications': notifications
+        'view_title': 'All Notifications',
+        'notifications': page_obj,
+        'unread_count': notifications.filter(read=False).count(),
+        'total_count': notifications.count(),
+        'filter_type': filter_type,
+        'search_query': search_query
     }
     return render(request, 'timesheets/all_notifications.html', context)
 
 # Add this to your context processor or middleware
 def notification_context(request):
     """Add notification counts to global template context"""
-    if request.user.is_authenticated and request.user.role == 'Supervisor':
+    if request.user.is_authenticated:  # Remove supervisor role check
         unread_notifications = ApprovalNotification.objects.filter(
             recipient=request.user,
             read=False
         ).count()
         
-        pending_approvals = TimeEntryApproval.objects.filter(
-            time_entry__user__supervisor=request.user,
-            status='pending'
-        ).count()
+        # Only show pending approvals count for supervisors
+        pending_approvals = 0
+        if hasattr(request.user, 'role') and request.user.role == 'Supervisor':
+            pending_approvals = TimeEntryApproval.objects.filter(
+                time_entry__user__supervisor=request.user,
+                status='pending'
+            ).count()
         
         recent_notifications = ApprovalNotification.objects.filter(
             recipient=request.user
-        ).order_by('-created_at')[:5]
+        ).select_related('time_entry').order_by('-created_at')[:5]
         
         return {
             'unread_notifications_count': unread_notifications,
@@ -905,5 +1268,41 @@ def notification_context(request):
             'notifications': recent_notifications
         }
     return {}
+
+
+from django.views.decorators.http import require_POST
+from django.contrib.auth.decorators import login_required
+from django.http import JsonResponse
+from django.core.paginator import Paginator
+
+@login_required
+@require_POST
+def mark_notification_read(request, notification_id):
+    try:
+        notification = ApprovalNotification.objects.get(id=notification_id, recipient=request.user)
+        notification.mark_as_read()
+        return JsonResponse({'status': 'success'})
+    except ApprovalNotification.DoesNotExist:
+        return JsonResponse({'status': 'error', 'message': 'Notification not found'}, status=404)
+
+@login_required
+@require_POST
+def mark_all_notifications_read(request):
+    ApprovalNotification.objects.filter(recipient=request.user, read=False).update(read=True)
+    return redirect(request.META.get('HTTP_REFERER', 'dashboard'))
+
+@login_required
+def all_notifications(request):
+    notifications = ApprovalNotification.objects.filter(recipient=request.user).order_by('-created_at')
+    paginator = Paginator(notifications, 20)  # Show 20 notifications per page
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    context = {
+        'view_title': 'All Notifications',
+        'notifications': page_obj,
+        'unread_count': notifications.filter(read=False).count()
+    }
+    return render(request, 'timesheets/all_notifications.html', context)
 
 

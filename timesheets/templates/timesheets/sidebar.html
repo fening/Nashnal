@@ -2,8 +2,49 @@
 <div id="sidebar" class="fixed inset-y-0 left-0 z-30 w-64 bg-white text-black transform transition-transform duration-300 ease-in-out translate-x-0 shadow-lg border-r border-gray-200">
     <div class="flex justify-between items-center p-4">
         <a href="/" class="flex items-center space-x-2 text-black">
-            <i data-lucide="package-2" class="h-6 w-6"></i>
-            <span class="text-2xl font-bold">NST</span>
+            <span> <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 414 132.5" class="h-12 w-auto"> 
+                <defs>
+                    <style>
+                        .logo-text { font-family: Arial, Helvetica, sans-serif; }
+                        .heavy { font-weight: 800; }
+                        .regular { font-weight: 400; }
+                        .medium { font-weight: 500; }
+                    </style>
+                </defs>
+                <g>
+                    <!-- Main Path (N shape) -->
+                    <path d="m179.03 41.83-10.82 14.05h-19.3v39.97h-16.72V55.88H90.11l-14.7.01c-1.94 0-3.38.27-4.32.81-.93.53-1.4 1.48-1.41 2.84v.13c.02 1.36.49 2.32 1.41 2.88.94.56 2.38.85 4.32.85h29.4c6.62 0 11.65 1.22 15.1 3.67 3.45 2.45 5.17 6.15 5.17 11.1 0 2.75-.43 5.22-1.29 7.43-.86 2.21-2.23 4.06-4.12 5.57-1.88 1.51-4.29 2.67-7.23 3.47-2.93.81-6.45 1.21-10.54 1.21H71.91c.61-.9 1.11-1.88 1.51-2.9.8-2.03 1.11-4.21 1.11-6.39v-4.6h28.66c1.99 0 3.45-.31 4.36-.93.92-.62 1.37-1.63 1.37-3.03s-.46-2.39-1.37-2.99c-.91-.59-2.37-.89-4.36-.89H73.8c-1.46 0-2.83-.06-4.12-.2v12.63c0 1.78-.26 3.31-.77 4.6-.51 1.29-1.18 2.36-2.02 3.19-.84.83-1.82 1.44-2.95 1.82-1.13.38-2.29.56-3.47.56-1.08 0-2.14-.17-3.19-.52-1.05-.35-2.22-1.14-3.51-2.38L20.66 64.1v31.73H5.48V51.05c0-1.78.26-3.31.77-4.6.51-1.29 1.19-2.34 2.02-3.15.83-.81 1.8-1.4 2.91-1.78 1.1-.38 2.25-.56 3.43-.56 1.02 0 2.06.17 3.11.53 1.05.35 2.25 1.14 3.59 2.38l32.22 28.92V58.65c0-2.53.44-4.83 1.33-6.9.89-2.07 2.26-3.84 4.12-5.29 1.86-1.45 4.25-2.59 7.18-3.39 2.94-.81 6.45-1.21 10.54-1.21h102.32Z" 
+                          fill="#000000" 
+                          stroke="#f37f20" 
+                          stroke-width="1.74" 
+                          stroke-miterlimit="10"/>
+            
+                    <!-- Main Text "NASH" -->
+                    <g transform="translate(191.64 76.28)">
+                        <text class="logo-text heavy" fill="#f37f20" font-size="50.73" letter-spacing=".03em">
+                            <tspan x="0">NA</tspan>
+                            <tspan x="76.51" letter-spacing=".05em">S</tspan>
+                            <tspan x="113.75" letter-spacing=".02em">H</tspan>
+                            <tspan x="152" class="regular" font-size="49.43">nal</tspan>
+                        </text>
+                    </g>
+            
+                    <!-- Subtext "SOIL TESTING" -->
+                    <text transform="translate(193.15 96.36)" 
+                          class="logo-text medium" 
+                          font-size="16.62" 
+                          letter-spacing=".55em">SOIL TESTING</text>
+            
+                    <!-- Decorative Dashed Line -->
+                    <path d="M173.82 48.52H75.05s-13.13-.47-13.13 9.77 11.79 10.57 11.79 10.57h33.82s10.02-.53 10.02 10.02-8.47 9.66-8.47 9.66H75.24" 
+                          fill="none" 
+                          stroke="#ffffff" 
+                          stroke-width="1.74" 
+                          stroke-dasharray="13.07 4.36" 
+                          stroke-miterlimit="10"/>
+                </g>
+            </svg>
+         </span>
         </a>
         <button id="closeSidebar" class="text-black p-1 rounded-md hover:bg-gray-200">
             <i data-lucide="x" class="h-6 w-6"></i>
@@ -22,68 +63,56 @@
                 </svg>
                 Dashboard
             </a>
-
             {% if user.is_authenticated %}
-                {% if user.is_superuser %}
-                    <!-- Admin Links -->
-                    <a href="{% url 'job_details_create' %}" class="flex items-center px-4 py-2 text-sm rounded transition duration-200 hover:bg-gray-200 hover:text-black">
-                        <svg class="h-4 w-4 mr-3 text-black" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
-                        </svg>
-                        Create Job Details
-                    </a>
-                    <a href="{% url 'employee_list' %}" class="flex items-center px-4 py-2 text-sm rounded transition duration-200 hover:bg-gray-200 hover:text-black">
-                        <svg class="h-4 w-4 mr-3 text-black" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                            <circle cx="9" cy="7" r="4"></circle>
-                            <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-                            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-                        </svg>
-                        View All Employees
-                    </a>
-                {% else %}
-                    <a href="{% url 'time_entry_create' %}" class="flex items-center px-4 py-2 text-sm rounded transition duration-200 hover:bg-gray-200 hover:text-black">
-                        <svg class="h-4 w-4 mr-3 text-black" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <circle cx="12" cy="12" r="10"></circle>
-                            <line x1="12" y1="8" x2="12" y2="16"></line>
-                            <line x1="8" y1="12" x2="16" y2="12"></line>
-                        </svg>
-                        Create Time Entry
-                    </a>
-                {% endif %}
-
-                <!-- Common User Links -->
-                <a href="{% url 'time_entry_list' %}" class="flex items-center px-4 py-2 text-sm rounded transition duration-200 hover:bg-gray-200 hover:text-black">
-                    <svg class="w-4 h-4 mr-3 text-black" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                        <polyline points="14 2 14 8 20 8"></polyline>
-                        <line x1="16" y1="13" x2="8" y2="13"></line>
-                        <line x1="16" y1="17" x2="8" y2="17"></line>
-                        <polyline points="10 9 9 9 8 9"></polyline>
+            {% if not user.is_superuser and user.role != 'Supervisor' %}
+                <!-- Regular User Links -->
+                <a href="{% url 'time_entry_create' %}" class="flex items-center px-4 py-2 text-sm rounded transition duration-200 hover:bg-gray-200 hover:text-black">
+                    <svg class="h-4 w-4 mr-3 text-black" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <line x1="12" y1="8" x2="12" y2="16"></line>
+                        <line x1="8" y1="12" x2="16" y2="12"></line>
                     </svg>
-                    View Time Entries
-                </a>
-                <a href="{% url 'user_summary_report' %}" class="flex items-center px-4 py-2 text-sm rounded-md transition duration-200 hover:bg-gray-200 hover:text-black">
-                    <!-- Updated Summary Report Icon -->
-                    <svg class="w-4 h-4 mr-3 text-black" data-lucide="bar-chart-2" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M18 20V10"></path>
-                        <path d="M12 20V4"></path>
-                        <path d="M6 20V14"></path>
-                    </svg>
-                    Summary Report
+                    Create Time Entry
                 </a>
             {% endif %}
-        </div>
 
-        {% if user.is_authenticated and user.role == 'Supervisor' %}
-        <div class="mt-8 space-y-2">
+            <!-- Common User Links -->
+            <a href="{% url 'time_entry_list' %}" class="flex items-center px-4 py-2 text-sm rounded transition duration-200 hover:bg-gray-200 hover:text-black">
+                <svg class="w-4 h-4 mr-3 text-black" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                    <polyline points="14 2 14 8 20 8"></polyline>
+                    <line x1="16" y1="13" x2="8" y2="13"></line>
+                    <line x1="16" y1="17" x2="8" y2="17"></line>
+                    <polyline points="10 9 9 9 8 9"></polyline>
+                </svg>
+                View Time Entries
+            </a>
+            <a href="{% url 'user_summary_report' %}" class="flex items-center px-4 py-2 text-sm rounded-md transition duration-200 hover:bg-gray-200 hover:text-black">
+                <svg class="w-4 h-4 mr-3 text-black" data-lucide="bar-chart-2" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M18 20V10"></path>
+                    <path d="M12 20V4"></path>
+                    <path d="M6 20V14"></path>
+                </svg>
+                Summary Report
+            </a>
+            <a href="{% url 'approval_history' %}" class="flex items-center px-4 py-2 text-sm rounded-md transition duration-200 hover:bg-gray-200 hover:text-black">
+                <svg class="w-4 h-4 mr-3 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                </svg>
+                Approval History
+            </a>
+
+            {% if user.is_superuser or user.role == 'Supervisor' %}
+            <!-- Supervisor Tools Button -->
             <button 
                 id="supervisorDropdown"
-                class="w-full px-3 py-2 flex items-center justify-between text-xs font-semibold text-gray-400 uppercase tracking-wider hover:bg-gray-200 rounded-md transition-colors duration-200"
+                class="w-full px-3 py-2 flex items-center justify-between text-xs font-semibold text-gray-800 uppercase tracking-wider hover:bg-gray-200 rounded-md transition-colors duration-200"
                 onclick="toggleSupervisorMenu()"
             >
-                <span>Supervisor Tools</span>
+                <span class="flex items-center">
+                    <i data-lucide="tools" class="h-5 w-5 mr-3"></i>
+                    Supervisor Tools
+                </span>
                 <svg 
                     id="dropdownIcon"
                     class="w-4 h-4 transform transition-transform duration-200 text-black"
@@ -99,45 +128,40 @@
                 class="hidden overflow-hidden space-y-1 transition-all duration-200 ease-in-out"
                 style="transition: max-height 200ms ease-in-out, opacity 200ms ease-in-out;">
                 <a href="{% url 'job_details_create' %}" 
-                   class="flex items-center px-4 py-2 text-sm rounded-md transition duration-200 
-                          {% if request.resolver_match.url_name == 'job_details_create' %}
-                              bg-gray-200 text-black
-                          {% else %}
-                              text-gray-300 hover:bg-gray-200 hover:text-black
-                          {% endif %}">
-                    <svg class="h-4 w-4 mr-3 text-black" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
-                    </svg>
+                   class="flex items-center px-4 py-2 text-sm rounded-md transition duration-200 hover:bg-gray-200 hover:text-black">
+                   <svg class="h-4 w-4 mr-3 text-black" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                </svg>
                     Create Job Details
                 </a>
+                <a href="{% url 'create_and_list_laborcode' %}" 
+                class="flex items-center px-4 py-2 text-sm rounded-md transition duration-200 hover:bg-gray-200 hover:text-black">
+                <svg class="h-4 w-4 mr-3 text-black" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 20h9"></path>
+                    <path d="M12 4h9"></path>
+                    <path d="M4 9h16"></path>
+                    <path d="M4 15h16"></path>
+                </svg>
+                 Create Laborcodes
+             </a>
                 
                 <a href="{% url 'employee_list' %}" 
-                   class="flex items-center px-4 py-2 text-sm rounded-md transition duration-200 
-                          {% if request.resolver_match.url_name == 'employee_list' %}
-                              bg-gray-200 text-black
-                          {% else %}
-                              text-gray-300 hover:bg-gray-200 hover:text-black
-                          {% endif %}">
-                    <svg class="h-4 w-4 mr-3 text-black" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                        <circle cx="9" cy="7" r="4"></circle>
-                        <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-                        <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-                    </svg>
+                   class="flex items-center px-4 py-2 text-sm rounded-md transition duration-200 hover:bg-gray-200 hover:text-black">
+                   <svg class="h-4 w-4 mr-3 text-black" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="9" cy="7" r="4"></circle>
+                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                </svg>
                     View All Employees
                 </a>
                 
                 <a href="{% url 'pending_approvals' %}" 
-                   class="flex items-center px-4 py-2 text-sm rounded-md transition duration-200 
-                          {% if request.resolver_match.url_name == 'pending_approvals' %}
-                              bg-gray-200 text-black
-                          {% else %}
-                              text-gray-300 hover:bg-gray-200 hover:text-black
-                          {% endif %}">
-                    <svg class="w-4 h-4 mr-3 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v14a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
-                    </svg>
+                   class="flex items-center px-4 py-2 text-sm rounded-md transition duration-200 hover:bg-gray-200 hover:text-black">
+                   <svg class="w-4 h-4 mr-3 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v14a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
+                </svg>
                     <span class="flex-1">Pending Approvals</span>
                     {% if pending_approvals_count > 0 %}
                         <span class="ml-2 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-red-100 bg-red-600 rounded-full">
@@ -145,34 +169,24 @@
                         </span>
                     {% endif %}
                 </a>
-            
-                <a href="{% url 'approval_history' %}" 
-                   class="flex items-center px-4 py-2 text-sm rounded-md transition duration-200 
-                          {% if request.resolver_match.url_name == 'approval_history' %}
-                              bg-gray-200 text-black
-                          {% else %}
-                              text-gray-300 hover:bg-gray-200 hover:text-black
-                          {% endif %}">
-                    <svg class="w-4 h-4 mr-3 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
-                    </svg>
-                    Approval History
-                </a>
-            
+        
                 <a href="{% url 'team_timesheets' %}" 
-                   class="flex items-center px-4 py-2 text-sm rounded-md transition duration-200 
-                          {% if request.resolver_match.url_name == 'team_timesheets' %}
-                              bg-gray-200 text-black
-                          {% else %}
-                              text-gray-300 hover:bg-gray-200 hover:text-black
-                          {% endif %}">
-                    <svg class="w-4 h-4 mr-3 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
-                    </svg>
+                   class="flex items-center px-4 py-2 text-sm rounded-md transition duration-200 hover:bg-gray-200 hover:text-black">
+                   <svg class="w-4 h-4 mr-3 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+                </svg>
                     Team Timesheets
                 </a>
+                <a href="{% url 'manage_invitations' %}" 
+                    class="flex items-center px-4 py-2 text-sm rounded transition duration-200 hover:bg-gray-200 hover:text-black">
+                        <svg class="h-4 w-4 mr-3 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                                d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                        </svg>
+                        Manage Invitations
+                    </a>
             </div>
-        </div>
+            {% endif %}
         {% endif %}
         
         <!-- Bottom Links -->
@@ -217,12 +231,10 @@
             const icon = document.getElementById('dropdownIcon');
             isMenuOpen = open;
             
-            // Store state in localStorage
             localStorage.setItem('supervisorMenuOpen', open);
             
             if (open) {
                 menu.classList.remove('hidden');
-                // Add a small delay before adding height and opacity for smooth animation
                 setTimeout(() => {
                     menu.classList.add('opacity-100', 'max-h-96');
                     menu.classList.remove('opacity-0', 'max-h-0');
@@ -232,16 +244,14 @@
                 menu.classList.add('opacity-0', 'max-h-0');
                 menu.classList.remove('opacity-100', 'max-h-96');
                 icon.classList.remove('rotate-180');
-                // Add a delay before hiding the menu completely
                 setTimeout(() => {
-                    if (!isMenuOpen) { // Check again in case state changed
+                    if (!isMenuOpen) {
                         menu.classList.add('hidden');
                     }
                 }, 200);
             }
         }
         
-        // Toggle function
         function toggleSupervisorMenu(event) {
             if (event) {
                 event.preventDefault();
@@ -250,14 +260,11 @@
             setMenuState(!isMenuOpen);
         }
         
-        // Initialize when DOM is loaded
         document.addEventListener('DOMContentLoaded', function() {
-            // Style initialization
             const menu = document.getElementById('supervisorMenu');
             const icon = document.getElementById('dropdownIcon');
             
             if (menu) {
-                // Set initial state based on localStorage
                 if (isMenuOpen) {
                     menu.classList.remove('hidden');
                     menu.classList.add('opacity-100', 'max-h-96');
@@ -273,38 +280,23 @@
                 `;
             }
 
-            // Add click event listeners to all menu items
+            // Click event listeners for menu items to keep menu open
             const menuItems = document.querySelectorAll('#supervisorMenu a');
             menuItems.forEach(item => {
-                item.addEventListener('click', (e) => {
-                    // Keep menu open when navigating
+                item.addEventListener('click', () => {
                     localStorage.setItem('supervisorMenuOpen', 'true');
-                    // Don't prevent default - let the navigation happen
                 });
-            });
-
-            // Close menu when clicking outside
-            document.addEventListener('click', (e) => {
-                const menu = document.getElementById('supervisorMenu');
-                const button = document.getElementById('supervisorDropdown');
-                
-                if (isMenuOpen && menu && button && 
-                    !menu.contains(e.target) && 
-                    !button.contains(e.target)) {
-                    setMenuState(false);
-                }
             });
         });
         
-        // Optional: Close menu when pressing Escape key
+        // Only close menu when pressing Escape key
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape' && isMenuOpen) {
                 setMenuState(false);
             }
         });
         
-        // Optional: Clear menu state when logging out
-        // Add this if you have a logout button
+        // Clear menu state when logging out
         document.querySelector('a[href*="logout"]')?.addEventListener('click', () => {
             localStorage.removeItem('supervisorMenuOpen');
         });

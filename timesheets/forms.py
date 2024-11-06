@@ -250,28 +250,40 @@ class TimeEntryApprovalForm(forms.ModelForm):
 
 class TimeEntryReviewForm(forms.ModelForm):
     """Form for reviewing a submitted time entry"""
+    
+    REVIEW_CHOICES = [
+        ('approve', 'Approve'),
+        ('reject', 'Reject')
+    ]
+    
+    review_action = forms.ChoiceField(
+        choices=REVIEW_CHOICES,
+        widget=forms.RadioSelect,
+        required=True,
+        label='Review Action'
+    )
+    
+    comments = forms.CharField(
+        widget=forms.Textarea(attrs={
+            'rows': 3,
+            'class': 'form-control',
+            'placeholder': 'Add review comments...'
+        }),
+        required=False
+    )
+
     class Meta:
         model = TimeEntryApproval
-        fields = ['status', 'reviewer_comments']
-        widgets = {
-            'status': forms.Select(attrs={
-                'class': 'form-control'
-            }),
-            'reviewer_comments': forms.Textarea(attrs={
-                'rows': 3,
-                'class': 'form-control',
-                'placeholder': 'Add review comments...'
-            })
-        }
+        fields = ['comments']
 
     def clean(self):
         cleaned_data = super().clean()
-        status = cleaned_data.get('status')
-        reviewer_comments = cleaned_data.get('reviewer_comments')
+        review_action = cleaned_data.get('review_action')
+        comments = cleaned_data.get('comments')
 
-        if status == 'rejected' and not reviewer_comments:
+        if review_action == 'reject' and not comments:
             raise forms.ValidationError({
-                'reviewer_comments': 'Comments are required when rejecting a time entry.'
+                'comments': 'Comments are required when rejecting a time entry.'
             })
         
         return cleaned_data

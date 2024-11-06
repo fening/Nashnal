@@ -1,20 +1,60 @@
 {% extends 'timesheets/base.html' %}
 {% load custom_filters %}
 
-{% block title %}
-<h1 class="text-xl font-semibold">{{ action }} Employee</h1>
-{% endblock %}
-
 {% block content %}
 <div class="max-w-3xl mx-auto p-6">
+    {% if messages %}
+    <div class="mb-6">
+        {% for message in messages %}
+        <div class="p-4 mb-4 rounded-md {% if message.tags == 'success' %}bg-green-50 text-green-800{% elif message.tags == 'error' %}bg-red-50 text-red-800{% else %}bg-yellow-50 text-yellow-800{% endif %}">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if existing_invitation %}
+    <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6">
+        <div class="flex">
+            <div class="flex-shrink-0">
+                <!-- Warning icon -->
+                <svg class="h-5 w-5 text-yellow-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                </svg>
+            </div>
+            <div class="ml-3">
+                <h3 class="text-sm font-medium text-yellow-800">Existing Invitation Found</h3>
+                <div class="mt-2 text-sm text-yellow-700">
+                    <p>An active invitation for {{ existing_invitation.email }} already exists.</p>
+                    <p class="mt-1">Invited on: {{ existing_invitation.created_at|date:"M d, Y H:i" }}</p>
+                    <p>Expires on: {{ existing_invitation.expires_at|date:"M d, Y H:i" }}</p>
+                </div>
+                <div class="mt-4">
+                    <button type="button" 
+                            onclick="resendInvitation('{{ existing_invitation.id }}')"
+                            class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-yellow-700 bg-yellow-100 hover:bg-yellow-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500">
+                        Resend Invitation
+                    </button>
+                    <button type="button"
+                            onclick="createNewInvitation()"
+                            class="ml-3 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-blue-700 bg-blue-100 hover:bg-blue-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                        Create New Invitation
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
     <div class="bg-white shadow-md rounded-lg overflow-hidden">
         <div class="p-6">
+            <h2 class="text-xl font-semibold text-gray-900 mb-6">{{ action }} Employee</h2>
+            
             <form method="post" id="employeeForm">
                 {% csrf_token %}
-                
                 {% for field in form %}
                 <div class="mb-4 {% if field.name == 'supervisor' %}supervisor-field{% endif %}" 
-                     {% if field.name == 'supervisor' %}style="display: none;"{% endif %}>
+                     {% if field.name == 'supervisor' and form.instance.role == 'Supervisor' %}style="display: none;"{% endif %}>
                     <label for="{{ field.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
                         {{ field.label }}
                         {% if field.name == 'role' %}
@@ -24,7 +64,7 @@
                         {% endif %}
                     </label>
                     <div class="mt-1">
-                        {{ field|add_class:"w-full p-3 px-4 border border-gray-300 rounded-full text-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition duration-150 ease-in-out" }}
+                        {{ field|add_class:"w-full p-3 px-4 border border-gray-300 rounded-lg text-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition duration-150 ease-in-out" }}
                         {% if field.help_text %}
                         <p class="mt-2 text-sm text-gray-500">{{ field.help_text }}</p>
                         {% endif %}
@@ -35,33 +75,13 @@
                 </div>
                 {% endfor %}
                 
-                {% if action == 'Update' and employee %}
-                    <div class="mb-6 p-4 bg-gray-50 rounded-lg">
-                        <h3 class="text-sm font-medium text-gray-700 mb-2">Group Memberships</h3>
-                        <div class="space-y-2">
-                            {% for group in employee.groups.all %}
-                                <div class="inline-flex items-center px-3 py-1 rounded-full text-sm 
-                                            {% if group.name == 'Supervisor' %}
-                                                bg-blue-100 text-blue-800
-                                            {% else %}
-                                                bg-gray-100 text-gray-800
-                                            {% endif %}">
-                                    {{ group.name }}
-                                </div>
-                            {% empty %}
-                                <p class="text-sm text-gray-500">No group memberships</p>
-                            {% endfor %}
-                        </div>
-                    </div>
-                {% endif %}
-                
                 <div class="mt-8 flex items-center justify-end space-x-4">
                     <a href="{% url 'employee_list' %}" 
-                       class="bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold py-3 px-6 rounded-full transition duration-150 ease-in-out">
+                       class="bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold py-3 px-6 rounded-full transition duration-150 ease-in-out">
                         Cancel
                     </a>
                     <button type="submit" 
-                            class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-full transition duration-150 ease-in-out">
+                            class="bg-orange-500 text-gray-800 hover:bg-gray-900 hover:text-white hover:border-gray-700 font-semibold py-3 px-6 rounded-full transition duration-150 ease-in-out">
                         {{ action }} Employee
                     </button>
                 </div>
@@ -71,53 +91,64 @@
 </div>
 
 <script>
+function resendInvitation(invitationId) {
+    if (!confirm('Are you sure you want to resend this invitation?')) {
+        return;
+    }
+
+    fetch(`/accounts/resend-invitation/${invitationId}/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+        },
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            window.location.href = "{% url 'employee_list' %}";
+        } else {
+            alert('Error resending invitation: ' + (data.error || 'Unknown error'));
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error resending invitation');
+    });
+}
+
+function createNewInvitation() {
+    if (!confirm('Are you sure you want to create a new invitation? The existing one will be cancelled.')) {
+        return;
+    }
+    
+    // Add a hidden field to indicate we want to force create a new invitation
+    const form = document.getElementById('employeeForm');
+    const forceCreate = document.createElement('input');
+    forceCreate.type = 'hidden';
+    forceCreate.name = 'force_create';
+    forceCreate.value = 'true';
+    form.appendChild(forceCreate);
+    
+    // Submit the form
+    form.submit();
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     const roleField = document.querySelector('select[name="role"]');
     const supervisorField = document.querySelector('.supervisor-field');
-    const form = document.getElementById('employeeForm');
 
     function toggleSupervisorField() {
-        if (roleField.value.toLowerCase() === 'supervisor') {
+        if (roleField.value === 'Supervisor') {
             supervisorField.style.display = 'none';
         } else {
             supervisorField.style.display = 'block';
         }
     }
 
-    // Run on page load
-    toggleSupervisorField();
-
-    // Run when role selection changes
-    roleField.addEventListener('change', function(e) {
-        toggleSupervisorField();
-        
-        // Show confirmation if changing from Supervisor to another role
-        if (e.target.getAttribute('data-original-value') === 'Supervisor' && 
-            e.target.value !== 'Supervisor') {
-            if (!confirm('Changing role from Supervisor will remove this user from the supervisor group. Continue?')) {
-                e.target.value = 'Supervisor';
-                toggleSupervisorField();
-            }
-        }
-    });
-
-    // Store original role value
     if (roleField) {
-        roleField.setAttribute('data-original-value', roleField.value);
+        toggleSupervisorField();
+        roleField.addEventListener('change', toggleSupervisorField);
     }
-
-    // Form submission handler
-    form.addEventListener('submit', function(e) {
-        if (roleField.value === 'Supervisor') {
-            const message = '{{ action }}' === 'Create' 
-                ? 'This user will be added to the supervisor group. Continue?' 
-                : 'This will add the user to the supervisor group. Continue?';
-            
-            if (!confirm(message)) {
-                e.preventDefault();
-            }
-        }
-    });
 });
 </script>
 {% endblock %}

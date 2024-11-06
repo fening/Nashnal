@@ -1,6 +1,7 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm, PasswordChangeForm
 from django.contrib.auth.models import User 
+from .models import RegistrationInvitation
 
 from django.contrib.auth import get_user_model
 
@@ -10,18 +11,16 @@ class CustomUserCreationForm(UserCreationForm):
     first_name = forms.CharField(max_length=30, required=True, help_text='First name')
     last_name = forms.CharField(max_length=30, required=True, help_text='Last name')
 
-    # Add role field for the user to select if they are a technician or supervisor
     role = forms.ChoiceField(
-        choices=[('Technician', 'Technician'), ('Supervisor', 'Supervisor')],
+        choices=CustomUser.ROLE_CHOICES,
         required=True,
         help_text="Select your role"
     )
 
-    # Add supervisor field for technician to select their supervisor
     supervisor = forms.ModelChoiceField(
         queryset=CustomUser.objects.filter(role='Supervisor'), 
         required=False,
-        help_text='Select your supervisor (only required for technicians)'
+        help_text='Select your supervisor (required for non-supervisor roles)'
     )
 
     distance_office = forms.DecimalField(max_digits=8, decimal_places=2, required=False, help_text="Distance in miles")
@@ -41,9 +40,9 @@ class CustomUserCreationForm(UserCreationForm):
         role = cleaned_data.get('role')
         supervisor = cleaned_data.get('supervisor')
 
-        # If the user selects Technician role, make sure they select a supervisor
-        if role == 'Technician' and not supervisor:
-            self.add_error('supervisor', 'Technicians must select a supervisor.')
+        # If the user selects any role other than Supervisor, make sure they select a supervisor
+        if role != 'Supervisor' and not supervisor:
+            self.add_error('supervisor', 'A supervisor must be selected for non-supervisor roles.')
 
         return cleaned_data
 
@@ -70,13 +69,63 @@ class CustomPasswordChangeForm(PasswordChangeForm):
         self.fields['new_password1'].widget.attrs.update({'class': 'form-control'})
         self.fields['new_password2'].widget.attrs.update({'class': 'form-control'})
         
+from django import forms
+from django.contrib.auth import get_user_model
+from .models import RegistrationInvitation
+
+CustomUser = get_user_model()
+
 class EmployeeForm(forms.ModelForm):
+    email = forms.EmailField(required=True)
+    send_invitation = forms.BooleanField(
+        initial=True,
+        required=False,
+        help_text="Send registration invitation email to the employee"
+    )
+
     class Meta:
         model = CustomUser
-        fields = ['username', 'email', 'first_name', 'last_name', 'role', 
-                 'supervisor', 'distance_office', 'time_office', 'is_active']
-        
+        fields = [
+            'email', 'first_name', 'last_name', 'role',
+            'supervisor', 'distance_office', 'time_office'
+        ]
+        widgets = {
+            'role': forms.Select(attrs={'class': 'form-control'}),
+            'supervisor': forms.Select(attrs={'class': 'form-control'}),
+            'distance_office': forms.NumberInput(attrs={'class': 'form-control'}),
+            'time_office': forms.NumberInput(attrs={'class': 'form-control'}),
+        }
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        # Filter supervisors for the supervisor field
         self.fields['supervisor'].queryset = CustomUser.objects.filter(role='Supervisor')
-        self.fields['is_active'].help_text = "Uncheck this to deactivate the employee's account"
+        
+        # Make some fields required
+        self.fields['first_name'].required = True
+        self.fields['last_name'].required = True
+        self.fields['role'].required = True
+        
+        # Add help text
+        self.fields['distance_office'].help_text = "Distance in miles"
+        self.fields['time_office'].help_text = "Travel time to office in minutes"
+
+    def clean_email(self):
+        email = self.cleaned_data.get('email')
+        # Check if email already exists
+        if CustomUser.objects.filter(email=email).exists():
+            raise forms.ValidationError("An employee with this email already exists.")
+        # Check if there's a pending invitation
+        if RegistrationInvitation.objects.filter(email=email, used=False).exists():
+            raise forms.ValidationError("A pending invitation already exists for this email.")
+        return email
+
+    def clean(self):
+        cleaned_data = super().clean()
+        role = cleaned_data.get('role')
+        supervisor = cleaned_data.get('supervisor')
+
+        # Require supervisor for non-supervisor roles
+        if role and role != 'Supervisor' and not supervisor:
+            self.add_error('supervisor', 'A supervisor must be selected for non-supervisor roles.')
+            

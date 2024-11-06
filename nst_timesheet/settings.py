@@ -86,14 +86,12 @@ CACHES = {
     }
 }
 
-
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.TokenAuthentication',
         'rest_framework.authentication.SessionAuthentication',
     ],
 }
-
 
 ROOT_URLCONF = 'nst_timesheet.urls'
 
@@ -109,7 +107,6 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'timesheets.context_processors.notification_context',
-                'timesheets.context_processors.page_title',
             ],
             'loaders': [
                 ('django.template.loaders.cached.Loader', [
@@ -174,7 +171,50 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+# Email Configuration
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587  # Common port for TLS
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'feningokai@gmail.com'
+EMAIL_HOST_PASSWORD = 'dkbw kazw xbsz bzrf'  # Use environment variable in production!
+DEFAULT_FROM_EMAIL = 'TimeSheet App <noreply@nstengr.com>'
 
+# For development/testing, you can use Django's console email backend
+# EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
+# Logging configuration for email-related logging
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '{levelname} {asctime} {module} {message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'file': {
+            'level': 'INFO',
+            'class': 'logging.FileHandler',
+            'filename': 'debug.log',
+            'formatter': 'verbose',
+        },
+        'console': {
+            'level': 'INFO',
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose',
+        },
+    },
+    'loggers': {
+        'accounts.utils': {  # Logger for our email utilities
+            'handlers': ['file', 'console'],
+            'level': 'INFO',
+            'propagate': True,
+        },
+    },
+}
+    
 # Internationalization
 # https://docs.djangoproject.com/en/5.1/topics/i18n/
 
