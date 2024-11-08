@@ -104,21 +104,45 @@
                         <span class="text-xs text-gray-500">(visible to first approver and employee)</span>
                     {% endif %}
                 </label>
-                {{ form.comments }}
+                <textarea name="comments" rows="4" class="mt-1 block w-full text-base rounded-md border border-gray-500 shadow-sm focus:outline-none px-3 py-2 bg-white">{{ form.comments.value|default:'' }}</textarea>
                 {% if form.comments.errors %}
                     <p class="mt-2 text-sm text-red-600">{{ form.comments.errors.0 }}</p>
                 {% endif %}
             </div>
 
             <div class="flex justify-end space-x-4">
-                <a href="{% url 'pending_approvals' %}"
-                   class="px-4 py-2 rounded-full bg-gray-200 text-gray-700 hover:bg-gray-300 transition duration-200">
-                    Cancel
-                </a>
-                <button type="submit"
-                        class="px-4 py-2 rounded-full bg-orange-500 text-gray-800 hover:bg-gray-900 hover:text-white hover:border-gray-700 transition duration-200">
-                    Submit Review
-                </button>
+<!-- Reusable Classes Defined in styles.css -->
+<a href="{% url 'pending_approvals' %}"
+class="inline-flex items-center px-6 py-2.5 border border-gray-200 rounded-xl
+                    text-gray-600 bg-white
+                    hover:bg-gray-50
+                    focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2
+                    transform transition-all duration-200
+                    hover:scale-[1.02] active:scale-95">
+                 <!-- X Icon for Cancel -->
+                 <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                           d="M6 18L18 6M6 6l12 12"/>
+                 </svg>
+    Cancel
+</a>
+
+<button type="submit" 
+class="inline-flex items-center px-6 py-2.5 bg-gradient-to-r from-gray-800 to-gray-900 
+text-white rounded-xl font-medium
+border border-transparent
+hover:from-gray-700 hover:to-gray-800
+focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2
+transform transition-all duration-200
+hover:scale-[1.02] active:scale-95">
+    <!-- Plus Icon for Submit -->
+    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+              d="M12 4v16m8-8H4"/>
+    </svg>
+    Submit Review
+</button>
+
             </div>
         </form>
     </div>

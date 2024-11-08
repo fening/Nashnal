@@ -9,23 +9,24 @@
 <div class="max-w-7xl mx-auto p-6">
     <!-- Stats Section -->
     <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-        <div class="bg-white rounded-lg shadow-sm p-4">
-            <div class="text-sm text-gray-500">Team Members</div>
-            <div class="text-2xl font-bold text-gray-800">{{ stats.total_members }}</div>
+        <div class="bg-white rounded-lg shadow-md p-6">
+          <div class="text-sm text-gray-500">Team Members</div>
+          <div class="text-3xl font-bold text-gray-800" id="total-members">{{ stats.total_members }}</div>
         </div>
-        <div class="bg-white rounded-lg shadow-sm p-4">
-            <div class="text-sm text-gray-500">Total Entries</div>
-            <div class="text-2xl font-bold text-blue-600">{{ stats.total_entries }}</div>
+        <div class="bg-white rounded-lg shadow-md p-6">
+          <div class="text-sm text-gray-500">Total Entries</div>
+          <div class="text-3xl font-bold text-gray-800" id="total-entries">{{ stats.total_entries }}</div>
         </div>
-        <div class="bg-white rounded-lg shadow-sm p-4">
-            <div class="text-sm text-gray-500">Total Hours</div>
-            <div class="text-2xl font-bold text-green-600">{{ stats.total_hours|floatformat:2 }}</div>
+        <div class="bg-white rounded-lg shadow-md p-6">
+          <div class="text-sm text-gray-500">Total Hours</div>
+          <div class="text-3xl font-bold text-gray-800" id="total-hours">{{ stats.total_hours|floatformat:2 }}</div>
         </div>
-        <div class="bg-white rounded-lg shadow-sm p-4">
-            <div class="text-sm text-gray-500">Pending Approvals</div>
-            <div class="text-2xl font-bold text-yellow-600">{{ stats.pending_approvals }}</div>
+        <div class="bg-white rounded-lg shadow-md p-6">
+          <div class="text-sm text-gray-500">Pending Approvals</div>
+          <div class="text-3xl font-bold text-gray-800" id="pending-approvals">{{ stats.pending_approvals }}</div>
         </div>
-    </div>
+      </div>
+    
 
     <!-- Filters -->
     <div class="bg-white shadow-md rounded-lg mb-6">
@@ -34,17 +35,17 @@
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Start Date</label>
                     <input type="date" name="start_date" value="{{ start_date|date:'Y-m-d' }}"
-                           class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                           class="block w-full rounded-md border-gray-300 shadow-sm focus:border-gray-500 focus:ring-gray-500">
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">End Date</label>
                     <input type="date" name="end_date" value="{{ end_date|date:'Y-m-d' }}"
-                           class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                           class="block w-full rounded-md border-gray-300 shadow-sm focus:border-gray-500 focus:ring-gray-500">
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Team Member</label>
                     <select name="member" 
-                            class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                            class="block w-full rounded-md border-gray-300 shadow-sm focus:border-gray-500 focus:ring-gray-500">
                         <option value="">All Members</option>
                         {% for member in team_members %}
                             <option value="{{ member.id }}" 
@@ -55,10 +56,12 @@
                     </select>
                 </div>
                 <div>
-                    <button type="submit" 
-                            class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                    <button type="submit" class="inline-flex items-center px-4 py-2 bg-gray-800 hover:bg-gray-700 text-white rounded-md font-medium text-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-colors duration-300">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path>
+                        </svg>
                         Filter
-                    </button>
+                      </button>
                 </div>
             </form>
         </div>
@@ -67,84 +70,89 @@
     <!-- Timesheets Table -->
     <div class="bg-white shadow-md rounded-lg overflow-hidden">
         <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-gray-200">
-                <thead class="bg-gray-50">
+                <table class="min-w-full divide-y divide-gray-200">
+                  <thead class="bg-gray-50">
                     <tr>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Employee
-                        </th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Date
-                        </th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Hours
-                        </th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Status
-                        </th>
-                        <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Actions
-                        </th>
+                      <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Employee
+                      </th>
+                      <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Date
+                      </th>
+                      <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Hours
+                      </th>
+                      <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Status
+                      </th>
+                      <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Actions
+                      </th>
                     </tr>
-                </thead>
-                <tbody class="bg-white divide-y divide-gray-200">
+                  </thead>
+                  <tbody class="bg-white divide-y divide-gray-200">
                     {% for timesheet in timesheets %}
-                        <tr class="hover:bg-gray-50">
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm font-medium text-gray-900">
-                                    {{ timesheet.user.get_full_name }}
-                                </div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm text-gray-900">
-                                    {{ timesheet.date }}
-                                </div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm text-gray-900">
-                                    {{ timesheet.hours_to_be_paid|floatformat:2 }}
-                                </div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                {% if timesheet.approval %}
-                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full
-                                        {% if timesheet.approval.status == 'approved' %}
-                                            bg-green-100 text-green-800
-                                        {% elif timesheet.approval.status == 'rejected' %}
-                                            bg-red-100 text-red-800
-                                        {% else %}
-                                            bg-yellow-100 text-yellow-800
-                                        {% endif %}">
-                                        {{ timesheet.approval.status|title }}
-                                    </span>
-                                {% else %}
-                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">
-                                        Not Submitted
-                                    </span>
-                                {% endif %}
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                <a href="{% url 'time_entry_detail' timesheet.pk %}" 
-                                   class="text-blue-600 hover:text-blue-900 mr-3">
-                                    View
-                                </a>
-                                {% if timesheet.approval and timesheet.approval.status == 'pending' %}
-                                    <a href="{% url 'review_time_entry' timesheet.pk %}" 
-                                       class="text-green-600 hover:text-green-900">
-                                        Review
-                                    </a>
-                                {% endif %}
-                            </td>
-                        </tr>
+                      <tr class="hover:bg-gray-100">
+                        <td class="px-6 py-4 whitespace-nowrap">
+                          <div class="text-sm font-medium text-gray-900">
+                            {{ timesheet.user.get_full_name }}
+                          </div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                          <div class="text-sm text-gray-900">
+                            {{ timesheet.date }}
+                          </div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                          <div class="text-sm text-gray-900">
+                            {{ timesheet.hours_to_be_paid|floatformat:2 }}
+                          </div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                          {% if timesheet.approval %}
+                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full
+                              {% if timesheet.approval.status == 'approved' %}
+                                bg-green-100 text-green-800
+                              {% elif timesheet.approval.status == 'rejected' %}
+                                bg-red-100 text-red-800
+                              {% else %}
+                                bg-yellow-100 text-yellow-800
+                              {% endif %}">
+                              {{ timesheet.approval.status|title }}
+                            </span>
+                          {% else %}
+                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">
+                              Not Submitted
+                            </span>
+                          {% endif %}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                          <a href="{% url 'time_entry_detail' timesheet.pk %}" class="inline-flex items-center text-gray-600 hover:text-gray-900 mr-3">
+                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                            </svg>
+                            View
+                          </a>
+                          {% if timesheet.approval and timesheet.approval.status == 'pending' %}
+                            <a href="{% url 'review_time_entry' timesheet.pk %}" class="inline-flex items-center text-green-600 hover:text-green-900">
+                              <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                              </svg>
+                              Review
+                            </a>
+                          {% endif %}
+                        </td>
+                      </tr>
                     {% empty %}
-                        <tr>
-                            <td colspan="5" class="px-6 py-4 text-center text-gray-500">
-                                No timesheets found for the selected criteria
-                            </td>
-                        </tr>
+                      <tr>
+                        <td colspan="5" class="px-6 py-4 text-center text-gray-500">
+                          No timesheets found for the selected criteria
+                        </td>
+                      </tr>
                     {% endfor %}
-                </tbody>
-            </table>
+                  </tbody>
+                </table>
         </div>
     </div>
 </div>

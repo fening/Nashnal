@@ -21,202 +21,312 @@
 
 <div class="max-w-7xl mx-auto p-5">
     <!-- Date Range Selector -->
-    <div class="p-5">
-        <form method="get" class="flex flex-wrap gap-4 justify-center items-center bg-white p-4 rounded-xl shadow-lg">
-            <div class="flex gap-4">
-                <input type="date" name="start_date" value="{{ start_date|date:'Y-m-d' }}"
-                       class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500">
-                <input type="date" name="end_date" value="{{ end_date|date:'Y-m-d' }}"
-                       class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500">
+    <div class="p-6">
+        <form method="get" class="flex flex-wrap gap-6 justify-center items-center bg-white p-6 rounded-2xl shadow-xl">
+            <!-- Date Range Group -->
+            <div class="flex flex-wrap items-center gap-4">
+                <div class="flex flex-col gap-1.5">
+                    <label for="start_date" class="text-sm font-medium text-gray-600">Start Date</label>
+                    <input type="date" 
+                           id="start_date"
+                           name="start_date" 
+                           value="{{ start_date|date:'Y-m-d' }}"
+                           class="px-4 py-2.5 border border-gray-200 rounded-xl
+                                  text-gray-700 bg-gray-50/50
+                                  placeholder-gray-400
+                                  focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
+                                  focus:bg-white
+                                  transition-all duration-200">
+                </div>
+                <div class="flex flex-col gap-1.5">
+                    <label for="end_date" class="text-sm font-medium text-gray-600">End Date</label>
+                    <input type="date" 
+                           id="end_date"
+                           name="end_date" 
+                           value="{{ end_date|date:'Y-m-d' }}"
+                           class="px-4 py-2.5 border border-gray-200 rounded-xl
+                                  text-gray-700 bg-gray-50/50
+                                  placeholder-gray-400
+                                  focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
+                                  focus:bg-white
+                                  transition-all duration-200">
+                </div>
             </div>
+    
+            <!-- User Select (Conditional) -->
             {% if is_admin or is_supervisor %}
-                <select name="user_id" 
-                        class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500">
-                        <option value="">--Select User--</option>
+                <div class="flex flex-col gap-1.5">
+                    <label for="user_select" class="text-sm font-medium text-gray-600">Select User</label>
+                    <select id="user_select"
+                            name="user_id" 
+                            class="px-4 py-2.5 pr-10 border border-gray-200 rounded-xl
+                                   text-gray-700 bg-gray-50/50
+                                   focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
+                                   focus:bg-white
+                                   transition-all duration-200">
+                        <option value="">All Users</option>
                         {% for user in all_users %}
-                            <option value="{{ user.id }}" {% if selected_user and user.id == selected_user.id %}selected{% endif %}>
+                            <option value="{{ user.id }}" 
+                                    {% if selected_user and user.id == selected_user.id %}selected{% endif %}>
                                 {{ user.first_name }} {{ user.last_name }}
                             </option>
                         {% endfor %}
-                </select>
+                    </select>
+                </div>
             {% endif %}
-            <button type="submit" 
-            class="px-6 py-2 bg-orange-500 text-gray-800 rounded-full font-semibold 
-                   border border-transparent shadow-md
-                   hover:bg-gray-900 hover:text-white hover:border-gray-700
-                   active:scale-95
-                   transition-all duration-300 ease-in-out">
-        Update
-    </button>
+    
+            <!-- Submit Button -->
+            <div class="flex flex-col gap-1.5">
+                <label class="text-sm font-medium text-transparent">Action</label>
+                <button type="submit" 
+                class="inline-flex items-center px-6 py-2.5 bg-gradient-to-r from-gray-800 to-gray-900 
+                       text-white rounded-xl font-medium text-sm
+                       shadow-lg shadow-gray-200/50
+                       hover:from-gray-700 hover:to-gray-800 
+                       transform transition-all duration-300 ease-out
+                       hover:scale-105 active:scale-95">
+            Apply Filters
+        </button>
+            </div>
         </form>
     </div>
 
     <!-- Supervisor/Admin Dashboard -->
     {% if is_admin or is_supervisor %}
         <div class="p-2 bg-white rounded-xl  mb-8">
-            <h2 class= " p-2 text-lg font-semibold text-gray-800">Supervisors Dashboard</h2>
+            <h2 class= " p-2 text-lg font-semibold text-gray-800">
+                {% if is_admin %}
+                    Administrator Dashboard
+                {% else %}
+                    Supervisor Dashboard
+                {% endif %}
+            </h2>
             <!-- Stats Section -->
             <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
                 <!-- Team Members Card -->
                 <div class="bg-white rounded-xl shadow-lg p-4 transform transition-transform hover:-translate-y-1">
                     <div class="text-sm text-gray-500">Team Members</div>
-                    <div class="text-2xl font-bold text-orange-500">{{ team_stats.total_members }}</div>
-                    <div class="text-xs text-gray-400">{{ team_stats.active_members }} active</div>
+                    <div class="text-2xl font-bold text-gray-800">
+                        {{ team_stats.total_members|default:"0" }}
+                    </div>
+                    <div class="text-xs text-gray-400">
+                        {{ team_stats.active_members|default:"0" }} active
+                    </div>
                 </div>
+                
                 <!-- Pending Approvals Card -->
                 <div class="bg-white rounded-xl shadow-lg p-4 transform transition-transform hover:-translate-y-1">
                     <div class="text-sm text-gray-500">Pending Approvals</div>
-                    <div class="text-2xl font-bold text-orange-500">{{ team_stats.pending_approvals }}</div>
+                    <div class="text-2xl font-bold text-gray-800">
+                        {{ team_stats.pending_approvals|default:"0" }}
+                    </div>
                 </div>
+                
                 <!-- Total Approved Card -->
                 <div class="bg-white rounded-xl shadow-lg p-4 transform transition-transform hover:-translate-y-1">
                     <div class="text-sm text-gray-500">Total Approved</div>
-                    <div class="text-2xl font-bold text-orange-500">{{ team_stats.total_approved }}</div>
+                    <div class="text-2xl font-bold text-gray-800">
+                        {{ team_stats.total_approved|default:"0" }}
+                    </div>
                 </div>
-                <!-- Notifications Card -->
+                
+                <!-- Total Hours Card -->
                 <div class="bg-white rounded-xl shadow-lg p-4 transform transition-transform hover:-translate-y-1">
-                    <div class="text-sm text-gray-500">Unread Notifications</div>
-                    <div class="text-2xl font-bold text-orange-500">{{ unread_notifications_count }}</div>
+                    <div class="text-sm text-gray-500">Total Hours</div>
+                    <div class="text-2xl font-bold text-gray-800">
+                        {{ team_stats.total_hours|floatformat:2|default:"0" }}
+                    </div>
                 </div>
             </div>
 
-            <!-- Pending Approvals Section -->
-            <div class="mb-6">
-                <details class="bg-white shadow-lg rounded-xl overflow-hidden">
-                    <summary class="px-6 py-4 border-b border-gray-200 cursor-pointer hover:bg-gray-50 transition-colors duration-150">
-                        <div class="flex items-center justify-between">
-                            <h2 class="text-lg font-semibold text-gray-800">Pending Approvals</h2>
-                            <svg class="w-5 h-5 text-gray-500 transform transition-transform duration-200 rotate-180" 
-                                 fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
-                            </svg>
-                        </div>
-                    </summary>
-                    <div class="overflow-x-auto">
-                        <table class="min-w-full divide-y divide-gray-200">
-                            <thead class="bg-gray-50">
-                                <tr>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Employee</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Hours</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody class="bg-white divide-y divide-gray-200">
-                                {% for approval in pending_approvals %}
-                                    <tr class="hover:bg-gray-50">
-                                        <td class="px-6 py-4 whitespace-nowrap">
-                                            <div class="text-sm font-medium text-gray-900">
-                                                {{ approval.time_entry.user.get_full_name }}
-                                            </div>
-                                        </td>
-                                        <td class="px-6 py-4 whitespace-nowrap">
-                                            <div class="text-sm text-gray-900">
-                                                {{ approval.time_entry.date|date:"M d, Y" }}
-                                            </div>
-                                        </td>
-                                        <td class="px-6 py-4 whitespace-nowrap">
-                                            <div class="text-sm text-gray-900">
-                                                {{ approval.time_entry.hours_to_be_paid }}
-                                            </div>
-                                        </td>
-                                        <td class="px-6 py-4 whitespace-nowrap">
-                                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
-                                                Pending
-                                            </span>
-                                        </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                            <a href="{% url 'review_time_entry' approval.time_entry.pk %}" 
-                                               class="px-4 py-2 bg-orange-500 text-gray-800 rounded-full font-semibold 
-                                                      border border-gray-300 shadow-lg
-                                                      hover:bg-gray-900 hover:text-white hover:border-gray-700 
-                                                      transition-all duration-300 ease-in-out">
-                                                Review
-                                            </a>
-                                        </td>
-                                    </tr>
-                                {% empty %}
-                                    <tr>
-                                        <td colspan="5" class="px-6 py-4 text-center text-gray-500">
-                                            No pending approvals
-                                        </td>
-                                    </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                </details>
+<!-- Pending Approvals Section -->
+<div class="mb-8">
+    <details class="group bg-white shadow-xl rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-2xl">
+        <summary class="px-8 py-6 border-b border-gray-100 cursor-pointer hover:bg-gray-50/50 transition-all">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <h2 class="text-xl font-bold text-gray-800">
+                        Pending Approvals
+                    </h2>
+                    {% if pending_approvals %}
+                        <span class="px-3 py-1.5 text-sm font-medium bg-gradient-to-r from-blue-50 to-blue-100 text-blue-700 rounded-full shadow-sm">
+                            {{ pending_approvals.count }}
+                        </span>
+                    {% endif %}
+                </div>
+                <svg class="w-6 h-6 text-gray-400 transform transition-transform duration-300 group-open:-rotate-180" 
+                     fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                </svg>
             </div>
-
-            <!-- Team Members Section -->
-            <div class="mb-6">
-                <details class="bg-white shadow-lg rounded-xl overflow-hidden">
-                    <summary class="px-6 py-4 border-b border-gray-200 cursor-pointer hover:bg-gray-50 transition-colors duration-150">
-                        <div class="flex items-center justify-between">
-                            <h2 class="text-lg font-semibold text-gray-800">Team Members</h2>
-                            <svg class="w-5 h-5 text-gray-500 transform transition-transform duration-200 rotate-180" 
-                                 fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
-                            </svg>
-                        </div>
-                    </summary>
-                    <div class="overflow-x-auto">
-                        <table class="min-w-full divide-y divide-gray-200">
-                            <thead class="bg-gray-50">
-                                <tr>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody class="bg-white divide-y divide-gray-200">
-                                {% for member in team_members %}
-                                    <tr class="hover:bg-gray-50">
-                                        <td class="px-6 py-4 whitespace-nowrap">
-                                            <div class="text-sm font-medium text-gray-900">
-                                                {{ member.get_full_name }}
-                                            </div>
-                                        </td>
-                                        <td class="px-6 py-4 whitespace-nowrap">
-                                            <div class="text-sm text-gray-900">
-                                                {{ member.email }}
-                                            </div>
-                                        </td>
-                                        <td class="px-6 py-4 whitespace-nowrap">
-                                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
-                                                {% if member.is_active %}
-                                                    bg-green-100 text-green-800
-                                                {% else %}
-                                                    bg-red-100 text-red-800
-                                                {% endif %}">
-                                                {{ member.is_active|yesno:"Active,Inactive" }}
-                                            </span>
-                                        </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                            <a href="{% url 'employee_update' member.pk %}" 
-                                               class="px-4 py-2 bg-orange-500 text-gray-800 rounded-full font-semibold 
-                                                      border border-gray-300 shadow-lg
-                                                      hover:bg-gray-900 hover:text-white hover:border-gray-700 
-                                                      transition-all duration-300 ease-in-out">
-                                                Edit
-                                            </a>
-                                        </td>
-                                    </tr>
-                                {% empty %}
-                                    <tr>
-                                        <td colspan="4" class="px-6 py-4 text-center text-gray-500">
-                                            No team members found
-                                        </td>
-                                    </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                </details>
-            </div>
+        </summary>
+        
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-100">
+                <thead class="bg-gray-50/75">
+                    <tr>
+                        <th class="px-8 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Employee</th>
+                        <th class="px-8 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Date</th>
+                        <th class="px-8 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Hours</th>
+                        <th class="px-8 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Status</th>
+                        <th class="px-8 py-4 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-50">
+                    {% for approval in pending_approvals %}
+                        <tr class="transition-colors hover:bg-blue-50/30">
+                            <td class="px-8 py-5 whitespace-nowrap">
+                                <div class="text-sm font-semibold text-gray-900">
+                                    {{ approval.time_entry.user.get_full_name }}
+                                </div>
+                            </td>
+                            <td class="px-8 py-5 whitespace-nowrap">
+                                <div class="text-sm text-gray-700">
+                                    {{ approval.time_entry.date|date:"M d, Y" }}
+                                </div>
+                            </td>
+                            <td class="px-8 py-5 whitespace-nowrap">
+                                <div class="text-sm text-gray-700">
+                                    {{ approval.time_entry.hours_to_be_paid }}
+                                </div>
+                            </td>
+                            <td class="px-8 py-5 whitespace-nowrap">
+                                <span class="px-3 py-1.5 inline-flex text-xs leading-5 font-semibold rounded-full bg-amber-100 text-amber-700 border border-amber-200/50">
+                                    Pending
+                                </span>
+                            </td>
+                            <td class="px-8 py-5 whitespace-nowrap text-right">
+                                <a href="{% url 'review_time_entry' approval.time_entry.pk %}" 
+                                   class="inline-flex items-center px-4 py-2 bg-gradient-to-r from-gray-800 to-gray-900 
+                                          text-white rounded-md font-medium text-sm
+                                          shadow-lg shadow-blue-100 
+                                          hover:from-gray-800 hover:to-gray-900
+                                          focus:ring-2 focus:ring-blue-500 focus:ring-offset-2
+                                          transform transition-all duration-300 ease-out
+                                          hover:scale-105 active:scale-95">
+                                    Review
+                                </a>
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="5" class="px-8 py-6 text-center">
+                                <div class="flex flex-col items-center justify-center text-gray-500">
+                                    <svg class="w-12 h-12 mb-3 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                                              d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
+                                    </svg>
+                                    <p class="text-sm font-medium">No pending approvals</p>
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
+    </details>
+</div>
+
+<!-- Team Members Section -->
+<div class="mb-8">
+    <details class="group bg-white shadow-xl rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-2xl">
+        <summary class="px-8 py-6 border-b border-gray-100 cursor-pointer hover:bg-gray-50/50 transition-all">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <h2 class="text-xl font-bold text-gray-800">Team Members</h2>
+                    <div class="h-1 w-1 rounded-full bg-gray-300"></div>
+                    <span class="text-sm text-gray-500 font-medium">Manage your team</span>
+                </div>
+                <svg class="w-6 h-6 text-gray-400 transform transition-transform duration-300 group-open:-rotate-180" 
+                     fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                </svg>
+            </div>
+        </summary>
+        
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-100">
+                <thead class="bg-gray-50/75">
+                    <tr>
+                        <th class="px-8 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Name</th>
+                        <th class="px-8 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Email</th>
+                        <th class="px-8 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Status</th>
+                        <th class="px-8 py-4 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-50">
+                    {% for member in team_members %}
+                        <tr class="transition-colors hover:bg-gray-50/50">
+                            <td class="px-8 py-5 whitespace-nowrap">
+                                <div class="flex items-center">
+                                    <div class="w-8 h-8 rounded-full bg-gray-100 text-gray-600 flex items-center justify-center font-medium text-sm mr-3">
+                                        {{ member.get_full_name|make_list|first|upper }}
+                                    </div>
+                                    <div class="text-sm font-semibold text-gray-900">
+                                        {{ member.get_full_name }}
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-8 py-5 whitespace-nowrap">
+                                <div class="text-sm text-gray-700">
+                                    {{ member.email }}
+                                </div>
+                            </td>
+                            <td class="px-8 py-5 whitespace-nowrap">
+                                <span class="px-3 py-1.5 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                    {% if member.is_active %}
+                                        bg-green-100 text-green-700 border border-green-200/50
+                                    {% else %}
+                                        bg-red-100 text-red-700 border border-red-200/50
+                                    {% endif %}">
+                                    {% if member.is_active %}
+                                        <svg class="w-4 h-4 mr-1.5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                                        </svg>
+                                    {% else %}
+                                        <svg class="w-4 h-4 mr-1.5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                        </svg>
+                                    {% endif %}
+                                    {{ member.is_active|yesno:"Active,Inactive" }}
+                                </span>
+                            </td>
+                            <td class="px-8 py-5 whitespace-nowrap text-right">
+                                <a href="{% url 'employee_update' member.pk %}" 
+                                   class="group inline-flex items-center px-4 py-2 bg-gradient-to-r from-gray-800 to-gray-900 
+                                          text-white rounded-xl font-medium text-sm
+                                          shadow-lg shadow-gray-200/50
+                                          hover:from-gray-700 hover:to-gray-800
+                                          focus:ring-2 focus:ring-gray-500 focus:ring-offset-2
+                                          transform transition-all duration-300 ease-out
+                                          hover:scale-[1.02] active:scale-95">
+                                    <svg class="w-4 h-4 mr-2 text-gray-100 transition-transform group-hover:-translate-y-px" 
+                                         fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                                              d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                                    </svg>
+                                    Edit
+                                </a>
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="4" class="px-8 py-6 text-center">
+                                <div class="flex flex-col items-center justify-center text-gray-500">
+                                    <svg class="w-12 h-12 mb-3 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                                              d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
+                                    </svg>
+                                    <p class="text-sm font-medium">No team members found</p>
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </details>
+</div>
     {% endif %}
 
     <!-- Regular User Dashboard -->
@@ -396,124 +506,151 @@
                 </div>
             </div>
 
-            <!-- Quick Actions Card -->
-            <div class="bg-white rounded-xl shadow-lg p-6 transform transition-transform hover:-translate-y-1">
-                <h3 class="text-xl font-semibold text-gray-800 mb-4">Quick Actions</h3>
-                <div class="flex flex-col gap-3">
-                    <!-- Quick Actions for Regular Users -->
-                    {% if not is_admin and not is_supervisor %}
-                        <a href="{% url 'time_entry_create' %}" 
-                           class="px-6 py-3 bg-orange-500 text-gray-800 rounded-full font-semibold text-center
-                                  border border-gray-300 shadow-lg
-                                  hover:bg-gray-900 hover:text-white hover:border-gray-700 
-                                  transition-all duration-300 ease-in-out">
-                            Create New Time Entry
-                        </a>
-                    {% endif %}
-
-                    <a href="{% url 'user_summary_report' %}" 
-                       class="px-6 py-3 bg-orange-500 text-gray-800 rounded-full font-semibold text-center
-                              border border-gray-300 shadow-lg
-                              hover:bg-gray-900 hover:text-white hover:border-gray-700 
-                              transition-all duration-300 ease-in-out">
-                        View Weekly Summary
-                    </a>
-                    <a href="{% url 'time_entry_list' %}" 
-                       class="px-6 py-3 bg-orange-500 text-gray-800 rounded-full font-semibold text-center
-                              border border-gray-300 shadow-lg
-                              hover:bg-gray-900 hover:text-white hover:border-gray-700 
-                              transition-all duration-300 ease-in-out">
-                        View All Time Entries
-                    </a>
-                </div>
-            </div>
-        </div>
+<!-- Quick Actions Card -->
+<div class="bg-white rounded-2xl shadow-xl p-8 transform transition-all duration-300 hover:shadow-2xl hover:-translate-y-1">
+    <div class="flex items-center gap-3 mb-6">
+        <h3 class="text-xl font-bold text-gray-800">Quick Actions</h3>
+        <div class="h-1 w-1 rounded-full bg-gray-300"></div>
+        <span class="text-sm text-gray-500 font-medium">Frequently used tools</span>
     </div>
+    
+    <div class="flex flex-col gap-4">
+        <!-- Quick Actions for Regular Users -->
+        {% if not is_admin and not is_supervisor %}
+            <a href="{% url 'time_entry_create' %}" 
+               class="group inline-flex items-center justify-center px-6 py-3 bg-gradient-to-r from-gray-800 to-gray-900 
+                      text-white rounded-xl font-medium text-sm
+                      shadow-lg shadow-gray-200/50
+                      hover:from-gray-700 hover:to-gray-800
+                      focus:ring-2 focus:ring-gray-500 focus:ring-offset-2
+                      transform transition-all duration-300 ease-out
+                      hover:scale-[1.02] active:scale-95">
+                <svg class="w-5 h-5 mr-2 text-gray-100 transition-transform group-hover:-translate-y-px" 
+                     fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                          d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+                </svg>
+                Create New Time Entry
+            </a>
+        {% endif %}
+
+        <a href="{% url 'user_summary_report' %}" 
+           class="group inline-flex items-center justify-center px-6 py-3 bg-gradient-to-r from-gray-800 to-gray-900 
+                  text-white rounded-xl font-medium text-sm
+                  shadow-lg shadow-gray-200/50
+                  hover:from-gray-700 hover:to-gray-800
+                  focus:ring-2 focus:ring-gray-500 focus:ring-offset-2
+                  transform transition-all duration-300 ease-out
+                  hover:scale-[1.02] active:scale-95">
+            <svg class="w-5 h-5 mr-2 text-gray-100 transition-transform group-hover:-translate-y-px" 
+                 fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                      d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+            </svg>
+            View Weekly Summary
+        </a>
+
+        <a href="{% url 'time_entry_list' %}" 
+           class="group inline-flex items-center justify-center px-6 py-3 bg-gradient-to-r from-gray-800 to-gray-900 
+                  text-white rounded-xl font-medium text-sm
+                  shadow-lg shadow-gray-200/50
+                  hover:from-gray-700 hover:to-gray-800
+                  focus:ring-2 focus:ring-gray-500 focus:ring-offset-2
+                  transform transition-all duration-300 ease-out
+                  hover:scale-[1.02] active:scale-95">
+            <svg class="w-5 h-5 mr-2 text-gray-100 transition-transform group-hover:-translate-y-px" 
+                 fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                      d="M4 6h16M4 10h16M4 14h16M4 18h16"/>
+            </svg>
+            View All Time Entries
+        </a>
+    </div>
+</div>
 
     <!-- Charts Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
-        // Update chart colors to match theme
-        const chartColors = ['#f97316', '#111827', '#374151', '#4b5563', '#6b7280', '#9ca3af'];
-        
-        var startDate = "{{ start_date|date:'Y-m-d' }}";
-        var endDate = "{{ end_date|date:'Y-m-d' }}";
+        document.addEventListener('DOMContentLoaded', function() {
+            // Update chart colors to match theme
+            const chartColors = ['#f97316', '#111827', '#374151', '#4b5563', '#6b7280', '#9ca3af'];
+            
+            // Parse the data from Django
+            const laborCodeData = JSON.parse('{{ labor_code_data|escapejs }}');
+            const dailyHoursData = JSON.parse('{{ daily_hours_data|escapejs }}');
+            
+            console.log('Labor Code Data:', laborCodeData);
+            console.log('Daily Hours Data:', dailyHoursData);
 
-        var laborCodeData = JSON.parse('{{ labor_code_data|escapejs }}');
-        var dailyHoursData = JSON.parse('{{ daily_hours_data|escapejs }}');
-
-        // Labor Code Distribution Chart
-        if (laborCodeData && laborCodeData.length > 0) {
-            var laborCodeCtx = document.getElementById('laborCodeChart').getContext('2d');
-            new Chart(laborCodeCtx, {
-                type: 'doughnut',
-                data: {
-                    labels: laborCodeData.map(item => item.labor_code__laborcode + ' - ' + item.labor_code__labor_code_description),
-                    datasets: [{
-                        data: laborCodeData.map(item => item.count),
-                        backgroundColor: chartColors.slice(0, laborCodeData.length)
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        title: {
-                            display: true,
-                            text: `Labor Code Distribution (${startDate} to ${endDate})`,
-                            font: { size: 16 }
-                        },
-                        legend: {
-                            display: false  // Disable the legend
-                        }
-                    }
-                }
-            });
-        }
-
-        // Daily Hours Chart
-        if (dailyHoursData && dailyHoursData.length > 0) {
-            var dailyHoursCtx = document.getElementById('dailyHoursChart').getContext('2d');
-            new Chart(dailyHoursCtx, {
-                type: 'bar',
-                data: {
-                    labels: dailyHoursData.map(item => new Date(item.date).toLocaleDateString()),
-                    datasets: [{
-                        label: 'Hours',
-                        data: dailyHoursData.map(item => item.hours),
-                        backgroundColor: '#f97316' // Orange
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            title: {
-                                display: true,
-                                text: 'Hours',
-                                font: { size: 14 }
-                            }
-                        },
-                        x: {
-                            title: {
-                                display: true,
-                                text: 'Date',
-                                font: { size: 14 }
-                            }
-                        }
+            // Labor Code Distribution Chart
+            if (laborCodeData && laborCodeData.length > 0) {
+                const laborCodeCtx = document.getElementById('laborCodeChart').getContext('2d');
+                new Chart(laborCodeCtx, {
+                    type: 'pie',
+                    data: {
+                        labels: laborCodeData.map(item => `${item.labor_code__laborcode} - ${item.labor_code__labor_code_description}`),
+                        datasets: [{
+                            data: laborCodeData.map(item => item.count),
+                            backgroundColor: chartColors.slice(0, laborCodeData.length)
+                        }]
                     },
-                    plugins: {
-                        title: {
-                            display: true,
-                            text: `Daily Hours (${startDate} to ${endDate})`,
-                            font: { size: 16 }
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: false,
+
+                            },
+                            title: {
+                                display: false,
+                                text: 'Labor Code Distribution',
+                                font: { size: 16 }
+                            }
                         }
                     }
-                }
-            });
-        }
+                });
+            }
+
+            // Daily Hours Chart
+            if (dailyHoursData && dailyHoursData.length > 0) {
+                const dailyHoursCtx = document.getElementById('dailyHoursChart').getContext('2d');
+                new Chart(dailyHoursCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: dailyHoursData.map(item => {
+                            const date = new Date(item.date);
+                            return date.toLocaleDateString('en-US', { 
+                                weekday: 'short', 
+                                month: 'short', 
+                                day: 'numeric' 
+                            });
+                        }),
+                        datasets: [{
+                            label: 'Hours',
+                            data: dailyHoursData.map(item => item.hours),
+                            backgroundColor: '#f97316',
+                            borderColor: '#f97316',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: false
+                            },
+                            title: {
+                                display: false,
+                                text: 'Daily Hours',
+                                font: { size: 16 }
+                            }
+                        }
+                    }
+                });
+            }
+        });
     </script>
 
     <!-- Details Toggle Script -->
@@ -542,4 +679,5 @@
         });
     </script>
 </div>
-{% endblock %}
+{% endblock %} 
+

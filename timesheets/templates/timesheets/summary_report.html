@@ -4,100 +4,290 @@
 
 {% block content %}
 {% load custom_filters %}
-
+<style>
+    /* Remove the default triangle marker from details/summary */
+    details > summary {
+        list-style: none;
+    }
+    details > summary::-webkit-details-marker {
+        display: none;
+    }
+        /* Remove the default triangle marker from details/summary */
+        details > summary {
+            list-style: none;
+        }
+        details > summary::-webkit-details-marker {
+            display: none;
+        }
+    
+        /* Print styles */
+        @media print {
+            .no-print {
+                display: none !important;
+            }
+            .print-only {
+                display: block !important;
+            }
+            /* Hide non-printable elements */
+            header, footer, nav, .no-print, .screen-only, #sidebar, #sidebarToggle, #closeSidebar {
+                display: none !important;
+            }
+            /* Set page to landscape */
+            @page {
+                size: A4 landscape;
+                margin: 1cm;
+            }
+            /* Reset layout for printing */
+            body, html {
+                background: white !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                width: 210mm !important; /* A4 width */
+                height: 297mm !important; /* A4 height */
+                overflow: visible !important;
+                font-size: 0.9em; /* Reduce font size slightly */
+            }
+            /* Reset main content positioning */
+            #mainContent {
+                margin-left: 0 !important;
+                padding: 0 !important;
+                width: 100% !important;
+                position: absolute!important;
+                left: 0 !important;
+                top: 0 !important;
+            }
+        }
+        @media screen {
+            .print-only {
+                display: none;
+            }
+        }
+</style>
 <div class="p-6 max-w-8xl mx-auto">
     <!-- Filter Form -->
-    <form method="GET" action="" class="mb-8 p-6 space-y-4 md:space-y-0 md:flex md:items-center md:space-x-4">
-        {% if is_superuser or is_supervisor %}
-        <div class="flex flex-col">
-            <label for="user-select" class="text-sm font-medium text-gray-700 mb-1">Select User:</label>
-            <select name="user" id="user-select" class="form-select block w-full rounded-md border-2 border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" onchange="this.form.submit()">
-                <option value="">--Select User--</option>
-                {% for user in all_users %}
-                    <option value="{{ user.id }}" {% if selected_user and user.id == selected_user.id %}selected{% endif %}>
-                        {{ user.first_name }} {{ user.last_name }}
-                    </option>
-                {% endfor %}
-            </select>
-        </div>
-        {% endif %}
+    <details class="group bg-white shadow-xl rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-2xl screen-only">
+        <!-- Summary section with reduced padding -->
+        <summary class="px-6 py-4 border-b border-gray-100 cursor-pointer hover:bg-gray-50/50 transition-all">
+            <div class="flex items-center justify-between">
+                <h2 class="text-lg font-semibold text-gray-800">Filter Options</h2>
+                <svg class="w-5 h-5 text-gray-500 transform transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                </svg>
+            </div>
+        </summary>
+        
+        <!-- Content section with reduced padding -->
+        <div class="px-3 py-2">
+            <form method="GET" action="" class="mb-1">
+                <div class="bg-white p-4">
+                    <!-- Grid with reduced gap -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {% if is_superuser or is_supervisor %}
+                        <div class="space-y-0.5">
+                            <label for="user-select" class="text-sm font-medium text-gray-600">Select User</label>
+                            <div class="relative">
+                                <select name="user" 
+                                        id="user-select" 
+                                        onchange="this.form.submit()"
+                                        class="w-full pl-3 pr-8 py-2 bg-gray-50 border border-gray-200 rounded-xl
+                                               text-gray-700 appearance-none
+                                               focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent
+                                               focus:bg-white
+                                               cursor-pointer
+                                               transition-all duration-200">
+                                    <option value="">All Users</option>
+                                    {% for user in all_users %}
+                                        <option value="{{ user.id }}" {% if selected_user and user.id == selected_user.id %}selected{% endif %}>
+                                            {{ user.first_name }} {{ user.last_name }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                                <div class="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
+                                    <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
 
-        <div class="flex flex-col">
-            <label for="week-start" class="text-lg font-semibold text-gray-700 mb-1 ">Select Week Start:</label>
-            <input type="date" name="week_start" id="week-start" value="{{ week_start|date:'Y-m-d' }}" 
-                   class="block w-full rounded-md border-2 border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                   onchange="this.form.submit()">
+                        <div class="space-y-0.5">
+                            <label for="week-start" class="text-sm font-medium text-gray-600">Week Start Date</label>
+                            <input type="date" 
+                                   name="week_start" 
+                                   id="week-start" 
+                                   value="{{ week_start|date:'Y-m-d' }}"
+                                   onchange="this.form.submit()"
+                                   class="w-full pl-3 pr-3 py-2 bg-gray-50 border border-gray-200 rounded-xl
+                                          text-gray-900
+                                          focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent
+                                          focus:bg-white
+                                          transition-all duration-200">
+                        </div>
+                    </div>
+
+                    <!-- Clear Filters button with reduced top margin -->
+                    <div class="mt-4 flex justify-end">
+                        <a href="{{ request.path }}" 
+                           class="inline-flex items-center px-4 py-2 border border-gray-200 rounded-xl
+                                  text-gray-600 bg-white text-sm
+                                  hover:bg-gray-50
+                                  focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2
+                                  transition-all duration-200">
+                            <svg class="w-4 h-4 mr-2 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                                      d="M6 18L18 6M6 6l12 12"/>
+                            </svg>
+                            Clear Filters
+                        </a>
+                    </div>
+                </div>
+            </form>
         </div>
-    </form>
+    </details>
 
     <!-- Report Header -->
-    <h2 class="text-xl font-semibold mb-6 text-gray-800">
+    <h2 class="px-2 py-4 text-xl font-semibold mb-6 text-gray-800">
         Report for {{ selected_user.first_name }} {{ selected_user.last_name }} 
         (Week of {{ week_start|date:'M d, Y' }} to {{ week_end|date:'M d, Y' }})
     </h2>
 
-    <!-- Weekly Hours Table -->
-    <div class="mb-8 overflow-x-auto">
-        <table class="min-w-full divide-y divide-gray-200 rounded-lg">
-            <thead class="bg-gray-300">
-                <tr>
-                    <th class="px-6 py-3 text-left text-xs font-semibold text-center text-gray-800 uppercase tracking-wider">Project No</th>
-                    <th class="px-6 py-3 text-left text-xs font-semibold text-center text-gray-800 uppercase tracking-wider">Client</th>
-                    <th class="px-6 py-3 text-left text-xs font-semibold text-center text-gray-800 uppercase tracking-wider">Project Name</th>
-                    <th class="px-6 py-3 text-left text-xs font-semibold text-center text-gray-800 uppercase tracking-wider">Labor Code</th>
-                    <th class="px-6 py-3 text-left text-xs font-semibold text-center text-gray-800 uppercase tracking-wider">Sunday</th>
-                    <th class="px-6 py-3 text-left text-xs font-semibold text-center text-gray-800 uppercase tracking-wider">Monday</th>
-                    <th class="px-6 py-3 text-left text-xs font-semibold text-center text-gray-800 uppercase tracking-wider">Tuesday</th>
-                    <th class="px-6 py-3 text-left text-xs font-semibold text-center text-gray-800 uppercase tracking-wider">Wednesday</th>
-                    <th class="px-6 py-3 text-left text-xs font-semibold text-center text-gray-800 uppercase tracking-wider">Thursday</th>
-                    <th class="px-6 py-3 text-left text-xs font-semibold text-center text-gray-800 uppercase tracking-wider">Friday</th>
-                    <th class="px-6 py-3 text-left text-xs font-semibold text-center text-gray-800 uppercase tracking-wider">Saturday</th>
-                    <th class="px-6 py-3 text-left text-xs font-semibold text-center text-gray-800 uppercase tracking-wider">Total Hours</th>
-                </tr>
-            </thead>
-            <tbody class="bg-white divide-y divide-gray-300">
-                {% for labor_code, data in weekly_hours.items %}
-                <tr class="hover:bg-gray-50">
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ data.project_no }}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ data.client }}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ data.description }}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ labor_code }} - {{ data.labor_code_description }}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-center text-gray-900">{{ data.hours.Sunday }}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-center text-gray-900">{{ data.hours.Monday }}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-center text-gray-900">{{ data.hours.Tuesday }}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-center text-gray-900">{{ data.hours.Wednesday }}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-center text-gray-900">{{ data.hours.Thursday }}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-center text-gray-900">{{ data.hours.Friday }}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-center text-gray-900">{{ data.hours.Saturday }}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-center text-gray-900 font-medium">
+<!-- Weekly Hours Table -->
+<div class="mb-8 overflow-x-auto bg-white shadow-xl rounded-2xl">
+    <table class="min-w-full divide-y divide-gray-100">
+        <thead class="bg-gray-50/75">
+            <tr>
+                <th class="px-8 py-4 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Project No</th>
+                <th class="px-8 py-4 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Client</th>
+                <th class="px-8 py-4 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Project Name</th>
+                <th class="px-8 py-4 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Labor Code</th>
+                <!-- Days of Week -->
+                <th class="px-6 py-4 text-center text-xs font-medium text-gray-600 uppercase tracking-wider">
+                    <div class="flex flex-col items-center">
+                        <span class="text-gray-400 text-[10px]">Sun</span>
+                        <span class="mt-1">{{ week_start|date:"d" }}</span>
+                    </div>
+                </th>
+                <th class="px-6 py-4 text-center text-xs font-medium text-gray-600 uppercase tracking-wider">
+                    <div class="flex flex-col items-center">
+                        <span class="text-gray-400 text-[10px]">Mon</span>
+                        <span class="mt-1">{{ week_start|add_days:1|date:"d" }}</span>
+                    </div>
+                </th>
+                <th class="px-6 py-4 text-center text-xs font-medium text-gray-600 uppercase tracking-wider">
+                    <div class="flex flex-col items-center">
+                        <span class="text-gray-400 text-[10px]">Tue</span>
+                        <span class="mt-1">{{ week_start|add_days:2|date:"d" }}</span>
+                    </div>
+                </th>
+                <th class="px-6 py-4 text-center text-xs font-medium text-gray-600 uppercase tracking-wider">
+                    <div class="flex flex-col items-center">
+                        <span class="text-gray-400 text-[10px]">Wed</span>
+                        <span class="mt-1">{{ week_start|add_days:3|date:"d" }}</span>
+                    </div>
+                </th>
+                <th class="px-6 py-4 text-center text-xs font-medium text-gray-600 uppercase tracking-wider">
+                    <div class="flex flex-col items-center">
+                        <span class="text-gray-400 text-[10px]">Thu</span>
+                        <span class="mt-1">{{ week_start|add_days:4|date:"d" }}</span>
+                    </div>
+                </th>
+                <th class="px-6 py-4 text-center text-xs font-medium text-gray-600 uppercase tracking-wider">
+                    <div class="flex flex-col items-center">
+                        <span class="text-gray-400 text-[10px]">Fri</span>
+                        <span class="mt-1">{{ week_start|add_days:5|date:"d" }}</span>
+                    </div>
+                </th>
+                <th class="px-6 py-4 text-center text-xs font-medium text-gray-600 uppercase tracking-wider">
+                    <div class="flex flex-col items-center">
+                        <span class="text-gray-400 text-[10px]">Sat</span>
+                        <span class="mt-1">{{ week_start|add_days:6|date:"d" }}</span>
+                    </div>
+                </th>
+                <th class="px-8 py-4 text-center text-xs font-medium text-gray-600 uppercase tracking-wider">Total Hours</th>
+            </tr>
+        </thead>
+        <tbody class="bg-white divide-y divide-gray-50">
+            {% for labor_code, data in weekly_hours.items %}
+            <tr class="hover:bg-gray-50/50 transition-colors duration-150">
+                <td class="px-8 py-5 whitespace-nowrap">
+                    <div class="text-sm font-medium text-gray-900">{{ data.project_no }}</div>
+                </td>
+                <td class="px-8 py-5 whitespace-nowrap">
+                    <div class="text-sm text-gray-900">{{ data.client }}</div>
+                </td>
+                <td class="px-8 py-5 whitespace-nowrap">
+                    <div class="text-sm text-gray-900">{{ data.description }}</div>
+                </td>
+                <td class="px-8 py-5 whitespace-nowrap">
+                    <div class="text-sm text-gray-900">{{ labor_code }} - {{ data.labor_code_description }}</div>
+                </td>
+                <td class="px-6 py-5 whitespace-nowrap text-center">
+                    <div class="text-sm text-gray-900">{{ data.hours.Sunday|default:"--" }}</div>
+                </td>
+                <td class="px-6 py-5 whitespace-nowrap text-center">
+                    <div class="text-sm text-gray-900">{{ data.hours.Monday|default:"--" }}</div>
+                </td>
+                <td class="px-6 py-5 whitespace-nowrap text-center">
+                    <div class="text-sm text-gray-900">{{ data.hours.Tuesday|default:"--" }}</div>
+                </td>
+                <td class="px-6 py-5 whitespace-nowrap text-center">
+                    <div class="text-sm text-gray-900">{{ data.hours.Wednesday|default:"--" }}</div>
+                </td>
+                <td class="px-6 py-5 whitespace-nowrap text-center">
+                    <div class="text-sm text-gray-900">{{ data.hours.Thursday|default:"--" }}</div>
+                </td>
+                <td class="px-6 py-5 whitespace-nowrap text-center">
+                    <div class="text-sm text-gray-900">{{ data.hours.Friday|default:"--" }}</div>
+                </td>
+                <td class="px-6 py-5 whitespace-nowrap text-center">
+                    <div class="text-sm text-gray-900">{{ data.hours.Saturday|default:"--" }}</div>
+                </td>
+                <td class="px-8 py-5 whitespace-nowrap text-center">
+                    <div class="text-sm font-medium text-gray-900">
                         {{ data.hours.Sunday|add:data.hours.Monday|add:data.hours.Tuesday|add:data.hours.Wednesday|add:data.hours.Thursday|add:data.hours.Friday|add:data.hours.Saturday }}
-                    </td>
-                </tr>
-                {% endfor %}
-                <!-- Daily Totals Row -->
-                <tr class="bg-gray-300 font-medium">
-                    <td colspan="4" class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">Total Daily Hours</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-center font-semibold text-gray-900">{{ daily_totals.Sunday }}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-center font-semibold text-gray-900">{{ daily_totals.Monday }}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-center font-semibold text-gray-900">{{ daily_totals.Tuesday }}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-center font-semibold text-gray-900">{{ daily_totals.Wednesday }}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-center font-semibold text-gray-900">{{ daily_totals.Thursday }}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-center font-semibold text-gray-900">{{ daily_totals.Friday }}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-center font-semibold text-gray-900">{{ daily_totals.Saturday }}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-center font-semibold text-gray-900">
-                        {{ daily_totals.Sunday|add:daily_totals.Monday|add:daily_totals.Tuesday|add:daily_totals.Wednesday|add:daily_totals.Thursday|add:daily_totals.Friday|add:daily_totals.Saturday }}
-                    </td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
 
-    <!-- Print Button -->
-    <div class="mb-4">
-        <button onclick="window.print()" class="print-button px-4 py-2 bg-orange-500 text-gray-800 rounded-full hover:bg-gray-900 hover:text-white  no-print">
-            Print Report
-        </button>
-    </div>
+            <!-- Daily Totals Row -->
+            <tr class="bg-gray-50/75 font-medium border-t-2 border-gray-200">
+                <td colspan="4" class="px-8 py-5 whitespace-nowrap">
+                    <div class="text-sm font-semibold text-gray-900">Total Daily Hours</div>
+                </td>
+                <td class="px-6 py-5 whitespace-nowrap text-center">
+                    <div class="text-sm font-semibold text-gray-900">{{ daily_totals.Sunday|default:"0" }}</div>
+                </td>
+                <td class="px-6 py-5 whitespace-nowrap text-center">
+                    <div class="text-sm font-semibold text-gray-900">{{ daily_totals.Monday|default:"0" }}</div>
+                </td>
+                <td class="px-6 py-5 whitespace-nowrap text-center">
+                    <div class="text-sm font-semibold text-gray-900">{{ daily_totals.Tuesday|default:"0" }}</div>
+                </td>
+                <td class="px-6 py-5 whitespace-nowrap text-center">
+                    <div class="text-sm font-semibold text-gray-900">{{ daily_totals.Wednesday|default:"0" }}</div>
+                </td>
+                <td class="px-6 py-5 whitespace-nowrap text-center">
+                    <div class="text-sm font-semibold text-gray-900">{{ daily_totals.Thursday|default:"0" }}</div>
+                </td>
+                <td class="px-6 py-5 whitespace-nowrap text-center">
+                    <div class="text-sm font-semibold text-gray-900">{{ daily_totals.Friday|default:"0" }}</div>
+                </td>
+                <td class="px-6 py-5 whitespace-nowrap text-center">
+                    <div class="text-sm font-semibold text-gray-900">{{ daily_totals.Saturday|default:"0" }}</div>
+                </td>
+                <td class="px-8 py-5 whitespace-nowrap text-center">
+                    <div class="text-sm font-semibold text-gray-900">
+                        {{ daily_totals.Sunday|add:daily_totals.Monday|add:daily_totals.Tuesday|add:daily_totals.Wednesday|add:daily_totals.Thursday|add:daily_totals.Friday|add:daily_totals.Saturday }}
+                    </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+
 
     <!-- Labor Code Section - Hidden by default, visible when printing -->
     <div class="bg-white shadow-md rounded-lg overflow-hidden mb-8 hidden print-only">
@@ -213,11 +403,12 @@
             </tbody>
         </table>
     </div>
+    
     <div class="p-4 screen-only">
         <!-- Summary Grid -->
         <div class="summary-grid grid grid-cols-1 md:grid-cols-4 gap-4">
             <!-- Regular Hours -->
-            <div class="summary-card rounded-lg border border-gray-200 shadow-sm p-4 bg-white">
+            <div class="summary-card rounded-lg border border-gray-200 shadow-lg p-4 bg-white">
                 <div class="flex flex-col">
                     <div class="text-sm font-medium text-gray-500 mb-1">Regular Hours</div>
                     <div class="flex items-baseline">
@@ -228,7 +419,7 @@
             </div>
 
             <!-- Overtime Hours -->
-            <div class="summary-card rounded-lg border border-gray-200 shadow-sm p-4 bg-white">
+            <div class="summary-card rounded-lg border border-gray-200 shadow-lg p-4 bg-white">
                 <div class="flex flex-col">
                     <div class="text-sm font-medium text-gray-500 mb-1">Overtime Hours</div>
                     <div class="flex items-baseline">
@@ -239,7 +430,7 @@
             </div>
 
             <!-- Double Time Hours -->
-            <div class="summary-card rounded-lg border border-gray-200 shadow-sm p-4 bg-white">
+            <div class="summary-card rounded-lg border border-gray-200 shadow-lg p-4 bg-white">
                 <div class="flex flex-col">
                     <div class="text-sm font-medium text-gray-500 mb-1">Double Time Hours</div>
                     <div class="flex items-baseline">
@@ -250,7 +441,7 @@
             </div>
 
             <!-- Grand Total -->
-            <div class="summary-card rounded-lg border border-gray-200 shadow-sm p-4 bg-gradient-to-br from-blue-50 to-white">
+            <div class="summary-card rounded-lg border border-gray-200 shadow-lg p-4 bg-gradient-to-br from-blue-50 to-white">
                 <div class="flex flex-col">
                     <div class="text-sm font-medium text-gray-500 mb-1">Grand Total Hours</div>
                     <div class="flex items-baseline">
@@ -260,74 +451,43 @@
                 </div>
             </div>
         </div>
+<!-- Print Button -->
+<div class="py-6 mb-4">
+    <button onclick="window.print()" 
+            class="inline-flex items-center px-4 py-2.5 bg-gradient-to-r from-gray-800 to-gray-900 
+                   text-white rounded-xl font-medium
+                   border border-transparent
+                   hover:from-gray-700 hover:to-gray-800
+                   focus:outline-none
+                   transform transition-all duration-200
+                   hover:scale-[1.02] active:scale-95
+                   no-print">
+        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                  d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
+        </svg>
+        Print Report
+    </button>
+</div>
 
-        <!-- Compact Alternative for Space-Constrained Layouts -->
-        <div class="mt-4 hidden">
-            <div class="bg-white rounded-lg border border-gray-200 shadow-sm">
-                <div class="grid grid-cols-4 divide-x divide-gray-200">
-                    <div class="p-3 text-center">
-                        <div class="text-xs font-medium text-gray-500 mb-1">Regular</div>
-                        <div class="text-sm font-semibold text-gray-900">{{ total_regular_hours }}</div>
-                    </div>
-                    <div class="p-3 text-center">
-                        <div class="text-xs font-medium text-gray-500 mb-1">Overtime</div>
-                        <div class="text-sm font-semibold text-gray-900">{{ total_overtime_hours }}</div>
-                    </div>
-                    <div class="p-3 text-center">
-                        <div class="text-xs font-medium text-gray-500 mb-1">Double Time</div>
-                        <div class="text-sm font-semibold text-gray-900">{{ total_double_time_hours }}</div>
-                    </div>
-                    <div class="p-3 text-center">
-                        <div class="text-xs font-medium text-gray-500 mb-1">Total</div>
-                        <div class="text-sm font-semibold text-blue-600">{{ grand_total_hours }}</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <style>
-        @media print {
-            .no-print {
-                display: none !important;
-            }
-            .print-only {
-                display: block !important;
-            }
-        }
-        @media screen {
-            .print-only {
-                display: none;
-            }
-        }
-        @media print {
-            /* Hide non-printable elements */
-            header, footer, nav, .no-print, .screen-only, #sidebar, #sidebarToggle, #closeSidebar {
-                display: none !important;
-            }
-                            /* Set page to landscape */
-                            @page {
-                                size: A4 landscape;
-                                margin: 1cm;
-                            }
-                            /* Reset layout for printing */
-                            body, html {
-                                background: white !important;
-                                margin: 0 !important;
-                                padding: 0 !important;
-                                width: 210mm !important; /* A4 width */
-                                height: 297mm !important; /* A4 height */
-                                overflow: visible !important;
-                                font-size: 0.9em; /* Reduce font size slightly */
-                            }
-                            
-                            /* Reset main content positioning */
-                            #mainContent {
-                                margin-left: 0 !important;
-                                padding: 0 !important;
-                                width: 100% !important;
-                                position: absolute!important;
-                                left: 0 !important;
-                                top: 0 !important;
-                            }
-    </style>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        document.querySelectorAll('details').forEach((detail) => {
+            detail.removeAttribute('open');
+            
+            const summary = detail.querySelector('summary');
+            const arrow = summary.querySelector('svg');
+            
+            arrow.classList.add('rotate-180');
+            
+            detail.addEventListener('toggle', () => {
+                if (detail.open) {
+                    arrow.classList.remove('rotate-180');
+                } else {
+                    arrow.classList.add('rotate-180');
+                }
+            });
+        });
+    });
+</script>
 {% endblock %}

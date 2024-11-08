@@ -93,96 +93,214 @@ Timesheet Entries - Detailed View
     @page {
         margin: 1cm;
     }
+        /* Remove the default triangle marker from details/summary */
+        details > summary {
+            list-style: none;
+        }
+        details > summary::-webkit-details-marker {
+            display: none;
+        }
 </style>
 <!-- Main content wrapper -->
 <div class="timesheet-content bg-white rounded-lg overflow-hidden">
     <div class="p-6 space-y-8">
         <!-- Header info -->
         <div class="flex justify-end items-center border-b pb-4">
-            <p class="text-sm text-gray-600">
+            <p class="text-lg text-gray-600">
                 <span class="font-semibold">Date:</span> {{ time_entry.date }} | 
                 <span class="font-semibold">Name:</span> {{ request.user.first_name }} {{ request.user.last_name }}
             </p>
         </div>
         <!-- Main table -->
-        <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-gray-300">
-                <thead class="bg-gray-300">
-                    <tr>
-                        <th scope="col" class="px-2 py-2 text-center text-s font-semibold text-gray-800 uppercase tracking-wider" colspan="2">Client/Job</th>
-                        <th scope="col" class="px-2 py-2 text-center text-s font-semibold text-gray-800 uppercase tracking-wider">NST Job #</th>
-                        <th scope="col" class="px-2 py-2 text-center  text-s font-semibold text-gray-800 uppercase tracking-wider" colspan="2">Time</th>
-                        <th scope="col" class="px-2 py-2 text-center  text-s font-semibold text-gray-800 uppercase tracking-wider" colspan="2">Mileage</th>
-                        <th scope="col" class="px-2 py-2 text-center  text-s font-semibold text-gray-800 uppercase tracking-wider" colspan="2">Services Performed</th>
-                    </tr>
-                    <tr>
-                        <th scope="col" class="px-2 py-2 text-center text-sm font-semibold text-gray-800 uppercase tracking-wider" colspan="2"></th>
-                        <th scope="col" class="px-2 py-2 text-center text-sm font-semibold text-gray-800 uppercase tracking-wider"></th>
-                        <th scope="col" class="px-2 py-2 text-center text-sm font-semibold text-gray-800 uppercase tracking-wider">Arrive</th>
-                        <th scope="col" class="px-2 py-2 text-center text-sm font-semibold text-gray-800 uppercase tracking-wider">Leave</th>
-                        <th scope="col" class="px-2 py-2 text-center text-sm font-semibold text-gray-800 uppercase tracking-wider">Arrive</th>
-                        <th scope="col" class="px-2 py-2 text-center text-sm font-semibold text-gray-800 uppercase tracking-wider">Leave</th>
-                        <th scope="col" class="px-2 py-2 text-center text-sm font-semibold text-gray-800 uppercase tracking-wider">Labor Code</th>
-                        <th scope="col" class="px-2 py-2 text-center text-sm font-semibold text-gray-800 uppercase tracking-wider">Description</th>
-                    </tr>
-                </thead>
-                <tbody class="bg-white divide-y divide-gray-300">
-                    <tr>
-                        <td class="px-2 py-2 whitespace-nowrap text-m font-semibold text-gray-800">Start Location:</td>
-                        <td class="px-2 py-2 whitespace-nowrap text-center text-m text-gray-800">{{ time_entry.start_location }}</td>
-                        <td class="px-2 py-2 whitespace-nowrap text-m text-gray-800"></td>
-                        <td class="px-2 py-2 whitespace-nowrap text-m text-gray-800"></td>
-                        <td class="px-2 py-2 whitespace-nowrap text-center text-m text-gray-800">{{ time_entry.initial_leave_time|date:"H:i" }}</td>
-                        <td class="px-2 py-2 whitespace-nowrap text-m text-gray-800"></td>
-                        <td class="px-2 py-2 whitespace-nowrap text-center text-m text-gray-800">{{ time_entry.initial_mileage }}</td>
-                        <td class="px-2 py-2 whitespace-nowrap text-m text-gray-800" colspan="2"></td>
-                    </tr>
-                    {% for job in time_entry.jobs.all %}
-                    <tr>
-                        <td class="px-2 py-2 whitespace-nowrap text-center text-m text-gray-800" colspan="2">{{ job.job_description }}</td>
-                        <td class="px-2 py-2 whitespace-nowrap text-center text-m text-gray-800">{{ job.job_number }}</td>
-                        <td class="px-2 py-2 whitespace-nowrap text-center text-m text-gray-800">{{ job.activity_arrive_time|date:"H:i" }}</td>
-                        <td class="px-2 py-2 whitespace-nowrap text-center text-m text-gray-800">{{ job.activity_leave_time|date:"H:i" }}</td>
-                        <td class="px-2 py-2 whitespace-nowrap text-center text-m text-gray-800">{{ job.activity_start_mileage }}</td>
-                        <td class="px-2 py-2 whitespace-nowrap text-center text-m text-gray-800">{{ job.activity_end_mileage }}</td>
-                        <td class="px-2 py-2 whitespace-nowrap text-center text-m text-gray-800">{{ job.labor_code }}</td>
-                        <td class="px-2 py-2 whitespace-nowrap text-m text-gray-800">{{ job.labor_code_description }}</td>
-                    </tr>
-                    {% endfor %}
-                    <tr>
-                        <td class="px-2 py-2 whitespace-nowrap text-m font-semibold text-gray-800">End Location:</td>
-                        <td class="px-2 py-2 whitespace-nowrap text-center text-m text-gray-800">{{ time_entry.end_location }}</td>
-                        <td class="px-2 py-2 whitespace-nowrap text-m text-gray-800"></td>
-                        <td class="px-2 py-2 whitespace-nowrap text-center text-m text-gray-800">{{ time_entry.final_arrive_time|date:"H:i" }}</td>
-                        <td class="px-2 py-2 whitespace-nowrap text-m text-gray-800"></td>
-                        <td class="px-2 py-2 whitespace-nowrap text-center text-m text-gray-800">{{ time_entry.final_mileage }}</td>
-                        <td class="px-2 py-2 whitespace-nowrap text-m text-gray-800" colspan="3"></td>
-                    </tr>
-                </tbody>
-                <tfoot class="bg-gray-300">
-                    <tr>
-                        <td class="px-2 py-2 whitespace-nowrap text-center text-m font-semibold text-gray-800">{{ time_entry.hours_on_site }}</td>
-                        <td class="px-2 py-2 whitespace-nowrap text-center text-m font-semibold text-gray-800">{{ time_entry.hours_for_the_day }}</td>
-                        <td class="px-2 py-2 whitespace-nowrap text-center text-m font-semibold text-gray-800">{{ time_entry.travel_time_subtract }}</td>
-                        <td class="px-2 py-2 whitespace-nowrap text-center text-m font-semibold text-gray-800">{{ time_entry.hours_to_be_paid }}</td>
-                        <td class="px-2 py-2 whitespace-nowrap text-center text-m font-semibold text-gray-800" colspan="2"></td>
-                        <td class="px-2 py-2 whitespace-nowrap text-center text-m font-semibold text-gray-800">{{ time_entry.total_miles }}</td>
-                        <td class="px-2 py-2 whitespace-nowrap text-center text-m font-semibold text-gray-800">{{ time_entry.travel_miles_subtract }}</td>
-                        <td class="px-2 py-2 whitespace-nowrap text-center text-m font-semibold text-gray-800">{{ time_entry.miles_to_be_paid }}</td>
-                    </tr>
-                    <tr>
-                        <td class="px-2 py-2 whitespace-nowrap text-center text-sm font-semibold text-gray-900">Hours on Site:</td>
-                        <td class="px-2 py-2 whitespace-nowrap text-center text-sm font-semibold text-gray-900">Hours for the Day:</td>
-                        <td class="px-2 py-2 whitespace-nowrap text-center text-sm font-semibold text-gray-900">Travel Time (subtract):</td>
-                        <td class="px-2 py-2 whitespace-nowrap text-center text-sm font-semibold text-gray-900">Hours to be Paid:</td>
-                        <td class="px-2 py-2 whitespace-nowrap text-center text-sm font-semibold text-gray-900" colspan="2">Employee's Signature</td>
-                        <td class="px-2 py-2 whitespace-nowrap text-center text-sm font-semibold text-gray-900">Total Miles:</td>
-                        <td class="px-2 py-2 whitespace-nowrap text-center text-sm font-semibold text-gray-900">Travel Miles (subtract):</td>
-                        <td class="px-2 py-2 whitespace-nowrap text-center text-sm font-semibold text-gray-900">Miles to be Paid</td>
-                    </tr>
-                </tfoot>
-            </table>
-        </div>
+            <div class="overflow-x-auto rounded-lg shadow-lg">
+                <table class="min-w-full bg-white rounded-lg shadow-lg overflow-hidden">
+                    <thead class="bg-gradient-to-r from-gray-800 to-gray-700 text-white">
+                        <tr>
+                            <th scope="col" class="px-2 py-3 text-center text-sm font-semibold uppercase tracking-wider" colspan="2">
+                                Client/Job
+                            </th>
+                            <th scope="col" class="px-2 py-3 text-center text-sm font-semibold uppercase tracking-wider">
+                                NST Job #
+                            </th>
+                            <th scope="col" class="px-2 py-3 text-center text-sm font-semibold uppercase tracking-wider" colspan="2">
+                                Time
+                            </th>
+                            <th scope="col" class="px-2 py-3 text-center text-sm font-semibold uppercase tracking-wider" colspan="2">
+                                Mileage
+                            </th>
+                            <th scope="col" class="px-2 py-3 text-center text-sm font-semibold uppercase tracking-wider" colspan="2">
+                                Services Performed
+                            </th>
+                        </tr>
+                        <tr>
+                            <th scope="col" class="px-2 py-2 text-center text-xs font-semibold uppercase tracking-wider" colspan="2">
+                                <!-- Empty for spacing -->
+                            </th>
+                            <th scope="col" class="px-2 py-2 text-center text-xs font-semibold uppercase tracking-wider">
+                                <!-- Empty for spacing -->
+                            </th>
+                            <th scope="col" class="px-2 py-2 text-center text-xs font-semibold tracking-wider">
+                                Arrive
+                            </th>
+                            <th scope="col" class="px-2 py-2 text-center text-xs font-semibold tracking-wider">
+                                Leave
+                            </th>
+                            <th scope="col" class="px-2 py-2 text-center text-xs font-semibold tracking-wider">
+                                Arrive
+                            </th>
+                            <th scope="col" class="px-2 py-2 text-center text-xs font-semibold tracking-wider">
+                                Leave
+                            </th>
+                            <th scope="col" class="px-2 py-2 text-center text-xs font-semibold tracking-wider">
+                                Labor Code
+                            </th>
+                            <th scope="col" class="px-2 py-2 text-center text-xs font-semibold tracking-wider">
+                                Description
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-200">
+                        <!-- Start Location Row -->
+                        <tr class="bg-gray-50">
+                            <td class="px-2 py-3 whitespace-nowrap text-sm font-semibold text-gray-800">
+                                Start Location:
+                            </td>
+                            <td class="px-2 py-3 whitespace-nowrap text-sm text-gray-700 text-center">
+                                {{ time_entry.start_location }}
+                            </td>
+                            <td class="px-2 py-3 whitespace-nowrap text-sm text-gray-700">
+                                <!-- Empty for spacing -->
+                            </td>
+                            <td class="px-2 py-3 whitespace-nowrap text-sm text-gray-700">
+                                <!-- Empty -->
+                            </td>
+                            <td class="px-2 py-3 whitespace-nowrap text-sm text-gray-700 text-center">
+                                {{ time_entry.initial_leave_time|date:"H:i" }}
+                            </td>
+                            <td class="px-2 py-3 whitespace-nowrap text-sm text-gray-700">
+                                <!-- Empty -->
+                            </td>
+                            <td class="px-2 py-3 whitespace-nowrap text-sm text-gray-700 text-center">
+                                {{ time_entry.initial_mileage }}
+                            </td>
+                            <td class="px-2 py-3 whitespace-nowrap text-sm text-gray-700" colspan="2">
+                                <!-- Empty -->
+                            </td>
+                        </tr>
+            
+                        <!-- Job Entries -->
+                        {% for job in time_entry.jobs.all %}
+                        <tr class="hover:bg-gray-100">
+                            <td class="px-2 py-3 whitespace-nowrap text-sm text-gray-700 text-center" colspan="2">
+                                {{ job.job_description }}
+                            </td>
+                            <td class="px-2 py-3 whitespace-nowrap text-sm text-gray-700 text-center">
+                                {{ job.job_number }}
+                            </td>
+                            <td class="px-2 py-3 whitespace-nowrap text-sm text-gray-700 text-center">
+                                {{ job.activity_arrive_time|date:"H:i" }}
+                            </td>
+                            <td class="px-2 py-3 whitespace-nowrap text-sm text-gray-700 text-center">
+                                {{ job.activity_leave_time|date:"H:i" }}
+                            </td>
+                            <td class="px-2 py-3 whitespace-nowrap text-sm text-gray-700 text-center">
+                                {{ job.activity_start_mileage }}
+                            </td>
+                            <td class="px-2 py-3 whitespace-nowrap text-sm text-gray-700 text-center">
+                                {{ job.activity_end_mileage }}
+                            </td>
+                            <td class="px-2 py-3 whitespace-nowrap text-sm text-gray-700 text-center">
+                                {{ job.labor_code }}
+                            </td>
+                            <td class="px-2 py-3 whitespace-nowrap text-sm text-gray-700 text-center">
+                                {{ job.labor_code_description }}
+                            </td>
+                        </tr>
+                        {% endfor %}
+            
+                        <!-- End Location Row -->
+                        <tr class="bg-gray-50">
+                            <td class="px-2 py-3 whitespace-nowrap text-sm font-semibold text-gray-800">
+                                End Location:
+                            </td>
+                            <td class="px-2 py-3 whitespace-nowrap text-sm text-gray-700 text-center">
+                                {{ time_entry.end_location }}
+                            </td>
+                            <td class="px-2 py-3 whitespace-nowrap text-sm text-gray-700">
+                                <!-- Empty for spacing -->
+                            </td>
+                            <td class="px-2 py-3 whitespace-nowrap text-sm text-gray-700 text-center">
+                                {{ time_entry.final_arrive_time|date:"H:i" }}
+                            </td>
+                            <td class="px-2 py-3 whitespace-nowrap text-sm text-gray-700">
+                                <!-- Empty -->
+                            </td>
+                            <td class="px-2 py-3 whitespace-nowrap text-sm text-gray-700 text-center">
+                                {{ time_entry.final_mileage }}
+                            </td>
+                            <td class="px-2 py-3 whitespace-nowrap text-sm text-gray-700" colspan="3">
+                                <!-- Empty -->
+                            </td>
+                        </tr>
+                    </tbody>
+                    <tfoot class="bg-gray-200">
+                        <!-- Summary Row -->
+                        <tr>
+                            <td class="px-2 py-3 whitespace-nowrap text-sm font-semibold text-gray-800 text-center">
+                                {{ time_entry.hours_on_site }}
+                            </td>
+                            <td class="px-2 py-3 whitespace-nowrap text-sm font-semibold text-gray-800 text-center">
+                                {{ time_entry.hours_for_the_day }}
+                            </td>
+                            <td class="px-2 py-3 whitespace-nowrap text-sm font-semibold text-gray-800 text-center">
+                                {{ time_entry.travel_time_subtract }}
+                            </td>
+                            <td class="px-2 py-3 whitespace-nowrap text-sm font-semibold text-gray-800 text-center">
+                                {{ time_entry.hours_to_be_paid }}
+                            </td>
+                            <td class="px-2 py-3 whitespace-nowrap text-sm font-semibold text-gray-800" colspan="2">
+                                <!-- Empty for spacing -->
+                            </td>
+                            <td class="px-2 py-3 whitespace-nowrap text-sm font-semibold text-gray-800 text-center">
+                                {{ time_entry.total_miles }}
+                            </td>
+                            <td class="px-2 py-3 whitespace-nowrap text-sm font-semibold text-gray-800 text-center">
+                                {{ time_entry.travel_miles_subtract }}
+                            </td>
+                            <td class="px-2 py-3 whitespace-nowrap text-sm font-semibold text-gray-800 text-center">
+                                {{ time_entry.miles_to_be_paid }}
+                            </td>
+                        </tr>
+                        <!-- Labels Row -->
+                        <tr>
+                            <td class="px-2 py-3 whitespace-nowrap text-xs font-semibold text-gray-700 text-center">
+                                Hours on Site:
+                            </td>
+                            <td class="px-4 py-3 whitespace-nowrap text-xs font-semibold text-gray-700 text-center">
+                                Hours for the Day:
+                            </td>
+                            <td class="px-2 py-3 whitespace-nowrap text-xs font-semibold text-gray-700 text-center">
+                                Travel Time (subtract):
+                            </td>
+                            <td class="px-2 py-3 whitespace-nowrap text-xs font-semibold text-gray-700 text-center">
+                                Hours to be Paid:
+                            </td>
+                            <td class="px-2 py-3 whitespace-nowrap text-xs font-semibold text-gray-700" colspan="2">
+                                Employee's Signature
+                            </td>
+                            <td class="px-2 py-3 whitespace-nowrap text-xs font-semibold text-gray-700 text-center">
+                                Total Miles:
+                            </td>
+                            <td class="px-2 py-3 whitespace-nowrap text-xs font-semibold text-gray-700 text-center">
+                                Travel Miles (subtract):
+                            </td>
+                            <td class="px-2 py-3 whitespace-nowrap text-xs font-semibold text-gray-700 text-center">
+                                Miles to be Paid
+                            </td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
 
         <div class="workspace-section space-y-6">
             <div class="border-t pt-10 print-only">
@@ -222,6 +340,7 @@ Timesheet Entries - Detailed View
 <div class="mt-6 bg-white shadow-sm rounded-lg p-4 border {% if time_entry.approval_status == 'approved' %}border-green-200 bg-green-50{% elif time_entry.approval_status == 'rejected' %}border-red-200 bg-red-50{% elif time_entry.approval_status == 'pending' %}border-yellow-200 bg-yellow-50{% else %}border-gray-200{% endif %} screen-only">
     <div class="flex items-center justify-between">
         <div class="flex items-center space-x-3">
+            <h3 class="text-lg font-semibold text-gray-800">Approval Details</h3>
             <span class="text-sm font-medium">Status:</span>
             {% if time_entry.approval_status %}
                 <span class="px-3 py-1 rounded-full text-sm font-medium
@@ -273,70 +392,171 @@ Timesheet Entries - Detailed View
     {% endif %}
 </div>
 
+{% if time_entry.approval and time_entry.approval.history.all %}
+    <div class="mt-6 screen-only">
+        <details class="group bg-white shadow-xl rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-2xl">
+            <summary class="px-6 py-4 border-b border-gray-100 cursor-pointer hover:bg-gray-50/50 transition-all">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-2">
+                        <h3 class="text-lg font-semibold text-gray-800">Approval History</h3>
+                    </div>
+                    <svg class="w-5 h-5 text-gray-600 transform transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                    </svg>
+                </div>
+            </summary>
+            <div class="space-y-4 p-6">
+                {% for history in time_entry.approval.history.all %}
+                    <div class="p-4 {% if history.status == 'rejected' %}bg-red-50{% elif history.status == 'approved' %}bg-green-50{% else %}bg-gray-50{% endif %} rounded-lg border">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                                    {% if history.status == 'rejected' %}
+                                        bg-red-100 text-red-800
+                                    {% elif history.status == 'approved' %}
+                                        bg-green-100 text-green-800
+                                    {% elif 'pending' in history.status %}
+                                        bg-yellow-100 text-yellow-800
+                                    {% else %}
+                                        bg-gray-100 text-gray-800
+                                    {% endif %}">
+                                    {{ history.get_status_display }}
+                                </span>
+                                {% if history.is_first_review %}
+                                    <span class="ml-2 text-xs text-gray-500">(First Review)</span>
+                                {% elif history.is_second_review %}
+                                    <span class="ml-2 text-xs text-gray-500">(Final Review)</span>
+                                {% endif %}
+                            </div>
+                            <div class="text-sm text-gray-500">
+                                {{ history.reviewed_at|date:"M d, Y H:i" }}
+                            </div>
+                        </div>
+                        <div class="mt-2">
+                            <p class="text-sm text-gray-600">
+                                <span class="font-medium">Reviewed by:</span> 
+                                {{ history.reviewed_by.get_full_name }}
+                            </p>
+                            {% if history.comments %}
+                                <div class="mt-2 text-sm">
+                                    <p class="font-medium text-gray-700">Comments:</p>
+                                    <p class="text-gray-600 mt-1">{{ history.comments }}</p>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </details>
+    </div>
+{% endif %}
+
 <div class="mt-8 flex flex-wrap gap-4 screen-only">
+    <!-- Print Button with SVG Icon -->
     <button onclick="window.print()" 
-            class="px-6 py-2 rounded-full bg-orange-500 text-gray-800 hover:bg-gray-900 hover:text-white hover:border-gray-700 transition duration-200">
-        Print
+            class="inline-flex items-center px-6 py-2.5 bg-gradient-to-r from-gray-800 to-gray-900 
+                   text-white rounded-xl font-medium
+                   border border-transparent
+                   hover:from-gray-700 hover:to-gray-800
+                   focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2
+                   transform transition-all duration-200
+                   hover:scale-[1.02] active:scale-95
+                   no-print">
+        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                  d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
+        </svg>
+        Print Report
     </button>
     
-    {% if time_entry.can_submit_for_approval %}
-        <a href="{% url 'submit_for_approval' time_entry.pk %}" 
-           class="px-6 py-2 rounded-full bg-orange-500 text-gray-800 hover:bg-gray-900 hover:text-white hover:border-gray-700 transition duration-200">
-            Submit for Approval
+    {% if request.user.is_superuser or request.user.role == 'Supervisor' %}
+        <!-- Overwrite Button for Supervisors/Admins -->
+        <a href="{% url 'time_entry_edit' time_entry.pk %}" 
+           class="inline-flex items-center px-6 py-2.5 bg-gradient-to-r from-red-600 to-red-700 
+                  text-white rounded-xl font-medium
+                  border border-transparent
+                  hover:from-red-500 hover:to-red-600
+                  focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2
+                  transform transition-all duration-200
+                  hover:scale-[1.02] active:scale-95">
+            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                      d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+            </svg>
+            Overwrite
         </a>
+    {% else %}
+        <!-- Submit for Approval Button (Only for regular users) -->
+        {% if time_entry.can_submit_for_approval %}
+            <a href="{% url 'submit_for_approval' time_entry.pk %}" 
+               class="inline-flex items-center px-6 py-2.5 bg-gradient-to-r from-gray-800 to-gray-900 
+                      text-white rounded-xl font-medium
+                      border border-transparent
+                      hover:from-gray-700 hover:to-gray-800
+                      focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2
+                      transform transition-all duration-200
+                      hover:scale-[1.02] active:scale-95">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                          d="M12 4v16m8-8H4"/>
+                </svg>
+                Submit for Approval
+            </a>
+        {% endif %}
+
+        <!-- Edit Button (Only for regular users) -->
+        {% if not time_entry.is_approved %}
+            <a href="{% url 'time_entry_edit' time_entry.pk %}" 
+               class="inline-flex items-center px-6 py-2.5 bg-gradient-to-r from-gray-800 to-gray-900 
+                      text-white rounded-xl font-medium
+                      border border-transparent
+                      hover:from-gray-700 hover:to-gray-800
+                      focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2
+                      transform transition-all duration-200
+                      hover:scale-[1.02] active:scale-95">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                          d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-5-5l4 4m0 0l-4 4m4-4H3"/>
+                </svg>
+                Edit
+            </a>
+        {% endif %}
     {% endif %}
     
+    <!-- Review Button (For supervisors/admins) -->
     {% if perms.timesheets.can_approve_timesheet and time_entry.is_pending_approval %}
         <a href="{% url 'review_time_entry' time_entry.pk %}" 
-           class="px-6 py-2 rounded-full bg-orange-500 text-gray-800 hover:bg-gray-900 hover:text-white hover:border-gray-700 transition duration-200">
+           class="inline-flex items-center px-6 py-2.5 bg-gradient-to-r from-gray-800 to-gray-900 
+                  text-white rounded-xl font-medium
+                  border border-transparent
+                  hover:from-gray-700 hover:to-gray-800
+                  focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2
+                  transform transition-all duration-200
+                  hover:scale-[1.02] active:scale-95">
+            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                      d="M5 13l4 4L19 7"/>
+            </svg>
             Review
         </a>
     {% endif %}
     
-    {% if not time_entry.is_approved %}
-        <a href="{% url 'time_entry_edit' time_entry.pk %}" 
-           class="px-6 py-2 rounded-full bg-orange-500 text-gray-800 hover:bg-gray-900 hover:text-white hover:border-gray-700 transition duration-200">
-            Edit
-        </a>
-    {% endif %}
-    
+    <!-- Back to List Button -->
     <a href="{% url 'time_entry_list' %}" 
-       class="px-6 py-2 rounded-full bg-gray-200 text-gray-700 hover:bg-gray-300 transition duration-200">
+       class="inline-flex items-center px-6 py-2.5 bg-gradient-to-r from-gray-50 to-gray-100 
+              text-gray-800 rounded-xl font-medium
+              border border-transparent
+              hover:from-gray-100 hover:to-gray-150
+              focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2
+              transform transition-all duration-200
+              hover:scale-[1.02] active:scale-95">
+        <!-- Optional SVG Icon -->
+        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                  d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+        </svg>
         Back to List
     </a>
 </div>
-
-<!-- Add this section for supervisors to show approval history -->
-{% if perms.timesheets.can_approve_timesheet and time_entry.approval %}
-    <div class="mt-8 bg-white shadow-md rounded-lg p-6 screen-only">
-        <h3 class="text-lg font-semibold text-gray-800 mb-4">Approval Details</h3>
-        <div class="space-y-4">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                    <p class="text-sm text-gray-600">
-                        <span class="font-medium">Submitted by:</span> 
-                        {{ time_entry.user.get_full_name }}
-                    </p>
-                    <p class="text-sm text-gray-600">
-                        <span class="font-medium">Submitted on:</span> 
-                        {{ time_entry.approval.submitted_at|date:"M d, Y H:i" }}
-                    </p>
-                </div>
-                {% if time_entry.approval.reviewed_at %}
-                    <div>
-                        <p class="text-sm text-gray-600">
-                            <span class="font-medium">Reviewed by:</span> 
-                            {{ time_entry.approval.reviewed_by.get_full_name }}
-                        </p>
-                        <p class="text-sm text-gray-600">
-                            <span class="font-medium">Reviewed on:</span> 
-                            {{ time_entry.approval.reviewed_at|date:"M d, Y H:i" }}
-                        </p>
-                    </div>
-                {% endif %}
-            </div>
-        </div>
-    </div>
-{% endif %}
 
 {% endblock %}

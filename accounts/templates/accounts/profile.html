@@ -22,15 +22,29 @@
                     <input type="{{ field.field.widget.input_type }}" 
                            name="{{ field.name }}" 
                            id="{{ field.id_for_label }}" 
-                           class="w-full p-2 border border-gray-300 rounded-full text-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                           class="w-full p-2 border border-gray-300 rounded-full text-lg focus:ring-2 focus:ring-gray-500 focus:border-transparent"
                            {% if field.field.required %}required{% endif %}>
                     {% if field.help_text %}
                         <small class="text-gray-600 mt-1 block">{{ field.help_text }}</small>
                     {% endif %}
                 </div>
             {% endfor %}
-            <button type="submit" class="w-full py-2 px-4 bg-orange-500 text-gray-800 rounded-full text-lg hover:bg-gray-900 hover:text-white hover:border-gray-700 font-semibold transition duration-300">Change Password</button>
-        </form>
+            <button type="submit" 
+        class="w-full inline-flex items-center justify-center px-6 py-3.5
+               bg-gradient-to-r from-gray-800 to-gray-900 
+               text-white rounded-xl font-medium text-lg
+               border border-transparent
+               hover:from-gray-700 hover:to-gray-800
+               focus:outline-none
+               transform transition-all duration-200
+               hover:scale-[1.02] active:scale-95
+               shadow-md">
+    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+              d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/>
+    </svg>
+    Change Password
+</button>        </form>
         <div id="password-change-message" class="mt-4"></div>
     </div>
 </div>

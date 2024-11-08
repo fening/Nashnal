@@ -52,18 +52,14 @@ urlpatterns = [
          views.approval_history, 
          name='approval_history'),
     
-        # Notification URLs
-    path('notifications/', 
-         views.all_notifications, 
-         name='all_notifications'),
-    
-    path('notifications/<int:notification_id>/mark-read/',
-         views.mark_notification_read,
-         name='mark_notification_read'),
-    
-    path('notifications/mark-all-read/',
-         views.mark_all_notifications_read,
-         name='mark_all_notifications_read'),
+    # Notification URLs
+    path('notifications/all/', views.all_notifications, name='all_notifications'),
+    path('notifications/<int:notification_id>/handle/', views.notification_link_handler, name='notification_link_handler'),
+    path('notifications/<int:notification_id>/mark-read/', views.mark_notification_read, name='mark_notification_read'),
+    path('notifications/mark-all-read/', views.mark_all_notifications_read, name='mark_all_notifications_read'),
+    path('notifications/clear-all/', views.clear_all_notifications, name='clear_all_notifications'),
+    path('notifications/delete/<int:notification_id>/', views.delete_notification, name='delete_notification'),
+
     
     path('supervisor-dashboard/', views.supervisor_dashboard, name='supervisor_dashboard'),
     path('team-timesheets/', views.team_timesheets, name='team_timesheets'),

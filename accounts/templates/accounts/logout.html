@@ -5,19 +5,94 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Logout</title>
-    <link rel ="icon" href="{% static 'favicon.ico' %}" type="image/x-icon">
+    <link rel="icon" href="{% static 'favicon.ico' %}" type="image/x-icon">
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    keyframes: {
+                        spin: {
+                            '0%': { transform: 'rotate(0deg)' },
+                            '100%': { transform: 'rotate(360deg)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
 </head>
 <body class="white flex justify-center items-center min-h-screen">
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 opacity-0 invisible transition-all duration-300 flex flex-col items-center justify-center">
+        <div class="bg-white p-8 rounded-2xl shadow-2xl flex flex-col items-center space-y-6">
+            <!-- Loading Spinner -->
+            <div class="relative">
+                <!-- Outer ring -->
+                <div class="w-16 h-16 rounded-full border-4 border-gray-200/50 animate-[spin_1s_linear_infinite]"></div>
+                <!-- Inner ring with orange accent -->
+                <div class="w-16 h-16 rounded-full border-4 border-transparent border-t-orange-500 animate-[spin_0.8s_linear_infinite] absolute inset-0"></div>
+            </div>
+            <div class="flex flex-col items-center gap-2">
+                <p class="text-gray-800 font-medium text-lg">Logging out...</p>
+                <p class="text-gray-500 text-sm">Please wait</p>
+            </div>
+        </div>
+    </div>
+
     <div class="bg-white p-8 w-full max-w-md">
         <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">Are you sure you want to logout?</h2>
-        <form method="POST" action="{% url 'logout' %}" class="flex flex-col">
+        <form method="POST" action="{% url 'logout' %}" class="flex flex-col max-w-sm mx-auto" id="logoutForm">
             {% csrf_token %}
-            <button type="submit" class="bg-orange-500 text-gray-800 border-none py-3 text-lg rounded-full cursor-pointer transition duration-300 hover:bg-gray-900 hover:text-white hover:border-gray-700 font-semibold mt-4">Logout</button>
+            <button type="submit" 
+                    class="group relative py-3 px-6 text-lg font-semibold rounded-full
+                           bg-gradient-to-r from-gray-800 to-gray-900 
+                           text-white rounded-xl font-medium text-lg
+                           transform transition-all duration-300 
+                           hover:from-gray-800 hover:to-gray-900
+                           hover:scale-[1.02] active:scale-95
+                           focus:outline-none ">
+                <span class="relative flex items-center justify-center">
+                    <!-- Logout Icon -->
+                    <svg xmlns="http://www.w3.org/2000/svg" 
+                         class="h-5 w-5 mr-2" 
+                         fill="none" 
+                         viewBox="0 0 24 24" 
+                         stroke="currentColor">
+                        <path stroke-linecap="round" 
+                              stroke-linejoin="round" 
+                              stroke-width="2" 
+                              d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                    </svg>
+                    Logout
+                </span>
+            </button>
         </form>
-        <p class="text-center mt-4">
-            <a href="{% url 'login' %}" class="text-blue-500 font-semibold hover:underline">Cancel</a>
-        </p>
+        
+        <div class="text-center mt-6">
+            <a href="{% url 'login' %}" 
+               class="inline-flex items-center text-gray-600 font-medium
+                      hover:text-gray-900 transition-colors duration-200">
+                <svg xmlns="http://www.w3.org/2000/svg" 
+                     class="h-5 w-5 mr-2" 
+                     fill="none" 
+                     viewBox="0 0 24 24" 
+                     stroke="currentColor">
+                    <path stroke-linecap="round" 
+                          stroke-linejoin="round" 
+                          stroke-width="2" 
+                          d="M11 17l-5-5m0 0l5-5m-5 5h12" />
+                </svg>
+                Return to Login
+            </a>
+        </div>
     </div>
+
+    <script>
+        document.getElementById('logoutForm').addEventListener('submit', function() {
+            const overlay = document.getElementById('loading-overlay');
+            overlay.classList.remove('invisible', 'opacity-0');
+        });
+    </script>
 </body>
 </html>

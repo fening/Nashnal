@@ -2,67 +2,98 @@
 {% load custom_filters %}
 
 {% block content %}
-<div class="max-w-4xl mx-auto p-6">
+<div class="max-w-4xl mx-auto px-4 py-8">
     <!-- Page Header -->
-    <h1 class="text-3xl font-semibold text-gray-800 mb-6">Create a New Labor Code</h1>
+    <div class="mb-8">
+        <h1 class="text-2xl font-semibold text-gray-800">Create a New Labor Code</h1>
+        <p class="mt-2 text-sm text-gray-600">Add and manage labor codes for time tracking</p>
+    </div>
     
     <!-- Labor Code Form -->
-    <form method="POST" class="bg-white p-6 rounded ">
-        {% csrf_token %}
-        {% for field in form %}
-            <div class="mb-5">
-                <label for="{{ field.id_for_label }}" class="block text-gray-700 font-bold mb-2">
-                    {{ field.label }}
-                </label>
-                {{ field|add_class:"w-full p-2 border border-gray-300 rounded focus:outline-none focus:border-orange-500" }}
-                {% if field.help_text %}
-                    <p class="text-sm text-gray-500 mt-1">{{ field.help_text }}</p>
-                {% endif %}
-                {% for error in field.errors %}
-                    <p class="text-sm text-red-500 mt-1">{{ error }}</p>
-                {% endfor %}
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 mb-8">
+        <form method="POST" class="p-6">
+            {% csrf_token %}
+            {% for field in form %}
+                <div class="space-y-1.5 mb-5">
+                    <label for="{{ field.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                        {{ field.label }}
+                    </label>
+                    <div class="relative">
+                        {{ field|add_class:"block w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:bg-white transition-colors duration-200 sm:text-sm" }}
+                    </div>
+                    {% if field.help_text %}
+                        <p class="text-sm text-gray-500">{{ field.help_text }}</p>
+                    {% endif %}
+                    {% for error in field.errors %}
+                        <p class="text-sm text-red-600">{{ error }}</p>
+                    {% endfor %}
+                </div>
+            {% endfor %}
+            <div class="flex justify-end mt-6">
+                <button type="submit" 
+                        class="inline-flex items-center px-5 py-2.5
+                               bg-gradient-to-r from-gray-800 to-gray-900 
+                               text-white rounded-xl font-medium
+                               border border-transparent
+                               hover:from-gray-700 hover:to-gray-800
+                               focus:outline-none
+                               transform transition-all duration-200
+                               hover:scale-[1.02] active:scale-95
+                               shadow-sm">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                              d="M5 13l4 4L19 7"/>
+                    </svg>
+                    Save Labor Code
+                </button>
             </div>
-        {% endfor %}
-        <div class="flex justify-end">
-            <button type="submit" class="bg-orange-500 text-gray-800 hover:bg-gray-900 hover:text-white hover:border-gray-700 font-semibold py-2 px-4 rounded-full transition duration-300">
-                Save Labor Code
-            </button>
-        </div>
-    </form>
+        </form>
+    </div>
 
     <!-- Labor Codes Table -->
-    <h2 class="text-2xl font-semibold text-gray-800 mt-10 mb-5">List of Labor Codes</h2>
-    <div class="overflow-x-auto">
-        <table class="min-w-full bg-white rounded shadow-md">
-            <thead>
-                <tr>
-                    <th class="px-6 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-sm font-semibold text-gray-700 uppercase tracking-wider">
-                        Labor Code
-                    </th>
-                    <th class="px-6 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-sm font-semibold text-gray-700 uppercase tracking-wider">
-                        Description
-                    </th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for laborcode in laborcodes %}
-                <tr class="hover:bg-gray-50">
-                    <td class="px-6 py-4 border-b border-gray-200 text-sm text-gray-700">
-                        {{ laborcode.laborcode }}
-                    </td>
-                    <td class="px-6 py-4 border-b border-gray-200 text-sm text-gray-700">
-                        {{ laborcode.labor_code_description }}
-                    </td>
-                </tr>
-                {% empty %}
-                <tr>
-                    <td colspan="2" class="px-6 py-4 text-center text-gray-500">
-                        No labor codes found.
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+        <div class="px-6 py-4 border-b border-gray-200">
+            <h2 class="text-lg font-medium text-gray-800">List of Labor Codes</h2>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Labor Code
+                        </th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Description
+                        </th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    {% for laborcode in laborcodes %}
+                    <tr class="hover:bg-gray-50/50 transition-colors duration-150">
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">
+                            {{ laborcode.laborcode }}
+                        </td>
+                        <td class="px-6 py-4 text-sm text-gray-600">
+                            {{ laborcode.labor_code_description }}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="2" class="px-6 py-8 text-center">
+                            <div class="flex flex-col items-center">
+                                <svg class="w-12 h-12 text-gray-300 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" 
+                                          d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/>
+                                </svg>
+                                <span class="text-sm text-gray-500">No labor codes found</span>
+                                <span class="text-xs text-gray-400 mt-1">Create your first labor code above</span>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
     </div>
 </div>
 {% endblock %}

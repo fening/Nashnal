@@ -5,46 +5,87 @@
   {% endblock %}
 {% load custom_filters %}
 {% block content %}
+<style>
+  /* Remove spinner buttons for Webkit browsers (Chrome, Safari, Edge) */
+  input[type="number"]::-webkit-outer-spin-button,
+  input[type="number"]::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+  }
+
+  /* Remove spinner buttons for Firefox */
+  input[type="number"] {
+      -moz-appearance: textfield;
+  }
+</style>
 <div class="container mx-auto px-4 py-8">
-    <div class="bg-white p-6">
+    <div class="bg-white p-6  rounded-lg shadow-lg">
       <form method="post" class="space-y-6">
         {% csrf_token %}
         <div class="flex items-center space-x-4 mb-6">
             <label class="text-base font-medium text-gray-700 whitespace-nowrap" for="{{ form.date.id_for_label }}">Date:</label>
             <div class="w-48">
-              {{ form.date|add_class:"block w-full text-base rounded-md border-2 border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 px-3 py-2 bg-white" }}
+              {{ form.date|add_class:"block w-full text-base rounded-md border border-gray-500 shadow-sm focus:outline-none px-3 py-2 bg-white" }}
             </div>
           </div>
-        <div class="overflow-x-auto">
-          <table class="min-w-full divide-y divide-gray-200">
-            <thead class="bg-gray-50">
-              <tr>
-                <th class="px-6 py-3 text-center text-sm font-medium text-gray-500 uppercase tracking-wider" colspan="3">Client/Job</th>
-                <th class="px-6 py-3 text-center text-sm font-medium text-gray-500 uppercase tracking-wider" colspan="2">Time</th>
-                <th class="px-6 py-3 text-center text-sm font-medium text-gray-500 uppercase tracking-wider" colspan="2">Mileage</th>
-                <th class="px-6 py-3 text-center text-sm font-medium text-gray-500 uppercase tracking-wider" colspan="3">Services Performed</th>
-                <th class="px-6 py-3 text-center text-sm font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-              </tr>
-              <tr>
-                <th class="px-6 py-3 text-left text-xs font-small text-gray-500 uppercase tracking-wider" colspan="3"></th>
-                <th class="px-6 py-3 text-center text-xs font-small text-gray-500 uppercase tracking-wider">Arrive</th>
-                <th class="px-6 py-3 text-center text-xs font-small text-gray-500 uppercase tracking-wider">Leave</th>
-                <th class="px-6 py-3 text-center text-xs font-small text-gray-500 uppercase tracking-wider">Arrive</th>
-                <th class="px-6 py-3 text-center text-xs font-small text-gray-500 uppercase tracking-wider">Leave</th>
-                <th class="px-6 py-3 text-center text-xs font-small text-gray-500 uppercase tracking-wider" colspan="3"></th>
-                <th></th>
-              </tr>
-            </thead>
+          <div class="overflow-x-auto  ">
+          <table class="min-w-full bg-white rounded-lg shadow-lg overflow-hidden divide-y divide-gray-200">
+                    <thead class="bg-gradient-to-r from-gray-800 to-gray-700 text-white">
+                        <tr>
+                            <th scope="col" class="px-2 py-3 text-center text-sm font-semibold uppercase tracking-wider" colspan="2">
+                                Client/Job
+                            </th>
+                            <th scope="col" class="px-2 py-3 text-center text-sm font-semibold uppercase tracking-wider">
+                                NST Job #
+                            </th>
+                            <th scope="col" class="px-2 py-3 text-center text-sm font-semibold uppercase tracking-wider" colspan="2">
+                                Time
+                            </th>
+                            <th scope="col" class="px-2 py-3 text-center text-sm font-semibold uppercase tracking-wider" colspan="2">
+                                Mileage
+                            </th>
+                            <th scope="col" class="px-2 py-3 text-center text-sm font-semibold uppercase tracking-wider" colspan="2">
+                                Services Performed
+                            </th>
+                            <th  scope="col" class="px-2 py-3 text-center text-sm font-semibold uppercase tracking-wider" colspan="2">
+                              Actions
+                            </th>
+                        </tr>
+                        <tr>
+                            <th scope="col" class="px-2 py-2 text-center text-xs font-semibold uppercase tracking-wider" colspan="2">
+                                <!-- Empty for spacing -->
+                            </th>
+                            <th scope="col" class="px-2 py-2 text-center text-xs font-semibold uppercase tracking-wider">
+                                <!-- Empty for spacing -->
+                            </th>
+                            <th scope="col" class="px-2 py-2 text-center text-xs font-semibold tracking-wider">
+                                Arrive
+                            </th>
+                            <th scope="col" class="px-2 py-2 text-center text-xs font-semibold tracking-wider">
+                                Leave
+                            </th>
+                            <th scope="col" class="px-2 py-2 text-center text-xs font-semibold tracking-wider">
+                                Arrive
+                            </th>
+                            <th scope="col" class="px-2 py-2 text-center text-xs font-semibold tracking-wider">
+                                Leave
+                            </th>
+                            <th scope="col" class="px-2 py-2 text-center text-xs font-semibold tracking-wider" colspan="2">
+                               Labor Code Description
+                            </th>
+                            <th scope="col" class="px-2 py-2 text-center text-xs font-semibold uppercase tracking-wider" colspan="2">
+                        </tr>
+                    </thead>
             <tbody id="formset-container" class="bg-white divide-y divide-gray-200">
               <tr>
-                <td class="px-6 py-4 whitespace-nowrap text-base font-medium text-gray-900">Start Location:</td>
-                <td class="px-6 py-4 whitespace-nowrap text-base text-gray-500" >{{ form.start_location|add_class:"block w-24 text-base rounded-md border-2 border-gray-300 shadow-sm focus:border-orange-500 focus:ring focus:ring-orange-200 focus:ring-opacity-50 px-3 py-2 bg-white" }}</td>
-                <td class="px-6 py-4 whitespace-nowrap text-base text-gray-500" ></td>
-                <td class="px-6 py-4 whitespace-nowrap text-base text-gray-500" ></td>
-                <td class="px-6 py-4 whitespace-nowrap text-base text-gray-500">{{ form.initial_leave_time|add_class:"block w-full text-base rounded-md border-2 border-gray-300 shadow-sm focus:border-orange-500 focus:ring focus:ring-orange-200 focus:ring-opacity-50 px-3 py-2 bg-white" }}</td>
-                <td class="px-6 py-4 whitespace-nowrap text-base text-gray-500" ></td>
-                <td class="px-6 py-4 whitespace-nowrap text-base text-gray-500">{{ form.initial_mileage|add_class:"block w-24 text-base rounded-md border-2 border-gray-300 shadow-sm focus:border-orange-500 focus:ring focus:ring-orange-200 focus:ring-opacity-50 px-3 py-2 bg-white" }}</td>
-                <td class="px-6 py-4 whitespace-nowrap text-base text-gray-500" colspan="3"></td>
+                <td class="px-2 py-4 whitespace-nowrap text-base text-center font-medium text-gray-900">Start Location:</td>
+                <td class="px-2 py-4 whitespace-nowrap text-base text-center text-gray-900" >{{ form.start_location|add_class:"block w-24 text-base rounded-md border border-gray-500 shadow-sm focus:outline-none px-3 py-2 bg-white" }}</td>
+                <td class="px-2 py-4 whitespace-nowrap text-base text-gray-500" ></td>
+                <td class="px-2 py-4 whitespace-nowrap text-base text-gray-500" ></td>
+                <td class="px-2 py-4 whitespace-nowrap text-base text-center text-gray-900">{{ form.initial_leave_time|add_class:"block w-full text-base rounded-md border border-gray-500 focus:outline-none shadow-sm px-3 py-2 bg-white" }}</td>
+                <td class="px-2 py-4 whitespace-nowrap text-base text-gray-500" ></td>
+                <td class="px-2 py-4 whitespace-nowrap text-base text-center text-gray-900">{{ form.initial_mileage|add_class:"block w-24 text-base rounded-md border border-gray-500 shadow-sm focus:outline-none px-3 py-2 bg-white" }}</td>
+                <td class="px-2 py-4 whitespace-nowrap text-base text-gray-500" colspan="3"></td>
                 <td></td>
               </tr>
   
@@ -54,13 +95,13 @@
               <tr class="job-form">
                 {{ job_form.id }}
                 <td class="px-6 py-4 whitespace-nowrap text-base text-gray-500 hidden">{{ job_form.DELETE }}</td>
-                <td class="px-6 py-4 whitespace-nowrap text-base text-gray-500" colspan="2">
-                  {{ job_form.job_description|add_class:"block w-full text-base rounded-md border-2 border-gray-300 shadow-sm focus:border-orange-500 focus:ring focus:ring-orange-200 focus:ring-opacity-50 px-3 py-2 bg-white" }}
+                <td class="px-6 py-4 whitespace-nowrap text-base text-center text-gray-500" colspan="2">
+                  {{ job_form.job_description|add_class:"block w-full text-base rounded-md border border-gray-500 shadow-sm focus:outline-none px-3 py-2 bg-white" }}
                 </td>
             <!-- Add Job Icon -->
             <td class="p-4">
               <div class="flex justify-center items-center h-full">
-                <a href="javascript:void(0);" id="add-job" class="add-job text-blue-600 hover:text-blue-900 p-2 rounded-full hover:bg-blue-100 transition-colors duration-200" title="Add new Job">
+                <a href="javascript:void(0);" id="add-job" class="add-job text-gray-600 hover:text-gray-900 p-2 rounded-full hover:bg-gray-100 transition-colors duration-200" title="Add new Job">
                   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="w-6 h-6">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                   </svg>
@@ -68,12 +109,12 @@
                 </a>
               </div>
             </td>
-                <td class="px-6 py-4 whitespace-nowrap text-base text-gray-500">{{ job_form.activity_arrive_time|add_class:"block w-full text-base rounded-md border-2 border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 px-3 py-2 bg-white" }}</td>
-                <td class="px-6 py-4 whitespace-nowrap text-base text-gray-500">{{ job_form.activity_leave_time|add_class:"block w-full text-base rounded-md border-2 border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 px-3 py-2 bg-white" }}</td>
-                <td class="px-6 py-4 whitespace-nowrap text-base text-gray-500">{{ job_form.activity_start_mileage|add_class:"block w-24 text-base rounded-md border-2 border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 px-3 py-2 bg-white" }}</td>
-                <td class="px-6 py-4 whitespace-nowrap text-base text-gray-500">{{ job_form.activity_end_mileage|add_class:"block w-24 text-base rounded-md border-2 border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 px-3 py-2 bg-white" }}</td>
-                <td class="px-6 py-4 whitespace-nowrap text-base text-gray-500" colspan="3">
-                  {{ job_form.labor_code_description|add_class:"block w-full text-base rounded-md border-2 border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 px-3 py-2 bg-white"}}
+                <td class="px-2 py-4 whitespace-nowrap text-base text-gray-900">{{ job_form.activity_arrive_time|add_class:"block w-full text-base rounded-md border border-gray-500 shadow-sm focus:outline-none px-3 py-2 bg-white" }}</td>
+                <td class="px-2 py-4 whitespace-nowrap text-base text-gray-900">{{ job_form.activity_leave_time|add_class:"block w-full text-base rounded-md border border-gray-500 shadow-sm focus:outline-none px-3 py-2 bg-white" }}</td>
+                <td class="px-2 py-4 whitespace-nowrap text-base text-gray-900">{{ job_form.activity_start_mileage|add_class:"block w-24 text-base rounded-md border border-gray-500 shadow-sm focus:outline-none px-3 py-2 bg-white" }}</td>
+                <td class="px-2 py-4 whitespace-nowrap text-base text-gray-900">{{ job_form.activity_end_mileage|add_class:"block w-24 text-base rounded-md border border-gray-500 shadow-sm focus:outline-none px-3 py-2 bg-white" }}</td>
+                <td class="px-2 py-4 whitespace-nowrap text-base text-center text-gray-500" colspan="3">
+                  {{ job_form.labor_code_description|add_class:"block w-60 text-base rounded-md border border-gray-500 shadow-sm focus:outline-none px-3 py-2 bg-white"}}
                 </td>
               <!-- Remove Job Icon -->
               <td class="p-4 whitespace-nowrap text-base font-medium">
@@ -82,7 +123,6 @@
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="w-5 h-5">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                     </svg>
-                    <span class="text-sm">Remove</span>
                   </a>
                 </div>
               </td>
@@ -95,7 +135,7 @@
               <!-- Placeholder Row When No Job Forms Are Visible -->
               <tr class="no-job-forms" style="display: none;">
                 <td colspan="11" class="text-center py-4">
-                  <a href="javascript:void(0);" id="add-job-when-empty" class="add-job inline-flex items-center space-x-2 bg-blue-50 text-blue-600 hover:bg-blue-100 hover:text-blue-700 px-4 py-2 rounded-full transition-all duration-200 shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2" title="Add new Job">
+                  <a href="javascript:void(0);" id="add-job-when-empty" class="add-job inline-flex items-center space-x-2 bg-gray-50 text-gray-600 hover:bg-gray-100 hover:text-gray-700 px-4 py-2 rounded-full transition-all duration-200 shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2" title="Add new Job">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="w-5 h-5">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                     </svg>
@@ -104,13 +144,13 @@
                 </td>
               </tr>
               <tr>
-                <td class="px-6 py-4 whitespace-nowrap text-base font-medium text-gray-900">End Location:</td>
-                <td class="px-6 py-4 whitespace-nowrap text-base text-gray-500" >{{ form.end_location|add_class:"block w-24 text-base rounded-md border-2 border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 px-3 py-2 bg-white"}}</td>
-                <td class="px-6 py-4 whitespace-nowrap text-base text-gray-500" ></td>
-                <td class="px-6 py-4 whitespace-nowrap text-base text-gray-500">{{ form.final_arrive_time|add_class:"block w-full text-base rounded-md border-2 border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 px-3 py-2 bg-white" }}</td>
-                <td class="px-6 py-4 whitespace-nowrap text-base text-gray-500" ></td>
-                <td class="px-6 py-4 whitespace-nowrap text-base text-gray-500">{{ form.final_mileage|add_class:"block w-24 text-base rounded-md border-2 border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 px-3 py-2 bg-white" }}</td>
-                <td class="px-6 py-4 whitespace-nowrap text-base text-gray-500" colspan="3"></td>
+                <td class="px-2 py-4 whitespace-nowrap text-base text-center font-medium text-gray-900">End Location:</td>
+                <td class="px-2 py-4 whitespace-nowrap text-base text-gray-900" >{{ form.end_location|add_class:"block w-24 text-base rounded-md border border-gray-500 shadow-sm focus:outline-none px-3 py-2 bg-white"}}</td>
+                <td class="px-2 py-4 whitespace-nowrap text-base text-gray-500" ></td>
+                <td class="px-2 py-4 whitespace-nowrap text-base text-gray-900">{{ form.final_arrive_time|add_class:"block w-full text-base rounded-md border border-gray-500 shadow-sm focus:outline-none px-3 py-2 bg-white" }}</td>
+                <td class="px-2 py-4 whitespace-nowrap text-base text-gray-500" ></td>
+                <td class="px-2 py-4 whitespace-nowrap text-base text-gray-900">{{ form.final_mileage|add_class:"block w-24 text-base rounded-md border border-gray-500 shadow-sm focus:outline-none px-3 py-2 bg-white" }}</td>
+                <td class="px-2 py-4 whitespace-nowrap text-base text-gray-500" colspan="3"></td>
                 <td></td>
               </tr>
             </tbody>
@@ -118,30 +158,52 @@
         </div>
 
         <div class="mt-6">
-          <label class="block text-base font-medium text-gray-700">{{ form.company_vehicle_used.label }}:</label>
-          <div class="mt-2 space-x-4">
+          <label class="block text-base font-semibold text-gray-700">{{ form.company_vehicle_used.label }}:</label>
+            <div class="mt-2 space-x-4">
             {% for radio in form.company_vehicle_used %}
               <label class="inline-flex items-center">
-                {{ radio.tag|add_class:"form-radio text-indigo-600" }}
-                <span class="ml-2 text-base">{{ radio.choice_label }}</span>
+              {{ radio.tag|add_class:"form-radio text-gray-600" }}
+              <span class="ml-2 text-base">{{ radio.choice_label }}</span>
               </label>
             {% endfor %}
-          </div>
+            </div>
         </div>
   
         <div class="mt-6">
-          <label class="block text-base font-medium text-gray-700" for="{{ form.comments.id_for_label }}">Comments:</label>
-          {{ form.comments|add_class:"mt-1 block w-full text-base rounded-md border-2 border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 px-3 py-2 bg-white" }}
+          <label class="block text-base font-semibold text-gray-700" for="{{ form.comments.id_for_label }}">Comments:</label>
+          {{ form.comments|add_class:"mt-1 block w-full text-base rounded-md border border-gray-500 shadow-sm focus:outline-none px-3 py-2 bg-white" }}
         </div>
   
-        <div class="mt-8 flex justify-center space-x-4">
-          <button type="submit" class="px-6 py-3 rounded-full bg-orange-500 text-gray-800 hover:bg-gray-900 hover:text-white hover:border-gray-700 transition duration-200">
-            Save
+        <div class="mt-8 flex justify-center gap-4">
+          <button type="submit" 
+                  class="inline-flex items-center px-6 py-2.5 bg-gradient-to-r from-gray-800 to-gray-900 
+                         text-white rounded-xl font-medium
+                         border border-transparent
+                         hover:from-gray-700 hover:to-gray-800
+                         focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2
+                         transform transition-all duration-200
+                         hover:scale-[1.02] active:scale-95">
+              <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                        d="M5 13l4 4L19 7"/>
+              </svg>
+              Save Changes
           </button>
-          <a href="{% url 'time_entry_list' %}" class="px-6 py-3 rounded-full bg-gray-200 text-gray-700 hover:bg-gray-300 transition duration-200">
-            Cancel
+      
+          <a href="{% url 'time_entry_list' %}" 
+             class="inline-flex items-center px-6 py-2.5 border border-gray-200 rounded-xl
+                    text-gray-600 bg-white
+                    hover:bg-gray-50
+                    focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2
+                    transform transition-all duration-200
+                    hover:scale-[1.02] active:scale-95">
+              <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                        d="M6 18L18 6M6 6l12 12"/>
+              </svg>
+              Cancel
           </a>
-        </div>
+      </div>
       </form>
     </div>
   </div>
@@ -158,7 +220,7 @@
             const jobNumberFields = container.querySelectorAll('[name$="-job_number"]');
             const laborCodeFields = container.querySelectorAll('[name$="-labor_code"]');
             const laborCodeDescriptionFields = container.querySelectorAll('[name$="-labor_code_description"]');
-    
+          
             jobDescriptionFields.forEach((field, index) => {
                 field.addEventListener('change', function () {
                     const selectedDescription = field.value;
@@ -252,7 +314,7 @@
           });
           totalFormsInput.value = forms.length;
       }
-
+      
         function addNewForm() {
           const forms = formsetContainer.querySelectorAll('.job-form');
           const formCount = forms.length;

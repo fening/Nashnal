@@ -1,3 +1,4 @@
+from django.db.models import Q
 from timesheets.models import ApprovalNotification, TimeEntryApproval
 
 def notification_context(request):
@@ -6,6 +7,8 @@ def notification_context(request):
         'unread_notifications_count': 0,
         'pending_approvals_count': 0,
         'recent_notifications': [],
+        'is_superuser': False,
+        'is_supervisor': False
     }
 
     if not request.user.is_authenticated:
@@ -21,36 +24,45 @@ def notification_context(request):
             recipient=user,
             read=False
         )
+
+        # Get relevant notifications based on user role
+        notifications_query = ApprovalNotification.objects.filter(recipient=user)
         
-        # Get pending approvals count
-        pending_approvals = TimeEntryApproval.objects.all()
+        # Get pending approvals based on user role
         if is_superuser:
-            pending_approvals = pending_approvals.filter(status=TimeEntryApproval.PENDING_FIRST)
+            pending_approvals = TimeEntryApproval.objects.filter(
+                status=TimeEntryApproval.PENDING_FIRST
+            )
         elif is_supervisor:
-            pending_approvals = pending_approvals.filter(
+            pending_approvals = TimeEntryApproval.objects.filter(
                 status=TimeEntryApproval.PENDING_SECOND,
                 time_entry__user__supervisor=user
             )
         else:
-            pending_approvals = pending_approvals.filter(
+            pending_approvals = TimeEntryApproval.objects.filter(
                 time_entry__user=user,
                 status__in=[TimeEntryApproval.PENDING_FIRST, TimeEntryApproval.PENDING_SECOND]
             )
 
+        # Get recent notifications with all related data
+        recent_notifications = notifications_query.select_related(
+            'recipient',
+            'time_entry_approval',
+            'time_entry_approval__time_entry',
+            'time_entry_approval__time_entry__user'
+        ).order_by('-created_at')[:5]
+
         context.update({
             'unread_notifications_count': unread_notifications.count(),
             'pending_approvals_count': pending_approvals.count(),
-            'recent_notifications': ApprovalNotification.objects.filter(
-                recipient=user
-            ).select_related(
-                'time_entry_approval',
-                'time_entry_approval__time_entry'
-            ).order_by('-created_at')[:5],
+            'recent_notifications': recent_notifications,
             'is_superuser': is_superuser,
             'is_supervisor': is_supervisor,
         })
 
     except Exception as e:
         print(f"Error in notification context: {str(e)}")
+        import traceback
+        traceback.print_exc()
 
     return context

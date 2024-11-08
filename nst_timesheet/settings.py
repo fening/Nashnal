@@ -71,7 +71,8 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    
+    # Add the session timeout middleware
+    'accounts.middleware.SessionTimeoutMiddleware',  # Add this line
 ]
 
 # Cache settings
@@ -261,3 +262,11 @@ AUTH_USER_MODEL = 'accounts.CustomUser'
 
 # Allow all origins for development (adjust this for production)
 CORS_ALLOW_ALL_ORIGINS = True
+
+# Session Settings
+SESSION_COOKIE_AGE = 8 * 60 * 60  # 8 hours in seconds
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+SESSION_SAVE_EVERY_REQUEST = True
+
+# Optional: Set session engine (default is database)
+SESSION_ENGINE = 'django.contrib.sessions.backends.db'

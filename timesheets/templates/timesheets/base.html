@@ -4,11 +4,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block page_title %}Dashboard{% endblock %} - Timesheet App</title>
+    <title>{% block page_title %}{% endblock %} NASHnal - Timesheet App</title>
     <link rel ="icon" href="{% static 'favicon.ico' %}" type="image/x-icon">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             lucide.createIcons();
@@ -18,9 +19,42 @@
         .group:hover .group-hover\:text-gray-600 {
             color: #4B5563;
         }
+        
+        /* Remove old loading screen styles */
     </style>
 </head>
 <body>
+    <!-- Loading Overlays Container -->
+    <div class="fixed inset-0 pointer-events-none z-50">
+        <!-- Initial Loading Overlay -->
+        <div id="loading-overlay" class="absolute inset-0 bg-black/60 backdrop-blur-sm opacity-0 invisible transition-opacity duration-300 flex flex-col items-center justify-center">
+            <div class="bg-white p-8 rounded-2xl shadow-2xl flex flex-col items-center space-y-6">
+                <div class="relative">
+                    <div class="w-16 h-16 rounded-full border-4 border-gray-200/50 animate-[spin_1s_linear_infinite]"></div>
+                    <div class="w-16 h-16 rounded-full border-4 border-transparent border-t-orange-500 animate-[spin_0.8s_linear_infinite] absolute inset-0"></div>
+                </div>
+                <div class="flex flex-col items-center gap-2">
+                    <p class="text-gray-800 font-medium text-lg">Loading...</p>
+                    <p class="text-gray-500 text-sm">Please wait</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Exit Loading Overlay -->
+        <div id="exit-loading-overlay" class="absolute inset-0 bg-black/60 backdrop-blur-sm opacity-0 invisible transition-opacity duration-300 flex flex-col items-center justify-center">
+            <div class="bg-white p-8 rounded-2xl shadow-2xl flex flex-col items-center space-y-6">
+                <div class="relative">
+                    <div class="w-16 h-16 rounded-full border-4 border-gray-200/50 animate-[spin_1s_linear_infinite]"></div>
+                    <div class="w-16 h-16 rounded-full border-4 border-transparent border-t-orange-500 animate-[spin_0.8s_linear_infinite] absolute inset-0"></div>
+                </div>
+                <div class="flex flex-col items-center gap-2">
+                    <p class="text-gray-800 font-medium text-lg">Loading...</p>
+                    <p class="text-gray-500 text-sm">Please wait</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="flex h-screen bg-white">
     {% include 'timesheets/sidebar.html' %}
 </div>
@@ -37,6 +71,52 @@
     </div>
     
     <script>
+        // Loading screen management
+        let currentOverlay = null;
+
+        function showOverlay(overlayId) {
+            const overlay = document.getElementById(overlayId);
+            if (currentOverlay) {
+                currentOverlay.classList.remove('opacity-100');
+                currentOverlay.classList.add('opacity-0');
+                setTimeout(() => {
+                    currentOverlay.classList.add('invisible');
+                    overlay.classList.remove('invisible');
+                    setTimeout(() => {
+                        overlay.classList.add('opacity-100');
+                        overlay.classList.remove('opacity-0');
+                    }, 50);
+                }, 300);
+            } else {
+                overlay.classList.remove('invisible');
+                setTimeout(() => {
+                    overlay.classList.add('opacity-100');
+                    overlay.classList.remove('opacity-0');
+                }, 50);
+            }
+            currentOverlay = overlay;
+        }
+
+        function hideOverlay(overlayId) {
+            const overlay = document.getElementById(overlayId);
+            overlay.classList.remove('opacity-100');
+            overlay.classList.add('opacity-0');
+            setTimeout(() => {
+                overlay.classList.add('invisible');
+            }, 300);
+            currentOverlay = null;
+        }
+
+        // Initial page load
+        window.addEventListener('load', function() {
+            hideOverlay('loading-overlay');
+        });
+
+        // Page exit
+        window.addEventListener('beforeunload', function() {
+            showOverlay('exit-loading-overlay');
+        });
+
         // Sidebar and Hamburger Toggle Functionality
         const sidebar = document.getElementById('sidebar');
         const mainContent = document.getElementById('mainContent');

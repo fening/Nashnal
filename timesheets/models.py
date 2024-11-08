@@ -409,7 +409,13 @@ class ApprovalNotification(models.Model):
         self.read = True
         self.save()
 
+from django.db import models
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
+
 class TimeEntryApproval(models.Model):
+    # Status Constants
     PENDING_FIRST = 'pending_first'
     PENDING_SECOND = 'pending_second'
     APPROVED = 'approved'
@@ -422,18 +428,26 @@ class TimeEntryApproval(models.Model):
         (REJECTED, 'Rejected'),
     ]
     
+    # Core Fields
     time_entry = models.OneToOneField('TimeEntry', on_delete=models.CASCADE, related_name='approval')
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default=PENDING_FIRST)
     submitted_at = models.DateTimeField(auto_now_add=True)
+    
+    # Review Fields - First Level
     first_reviewed_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='first_reviews')
     first_reviewed_at = models.DateTimeField(null=True, blank=True)
     first_reviewer_comments = models.TextField(blank=True, null=True)
+    
+    # Review Fields - Second Level
     second_reviewed_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='second_reviews')
     second_reviewed_at = models.DateTimeField(null=True, blank=True)
     second_reviewer_comments = models.TextField(blank=True, null=True)
+    
+    # Additional Fields
     submitter_comments = models.TextField(blank=True, null=True)
     
     def can_approve(self, user):
+        """Check if the user can approve this time entry"""
         if self.status == self.PENDING_FIRST:
             return user.is_superuser
         elif self.status == self.PENDING_SECOND:
@@ -450,7 +464,6 @@ class TimeEntryApproval(models.Model):
         - 'reject': Notify employee that their time entry has been rejected.
         """
         if action == 'first_approve':
-            # Notify supervisor for final approval
             supervisor = self.time_entry.user.supervisor
             if supervisor:
                 message = (
@@ -464,7 +477,6 @@ class TimeEntryApproval(models.Model):
                     time_entry_approval=self
                 )
         elif action == 'final_approve':
-            # Notify employee that their time entry has been approved
             employee = self.time_entry.user
             message = (
                 f"Your time entry on {self.time_entry.date.strftime('%Y-%m-%d')} "
@@ -476,7 +488,6 @@ class TimeEntryApproval(models.Model):
                 time_entry_approval=self
             )
         elif action == 'reject':
-            # Notify employee that their time entry has been rejected
             employee = self.time_entry.user
             reviewer = self.first_reviewed_by or self.second_reviewed_by
             comments = self.first_reviewer_comments or self.second_reviewer_comments
@@ -492,15 +503,12 @@ class TimeEntryApproval(models.Model):
             )
     
     def create_notifications(self, action, reviewer=None, comments=None):
-        """
-        Create notifications for all relevant parties based on the approval action.
-        """
+        """Create notifications for all relevant parties based on the approval action."""
         time_entry = self.time_entry
         employee = time_entry.user
         superusers = User.objects.filter(is_superuser=True)
         
         if action == 'submit':
-            # Notify superusers about new submission
             message = f"{employee.get_full_name()} submitted a timesheet for {time_entry.date}"
             for superuser in superusers:
                 ApprovalNotification.objects.create(
@@ -509,9 +517,7 @@ class TimeEntryApproval(models.Model):
                     notification_type='submission',
                     time_entry_approval=self
                 )
-                
         elif action == 'first_approve':
-            # Notify employee and supervisor about first approval
             supervisor = employee.supervisor
             message = f"Your timesheet for {time_entry.date} passed first approval by {reviewer.get_full_name()}"
             
@@ -530,9 +536,7 @@ class TimeEntryApproval(models.Model):
                     notification_type='review_needed',
                     time_entry_approval=self
                 )
-                
         elif action == 'final_approve':
-            # Notify employee and superusers about final approval
             message = f"Your timesheet for {time_entry.date} has been approved by {reviewer.get_full_name()}"
             ApprovalNotification.objects.create(
                 recipient=employee,
@@ -550,9 +554,7 @@ class TimeEntryApproval(models.Model):
                         notification_type='approval',
                         time_entry_approval=self
                     )
-                    
         elif action == 'reject':
-            # Notify employee about rejection
             message = f"Your timesheet for {time_entry.date} was rejected by {reviewer.get_full_name()}"
             if comments:
                 message += f"\nComments: {comments}"
@@ -563,3 +565,47 @@ class TimeEntryApproval(models.Model):
                 notification_type='rejection',
                 time_entry_approval=self
             )
+
+    def add_to_history(self, status, reviewer, comments, is_first=False, is_second=False):
+        """Add a new entry to the approval history"""
+        return TimeEntryApprovalHistory.objects.create(
+            time_entry_approval=self,
+            status=status,
+            reviewed_by=reviewer,
+            comments=comments,
+            is_first_review=is_first,
+            is_second_review=is_second
+        )
+
+    @property
+    def current_status(self):
+        """Get the latest status from history"""
+        latest = self.history.first()
+        return latest.status if latest else self.PENDING_FIRST
+
+    @property
+    def latest_first_review(self):
+        """Get the latest first review from history"""
+        return self.history.filter(is_first_review=True).first()
+
+    @property
+    def latest_second_review(self):
+        """Get the latest second review from history"""
+        return self.history.filter(is_second_review=True).first()
+
+
+class TimeEntryApprovalHistory(models.Model):
+    time_entry_approval = models.ForeignKey(TimeEntryApproval, on_delete=models.CASCADE, related_name='history')
+    status = models.CharField(max_length=20, choices=TimeEntryApproval.STATUS_CHOICES)
+    reviewed_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    reviewed_at = models.DateTimeField(auto_now_add=True)
+    comments = models.TextField(blank=True, null=True)
+    is_first_review = models.BooleanField(default=False)
+    is_second_review = models.BooleanField(default=False)
+    
+    class Meta:
+        ordering = ['-reviewed_at']
+        verbose_name_plural = "Time Entry Approval Histories"
+
+    def __str__(self):
+        return f"{self.time_entry_approval.time_entry} - {self.status} at {self.reviewed_at}"

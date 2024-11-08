@@ -17,13 +17,33 @@
                 {% csrf_token %}
                 <div class="flex items-center justify-end">
                     <a href="{% url 'employee_list' %}" 
-                       class="bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold py-3 px-6 rounded-full transition duration-150 ease-in-out mr-2">
-                        Cancel
-                    </a>
-                    <button type="submit" 
-                            class="bg-orange-500 text-gray-800 hover:bg-gray-900 hover:text-white hover:border-gray-700 font-semibold py-3 px-6 rounded-full transition duration-150 ease-in-out">
-                        Delete Employee
-                    </button>
+                    class="inline-flex items-center px-5 py-2.5 border border-gray-200 rounded-xl
+                           text-gray-600 bg-white
+                           hover:bg-gray-50
+                           focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2
+                           transform transition-all duration-200">
+                     <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                               d="M6 18L18 6M6 6l12 12"/>
+                     </svg>
+                     Cancel
+                 </a>
+             
+                 <button type="submit" 
+                         class="inline-flex items-center px-5 py-2.5
+                                bg-gradient-to-r from-red-600 to-red-700
+                                text-white rounded-xl font-medium
+                                border border-transparent
+                                hover:from-red-700 hover:to-red-800
+                                focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2
+                                transform transition-all duration-200
+                                hover:scale-[1.02] active:scale-95">
+                     <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                               d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                     </svg>
+                     Delete Employee
+                 </button>
                 </div>
             </form>
         </div>

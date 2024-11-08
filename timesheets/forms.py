@@ -139,7 +139,7 @@ class JobForm(forms.ModelForm):
         label='Arrive Time:'
     )
     activity_start_mileage = forms.DecimalField(
-        widget=forms.NumberInput(attrs={'placeholder': 'Enter mileage at arrival', 'class': 'form-control mileage-field'}),
+        widget=forms.NumberInput(attrs={'placeholder': 'Enter miles', 'class': 'form-control mileage-field'}),
         label='Mileage at Arrival:'
     )
     activity_leave_time = forms.TimeField(
@@ -147,7 +147,7 @@ class JobForm(forms.ModelForm):
         label='Leave Time:'
     )
     activity_end_mileage = forms.DecimalField(
-        widget=forms.NumberInput(attrs={'placeholder': 'Enter mileage at departure', 'class': 'form-control mileage-field'}),
+        widget=forms.NumberInput(attrs={'placeholder': 'Enter miles', 'class': 'form-control mileage-field'}),
         label='Mileage at Departure:'
     )
 

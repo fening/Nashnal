@@ -5,16 +5,16 @@
 {% endblock %}
 
 {% block content %}
-<div class="max-w-4xl mx-auto p-6">
-    <div class="bg-white shadow-md rounded-lg overflow-hidden">
+<div class="max-w-7xl mx-auto p-6">
+    <div class="bg-white overflow-hidden">
         <!-- Header -->
         <div class="px-6 py-4 bg-gray-50 border-b border-gray-200">
             <div class="flex justify-between items-center">
                 <h2 class="text-lg font-semibold text-gray-800">All Notifications</h2>
                 {% if unread_notifications_count > 0 %}
                     <a href="{% url 'mark_all_notifications_read' %}" 
-                       class="px-4 py-2 rounded-full bg-orange-500 text-gray-800 hover:bg-gray-900 hover:text-white hover:border-gray-700 transition duration-200">
-                        Mark all as read
+                       class="px-4 py-2 rounded-full  hover:bg-gray-900 hover:text-white hover:border-gray-700 transition duration-200">
+                       <i data-lucide="check-circle" class="h-4 w-4 mr-1"></i>
                     </a>
                 {% endif %}
             </div>
@@ -26,47 +26,53 @@
                 <div class="p-6 {% if not notification.read %}bg-blue-50{% endif %} hover:bg-gray-50 transition duration-150 ease-in-out">
                     <div class="flex justify-between items-start">
                         <div class="flex-1">
-                            <div class="flex items-center space-x-3">
-                                <!-- Notification Icon based on type -->
-                                {% if notification.notification_type == 'submission' %}
-                                    <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                                              d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                                    </svg>
-                                {% elif notification.notification_type == 'approval' %}
-                                    <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                                              d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                                    </svg>
-                                {% elif notification.notification_type == 'rejection' %}
-                                    <svg class="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                                              d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                                    </svg>
-                                {% endif %}
+                            <a href="{% url 'notification_link_handler' notification.id %}" 
+                               class="group block">
+                                <div class="flex items-center space-x-3">
+                                    <!-- Notification Icon based on type -->
+                                    {% if notification.notification_type == 'submission' %}
+                                        <i data-lucide="file-plus" class="w-5 h-5 text-blue-500"></i>
+                                    {% elif notification.notification_type == 'approval' %}
+                                        <i data-lucide="check-circle" class="w-5 h-5 text-green-500"></i>
+                                    {% elif notification.notification_type == 'rejection' %}
+                                        <i data-lucide="x-circle" class="w-5 h-5 text-red-500"></i>
+                                    {% elif notification.notification_type == 'first_approve' %}
+                                        <i data-lucide="check" class="w-5 h-5 text-orange-500"></i>
+                                    {% endif %}
 
-                                <p class="text-sm font-medium text-gray-900">{{ notification.message }}</p>
-                            </div>
-                            
-                            <div class="mt-2 text-xs text-gray-500">
-                                {{ notification.created_at|date:"M d, Y H:i" }}
-                            </div>
+                                    <div>
+                                        <p class="text-sm font-medium text-gray-900 group-hover:text-blue-600">
+                                            {{ notification.message }}
+                                        </p>
+                                        <p class="mt-1 text-xs text-gray-500">
+                                            {{ notification.created_at|date:"M d, Y H:i" }}
+                                        </p>
+                                    </div>
+                                </div>
+                            </a>
                         </div>
 
                         <div class="ml-4 flex items-center space-x-4">
-                            {% if notification.time_entry %}
-                                <a href="{% url 'time_entry_detail' notification.time_entry.pk %}" 
-                                   class="text-sm text-blue-600 hover:text-blue-800">
-                                    View Timesheet
-                                </a>
-                            {% endif %}
-                            
                             {% if not notification.read %}
-                                <button onclick="markAsRead('{{ notification.id }}')"
-                                        class="text-sm text-gray-600 hover:text-gray-800">
-                                    Mark as read
-                                </button>
+                                <form action="{% url 'mark_notification_read' notification.id %}" 
+                                      method="POST" 
+                                      class="inline">
+                                    {% csrf_token %}
+                                    <button type="submit" 
+                                            class="text-sm text-gray-600 hover:text-gray-800 flex items-center">
+                                            <i data-lucide="check-circle" class="h-4 w-4 mr-1"></i>
+                                    </button>
+                                </form>
                             {% endif %}
+                            <form action="{% url 'delete_notification' notification.id %}" 
+                                  method="POST" 
+                                  class="inline">
+                                {% csrf_token %}
+                                <button type="submit" 
+                                        class="text-sm text-red-600 hover:text-red-800 flex items-center">
+                                    <i data-lucide="trash-2" class="w-4 h-4 mr-1"></i>
+                                </button>
+                            </form>
                         </div>
                     </div>
                 </div>
