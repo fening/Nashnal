@@ -62,6 +62,7 @@ INSTALLED_APPS = [
 
 ]
 MIDDLEWARE = [
+    'django.middleware.cache.UpdateCacheMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
@@ -73,6 +74,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     # Add the session timeout middleware
     'accounts.middleware.SessionTimeoutMiddleware',  # Add this line
+    'django.middleware.cache.FetchFromCacheMiddleware',
 ]
 
 # Cache settings
@@ -80,9 +82,10 @@ CACHES = {
     'default': {
         'BACKEND': 'django.core.cache.backends.db.DatabaseCache',
         'LOCATION': 'timesheet_cache_table',
-        'TIMEOUT': 300,  # 5 minutes
+        'TIMEOUT': 300,  # 5 minutes default timeout
         'OPTIONS': {
-            'MAX_ENTRIES': 1000
+            'MAX_ENTRIES': 1000,
+            'CULL_FREQUENCY': 3,  # Fraction of entries to remove when MAX_ENTRIES is reached
         }
     }
 }
@@ -264,9 +267,18 @@ AUTH_USER_MODEL = 'accounts.CustomUser'
 CORS_ALLOW_ALL_ORIGINS = True
 
 # Session Settings
+SESSION_ENGINE = 'django.contrib.sessions.backends.cached_db'
 SESSION_COOKIE_AGE = 8 * 60 * 60  # 8 hours in seconds
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 SESSION_SAVE_EVERY_REQUEST = True
+SESSION_COOKIE_SECURE = not DEBUG  # Use secure cookies in production
+SESSION_COOKIE_HTTPONLY = True  # Prevent JavaScript access to session cookie
+SESSION_COOKIE_SAMESITE = 'Lax'  # Protects against CSRF
+
+# Cache middleware settings
+CACHE_MIDDLEWARE_ALIAS = 'default'
+CACHE_MIDDLEWARE_SECONDS = 300
+CACHE_MIDDLEWARE_KEY_PREFIX = 'timesheet'
 
 # Optional: Set session engine (default is database)
 SESSION_ENGINE = 'django.contrib.sessions.backends.db'
