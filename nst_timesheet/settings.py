@@ -174,12 +174,12 @@ AUTH_PASSWORD_VALIDATORS = [
 
 # Email Configuration
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_PORT = 587  # Common port for TLS
-EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'feningokai@gmail.com'
-EMAIL_HOST_PASSWORD = 'dkbw kazw xbsz bzrf'  # Use environment variable in production!
-DEFAULT_FROM_EMAIL = 'TimeSheet App <noreply@nstengr.com>'
+EMAIL_HOST = env('EMAIL_HOST')
+EMAIL_PORT = env('EMAIL_PORT')  # Common port for TLS
+EMAIL_USE_TLS = env('EMAIL_USE_TLS')
+EMAIL_HOST_USER = env('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = env('EMAIL_HOST_PASSWORD')  # Use environment variable in production!
+DEFAULT_FROM_EMAIL = env('DEFAULT_FROM_EMAIL')
 
 # For development/testing, you can use Django's console email backend
 # EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
