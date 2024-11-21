@@ -6,17 +6,23 @@
 
 {% block content %}
 <div class="max-w-7xl mx-auto p-6">
-    <div class="bg-white overflow-hidden">
+    <div class="bg-white rounded-lg shadow overflow-hidden">
         <!-- Header -->
         <div class="px-6 py-4 bg-gray-50 border-b border-gray-200">
             <div class="flex justify-between items-center">
                 <h2 class="text-lg font-semibold text-gray-800">All Notifications</h2>
-                {% if unread_notifications_count > 0 %}
-                    <a href="{% url 'mark_all_notifications_read' %}" 
-                       class="px-4 py-2 rounded-full  hover:bg-gray-900 hover:text-white hover:border-gray-700 transition duration-200">
-                       <i data-lucide="check-circle" class="h-4 w-4 mr-1"></i>
-                    </a>
-                {% endif %}
+                <div class="flex space-x-4">
+                    {% if unread_notifications_count > 0 %}
+                        <form method="POST" action="{% url 'timesheets:mark_all_notifications_read' %}">
+                            {% csrf_token %}
+                            <button type="submit" 
+                                   class="inline-flex items-center px-3 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
+                                <i data-lucide="check-circle" class="h-4 w-4 mr-2"></i>
+                                Mark all as read
+                            </button>
+                        </form>
+                    {% endif %}
+                </div>
             </div>
         </div>
 
@@ -25,52 +31,58 @@
             {% for notification in notifications %}
                 <div class="p-6 {% if not notification.read %}bg-blue-50{% endif %} hover:bg-gray-50 transition duration-150 ease-in-out">
                     <div class="flex justify-between items-start">
-                        <div class="flex-1">
-                            <a href="{% url 'notification_link_handler' notification.id %}" 
-                               class="group block">
-                                <div class="flex items-center space-x-3">
-                                    <!-- Notification Icon based on type -->
-                                    {% if notification.notification_type == 'submission' %}
-                                        <i data-lucide="file-plus" class="w-5 h-5 text-blue-500"></i>
-                                    {% elif notification.notification_type == 'approval' %}
-                                        <i data-lucide="check-circle" class="w-5 h-5 text-green-500"></i>
-                                    {% elif notification.notification_type == 'rejection' %}
-                                        <i data-lucide="x-circle" class="w-5 h-5 text-red-500"></i>
-                                    {% elif notification.notification_type == 'first_approve' %}
-                                        <i data-lucide="check" class="w-5 h-5 text-orange-500"></i>
-                                    {% endif %}
+                        <a href="{% url 'timesheets:notification_link_handler' notification.id %}" 
+                           class="flex-1 group">
+                            <div class="flex items-start space-x-3">
+                                <!-- Notification Icon -->
+                                {% if notification.notification_type == 'submission' %}
+                                    <i data-lucide="file-plus" class="h-5 w-5 text-blue-500"></i>
+                                {% elif notification.notification_type == 'approval' %}
+                                    <i data-lucide="check-circle" class="h-5 w-5 text-green-500"></i>
+                                {% elif notification.notification_type == 'rejection' %}
+                                    <i data-lucide="x-circle" class="h-5 w-5 text-red-500"></i>
+                                {% elif notification.notification_type == 'first_approval' %}
+                                    <i data-lucide="check" class="h-5 w-5 text-orange-500"></i>
+                                {% elif notification.notification_type == 'review_needed' %}
+                                    <i data-lucide="alert-circle" class="h-5 w-5 text-purple-500"></i>
+                                {% endif %}
 
-                                    <div>
-                                        <p class="text-sm font-medium text-gray-900 group-hover:text-blue-600">
-                                            {{ notification.message }}
-                                        </p>
-                                        <p class="mt-1 text-xs text-gray-500">
-                                            {{ notification.created_at|date:"M d, Y H:i" }}
-                                        </p>
-                                    </div>
+                                <div>
+                                    <p class="text-sm font-medium text-gray-900 group-hover:text-blue-600">
+                                        {{ notification.message }}
+                                    </p>
+                                    <p class="mt-1 text-xs text-gray-500">
+                                        {{ notification.created_at|timesince }} ago
+                                        {% if notification.read %}
+                                            <span class="inline-flex items-center ml-2">
+                                                <i data-lucide="check" class="h-3 w-3 mr-1"></i> Read
+                                            </span>
+                                        {% endif %}
+                                    </p>
                                 </div>
-                            </a>
-                        </div>
+                            </div>
+                        </a>
 
+                        <!-- Action Buttons -->
                         <div class="ml-4 flex items-center space-x-4">
                             {% if not notification.read %}
-                                <form action="{% url 'mark_notification_read' notification.id %}" 
-                                      method="POST" 
+                                <form method="POST" action="{% url 'timesheets:mark_notification_read' notification.id %}" 
                                       class="inline">
                                     {% csrf_token %}
                                     <button type="submit" 
-                                            class="text-sm text-gray-600 hover:text-gray-800 flex items-center">
-                                            <i data-lucide="check-circle" class="h-4 w-4 mr-1"></i>
+                                            class="text-sm text-blue-600 hover:text-blue-800">
+                                        <i data-lucide="check-circle" class="h-4 w-4"></i>
+                                        <span class="sr-only">Mark as read</span>
                                     </button>
                                 </form>
                             {% endif %}
-                            <form action="{% url 'delete_notification' notification.id %}" 
-                                  method="POST" 
+                            <form method="POST" action="{% url 'timesheets:delete_notification' notification.id %}" 
                                   class="inline">
                                 {% csrf_token %}
                                 <button type="submit" 
-                                        class="text-sm text-red-600 hover:text-red-800 flex items-center">
-                                    <i data-lucide="trash-2" class="w-4 h-4 mr-1"></i>
+                                        class="text-sm text-red-600 hover:text-red-800">
+                                    <i data-lucide="trash-2" class="h-4 w-4"></i>
+                                    <span class="sr-only">Delete</span>
                                 </button>
                             </form>
                         </div>
@@ -78,65 +90,59 @@
                 </div>
             {% empty %}
                 <div class="p-6 text-center text-gray-500">
-                    No notifications found
+                    <i data-lucide="inbox" class="h-8 w-8 mx-auto mb-4 text-gray-400"></i>
+                    <p>No notifications found</p>
                 </div>
             {% endfor %}
         </div>
 
-        <!-- Pagination if needed -->
+        <!-- Pagination -->
         {% if notifications.has_other_pages %}
             <div class="px-6 py-4 bg-gray-50 border-t border-gray-200">
-                <div class="flex justify-center">
-                    <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px">
+                <nav class="flex justify-center" aria-label="Pagination">
+                    <ul class="inline-flex items-center -space-x-px">
                         {% if notifications.has_previous %}
-                            <a href="?page={{ notifications.previous_page_number }}" 
-                               class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
-                                Previous
-                            </a>
+                            <li>
+                                <a href="?page={{ notifications.previous_page_number }}" 
+                                   class="px-3 py-2 border border-gray-300 rounded-l-md text-sm hover:bg-gray-50">
+                                    Previous
+                                </a>
+                            </li>
                         {% endif %}
-                        
+
                         {% for i in notifications.paginator.page_range %}
-                            <a href="?page={{ i }}" 
-                               class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium 
-                                      {% if notifications.number == i %}
-                                          text-blue-600 bg-blue-50
-                                      {% else %}
-                                          text-gray-700 hover:bg-gray-50
-                                      {% endif %}">
-                                {{ i }}
-                            </a>
+                            <li>
+                                <a href="?page={{ i }}" 
+                                   class="px-3 py-2 border border-gray-300 text-sm 
+                                          {% if notifications.number == i %}
+                                              bg-blue-50 text-blue-600 font-semibold
+                                          {% else %}
+                                              hover:bg-gray-50
+                                          {% endif %}">
+                                    {{ i }}
+                                </a>
+                            </li>
                         {% endfor %}
-                        
+
                         {% if notifications.has_next %}
-                            <a href="?page={{ notifications.next_page_number }}" 
-                               class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
-                                Next
-                            </a>
+                            <li>
+                                <a href="?page={{ notifications.next_page_number }}" 
+                                   class="px-3 py-2 border border-gray-300 rounded-r-md text-sm hover:bg-gray-50">
+                                    Next
+                                </a>
+                            </li>
                         {% endif %}
-                    </nav>
-                </div>
+                    </ul>
+                </nav>
             </div>
         {% endif %}
     </div>
 </div>
 
-<!-- JavaScript for marking notifications as read -->
+<!-- Initialize Lucide Icons -->
 <script>
-function markAsRead(notificationId) {
-    fetch(`/notifications/${notificationId}/mark-read/`, {
-        method: 'POST',
-        headers: {
-            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
-        },
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.status === 'success') {
-            // Refresh the page or update the UI
-            window.location.reload();
-        }
-    })
-    .catch(error => console.error('Error:', error));
-}
+    document.addEventListener('DOMContentLoaded', function() {
+        lucide.createIcons();
+    });
 </script>
 {% endblock %}

@@ -107,14 +107,14 @@
             currentOverlay = null;
         }
 
-        // Initial page load
-        window.addEventListener('load', function() {
-            hideOverlay('loading-overlay');
+        // Show loading overlay on HTMX requests
+        document.body.addEventListener('htmx:beforeRequest', function() {
+            showOverlay('loading-overlay');
         });
 
-        // Page exit
-        window.addEventListener('beforeunload', function() {
-            showOverlay('exit-loading-overlay');
+        // Hide loading overlay after HTMX requests complete
+        document.body.addEventListener('htmx:afterRequest', function() {
+            hideOverlay('loading-overlay');
         });
 
         // Sidebar and Hamburger Toggle Functionality
@@ -122,51 +122,88 @@
         const mainContent = document.getElementById('mainContent');
         const sidebarToggle = document.getElementById('sidebarToggle');
         const closeSidebar = document.getElementById('closeSidebar');
-        const hamburgerMenu = sidebarToggle; // Assuming sidebarToggle is the hamburger menu
-        let isSidebarOpen = true; // Initially, the sidebar is open
+        const hamburgerMenu = sidebarToggle;
 
-        function toggleSidebar() {
-            isSidebarOpen = !isSidebarOpen;
-            sidebar.classList.toggle('-translate-x-full');
-            mainContent.classList.toggle('ml-64');
-            mainContent.classList.toggle('ml-0');
+        // State management functions
+        function saveSidebarState(isOpen) {
+            localStorage.setItem('sidebarState', JSON.stringify(isOpen));
+        }
 
-            // Toggle hamburger menu visibility
-            if (isSidebarOpen) {
-                // Sidebar is open, hide the hamburger menu
-                hamburgerMenu.classList.add('hidden');
-            } else {
-                // Sidebar is closed, show the hamburger menu
+        function loadSidebarState() {
+            const saved = localStorage.getItem('sidebarState');
+            return saved !== null ? JSON.parse(saved) : true; // Default to open
+        }
+
+        function applySidebarState(isOpen) {
+            if (window.innerWidth < 768) {
+                // Mobile view: always closed initially
+                sidebar.classList.add('-translate-x-full');
+                mainContent.classList.remove('ml-64');
+                mainContent.classList.add('ml-0');
                 hamburgerMenu.classList.remove('hidden');
+            } else {
+                // Desktop view: respect saved state
+                sidebar.classList.toggle('-translate-x-full', !isOpen);
+                mainContent.classList.toggle('ml-64', isOpen);
+                mainContent.classList.toggle('ml-0', !isOpen);
+                hamburgerMenu.classList.toggle('hidden', isOpen);
             }
         }
 
-        // Initial state setup
+        function toggleSidebar() {
+            const isOpen = !sidebar.classList.contains('-translate-x-full');
+            sidebar.classList.toggle('-translate-x-full');
+            mainContent.classList.toggle('ml-64');
+            mainContent.classList.toggle('ml-0');
+            hamburgerMenu.classList.toggle('hidden', !isOpen);
+            saveSidebarState(!isOpen);
+        }
+
+        // Add this new function
+        function closeSidebarOnMobileClick(event) {
+            // Only proceed if we're in mobile view and the sidebar is open
+            if (window.innerWidth < 768 && !sidebar.classList.contains('-translate-x-full')) {
+                // Check if click is outside sidebar and isn't the hamburger menu
+                if (!sidebar.contains(event.target) && !sidebarToggle.contains(event.target)) {
+                    sidebar.classList.add('-translate-x-full');
+                    mainContent.classList.remove('ml-64');
+                    mainContent.classList.add('ml-0');
+                    hamburgerMenu.classList.remove('hidden');
+                    saveSidebarState(false);
+                }
+            }
+        }
+
+        // Initialize sidebar
         document.addEventListener('DOMContentLoaded', function() {
-            // Assuming sidebar starts open, hide hamburger menu
-            hamburgerMenu.classList.add('hidden');
+            const savedState = loadSidebarState();
+            applySidebarState(savedState);
+            
+            // Add the click event listener to the document
+            document.addEventListener('click', closeSidebarOnMobileClick);
+        });
+
+        // Resize handler
+        let lastWidth = window.innerWidth;
+        window.addEventListener('resize', function() {
+            const currentWidth = window.innerWidth;
+            const breakpoint = 768;
+            const savedState = loadSidebarState();
+            
+            if (currentWidth >= breakpoint) {
+                // Transitioning to desktop: respect saved state
+                applySidebarState(savedState);
+            } else if (lastWidth >= breakpoint && currentWidth < breakpoint) {
+                // Transitioning to mobile: always close
+                applySidebarState(false);
+            }
+            
+            lastWidth = currentWidth;
         });
 
         // Event listeners
         sidebarToggle.addEventListener('click', toggleSidebar);
         closeSidebar.addEventListener('click', toggleSidebar);
-
-        // Ensure hamburger menu visibility on window resize (optional)
-        window.addEventListener('resize', function() {
-            if (window.innerWidth >= 768) { // Example breakpoint
-                sidebar.classList.remove('-translate-x-full');
-                mainContent.classList.add('ml-64');
-                mainContent.classList.remove('ml-0');
-                hamburgerMenu.classList.add('hidden');
-                isSidebarOpen = true;
-            } else {
-                sidebar.classList.add('-translate-x-full');
-                mainContent.classList.remove('ml-64');
-                mainContent.classList.add('ml-0');
-                hamburgerMenu.classList.remove('hidden');
-                isSidebarOpen = false;
-            }
-        });
     </script>
 </body>
 </html>

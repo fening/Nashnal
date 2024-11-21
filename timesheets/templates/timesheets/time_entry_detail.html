@@ -464,14 +464,14 @@ Timesheet Entries - Detailed View
                    no-print">
         <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                  d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
+                  d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
         </svg>
         Print Report
     </button>
     
     {% if request.user.is_superuser or request.user.role == 'Supervisor' %}
         <!-- Overwrite Button for Supervisors/Admins -->
-        <a href="{% url 'time_entry_edit' time_entry.pk %}" 
+        <a href="{% url 'timesheets:time_entry_edit' time_entry.pk %}" 
            class="inline-flex items-center px-6 py-2.5 bg-gradient-to-r from-red-600 to-red-700 
                   text-white rounded-xl font-medium
                   border border-transparent
@@ -488,7 +488,7 @@ Timesheet Entries - Detailed View
     {% else %}
         <!-- Submit for Approval Button (Only for regular users) -->
         {% if time_entry.can_submit_for_approval %}
-            <a href="{% url 'submit_for_approval' time_entry.pk %}" 
+            <a href="{% url 'timesheets:submit_for_approval' time_entry.pk %}" 
                class="inline-flex items-center px-6 py-2.5 bg-gradient-to-r from-gray-800 to-gray-900 
                       text-white rounded-xl font-medium
                       border border-transparent
@@ -506,7 +506,7 @@ Timesheet Entries - Detailed View
 
         <!-- Edit Button (Only for regular users) -->
         {% if not time_entry.is_approved %}
-            <a href="{% url 'time_entry_edit' time_entry.pk %}" 
+            <a href="{% url 'timesheets:time_entry_edit' time_entry.pk %}" 
                class="inline-flex items-center px-6 py-2.5 bg-gradient-to-r from-gray-800 to-gray-900 
                       text-white rounded-xl font-medium
                       border border-transparent
@@ -525,7 +525,7 @@ Timesheet Entries - Detailed View
     
     <!-- Review Button (For supervisors/admins) -->
     {% if perms.timesheets.can_approve_timesheet and time_entry.is_pending_approval %}
-        <a href="{% url 'review_time_entry' time_entry.pk %}" 
+        <a href="{% url 'timesheets:review_time_entry' time_entry.pk %}" 
            class="inline-flex items-center px-6 py-2.5 bg-gradient-to-r from-gray-800 to-gray-900 
                   text-white rounded-xl font-medium
                   border border-transparent
@@ -542,7 +542,7 @@ Timesheet Entries - Detailed View
     {% endif %}
     
     <!-- Back to List Button -->
-    <a href="{% url 'time_entry_list' %}" 
+    <a href="{% url 'timesheets:time_entry_list' %}" 
        class="inline-flex items-center px-6 py-2.5 bg-gradient-to-r from-gray-50 to-gray-100 
               text-gray-800 rounded-xl font-medium
               border border-transparent

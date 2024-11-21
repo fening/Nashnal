@@ -23,9 +23,8 @@ router = DefaultRouter()
 router.register(r'timeentries', TimeEntryViewSet)
 
 urlpatterns = [
-    path('api/', include(router.urls)),
-
     path('admin/', admin.site.urls),
-    path('time-entry/', include('timesheets.urls')),
-    path('accounts/', include('accounts.urls')),
+    path('api/', include(router.urls)),
+    path('accounts/', include('accounts.urls', namespace='accounts')),
+    path('', include('timesheets.urls', namespace='timesheets')),
 ]

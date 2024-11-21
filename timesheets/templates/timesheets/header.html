@@ -1,4 +1,3 @@
-{# header.html #}
 <!-- Add this style in the header or your main CSS file -->
 <style>
     [x-cloak] { 
@@ -20,10 +19,11 @@
             <!-- Notification Bell - Show for all authenticated users -->
             <div class="relative" x-data="{ open: false }" x-cloak>
                 <button @click="open = !open" 
+                        id="notification-button"
                         class="relative p-2 text-black hover:text-gray-800 focus:outline-none">
                     <i data-lucide="bell" class="h-6 w-6"></i>
                     {% if unread_notifications_count and unread_notifications_count > 0 %}
-                        <span class="absolute top-0 right-0 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white transform translate-x-1/2 -translate-y-1/2 bg-red-600 rounded-full">
+                        <span id="notification-badge" class="absolute top-0 right-0 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white transform translate-x-1/2 -translate-y-1/2 bg-red-600 rounded-full">
                             {{ unread_notifications_count }}
                         </span>
                     {% endif %}
@@ -51,34 +51,21 @@
                                     {% endif %}
                                 </h3>
                                 <div class="flex space-x-2">
-                                    {% if unread_notifications_count > 0 %}
-                                        <form action="{% url 'mark_all_notifications_read' %}" method="POST" class="inline">
-                                            {% csrf_token %}
-                                            <button type="submit" 
-                                                    class="text-xs text-blue-600 hover:text-blue-800 flex items-center">
-                                                <i data-lucide="check-circle" class="h-4 w-4 mr-1"></i>
-                                            </button>
-                                        </form>
-                                    {% endif %}
-                                    {% if recent_notifications %}
-                                        <form action="{% url 'clear_all_notifications' %}" method="POST" class="inline">
-                                            {% csrf_token %}
-                                            <button type="submit" 
-                                                    class="text-xs text-red-600 hover:text-red-800 flex items-center">
-                                                <i data-lucide="trash-2" class="h-4 w-4 mr-1"></i>
-                                            </button>
-                                        </form>
-                                    {% endif %}
+                                    <!-- Clear Notifications Button -->
+                                    <button id="clear-notifications" 
+                                            class="text-xs text-red-600 hover:text-red-800 flex items-center" title="Clear notifications">
+                                        <i data-lucide="x-circle" class="h-4 w-4 mr-1"></i>
+                                    </button>
                                 </div>
                             </div>
                         </div>
 
                         <!-- Notification List -->
-                        <div class="max-h-96 overflow-y-auto">
+                        <div id="notification-list" class="max-h-96 overflow-y-auto">
                             {% if recent_notifications %}
                                 {% for notification in recent_notifications %}
-                                    <a href="{% url 'notification_link_handler' notification.id %}" 
-                                       class="block px-4 py-3 hover:bg-gray-50 {% if not notification.read %}bg-blue-50{% endif %} border-b border-gray-100">
+                                    <a href="{% url 'timesheets:notification_link_handler' notification.id %}" 
+                                       class="block px-4 py-3 hover:bg-gray-50 {% if not notification.read %}bg-blue-50{% endif %} border-b border-gray-100 transition-colors duration-150">
                                         <div class="flex items-start">
                                             <!-- Notification Icon -->
                                             {% if notification.notification_type == 'submission' %}
@@ -87,10 +74,10 @@
                                                 <i data-lucide="check-circle" class="h-5 w-5 mr-3 text-green-500"></i>
                                             {% elif notification.notification_type == 'rejection' %}
                                                 <i data-lucide="x-circle" class="h-5 w-5 mr-3 text-red-500"></i>
-                                            {% elif notification.notification_type == 'first_approve' %}
+                                            {% elif notification.notification_type == 'first_approval' %}
                                                 <i data-lucide="check" class="h-5 w-5 mr-3 text-orange-500"></i>
                                             {% endif %}
-                                            
+
                                             <div class="flex-1">
                                                 <p class="text-sm text-gray-700">{{ notification.message }}</p>
                                                 <p class="text-xs text-gray-500 mt-1">{{ notification.created_at|timesince }} ago</p>
@@ -108,7 +95,7 @@
 
                         <!-- Footer -->
                         <div class="px-4 py-2 bg-gray-50 border-t border-gray-200">
-                            <a href="{% url 'all_notifications' %}" 
+                            <a href="{% url 'timesheets:all_notifications' %}" 
                                class="text-sm text-blue-600 hover:text-blue-800 flex items-center justify-center">
                                 <i data-lucide="list" class="h-4 w-4 mr-1"></i>
                                 View all notifications
@@ -117,7 +104,7 @@
                     </div>
                 </div>
             </div>
-            
+
             <!-- Rest of the header content... -->
         {% endif %}
 
@@ -144,33 +131,33 @@
                        <p class="text-sm font-medium text-gray-900 truncate">{{ user.get_full_name }}</p>
                        <p class="text-xs text-gray-500 truncate">{{ user.email }}</p>
                    </div>
-                        
+
                     <!-- Navigation Links -->
                     <div class="py-1">
-                        <a href="{% url 'profile' %}" 
+                        <a href="{% url 'accounts:profile' %}" 
                            class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors duration-150">
                             <i data-lucide="user" class="h-4 w-4 min-w-[1rem] mr-2"></i>
                             <span class="truncate">Profile</span>
                         </a>
-                        
+
                         {% if user.role == 'Supervisor' or user.is_superuser %}
-                            <a href="{% url 'team_timesheets' %}" 
+                            <a href="{% url 'timesheets:team_timesheets' %}" 
                                class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors duration-150">
                                 <i data-lucide="users" class="h-4 w-4 min-w-[1rem] mr-2"></i>
                                 <span class="truncate">Team Timesheets</span>
                             </a>
                         {% endif %}
-                        
-                        <a href="{% url 'user_summary_report' %}" 
+
+                        <a href="{% url 'timesheets:user_summary_report' %}" 
                            class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors duration-150">
                             <i data-lucide="clipboard-list" class="h-4 w-4 min-w-[1rem] mr-2"></i>
                             <span class="truncate">Summary Report</span>
                         </a>
                     </div>
-                        
+
                     <!-- Logout Section -->
                     <div class="border-t border-gray-200">
-                        <form method="post" action="{% url 'logout' %}">
+                        <form method="post" action="{% url 'accounts:logout' %}">
                             {% csrf_token %}
                             <button type="submit" 
                                     class="w-full flex items-center px-4 py-2 text-sm text-red-600 hover:bg-gray-100 transition-colors duration-150">
@@ -185,9 +172,49 @@
     </div>
 </header>
 
-<!-- Initialize Lucide Icons -->
+<!-- Initialize Lucide Icons and Add JavaScript -->
 <script>
     document.addEventListener('DOMContentLoaded', function() {
+        // Initialize Lucide Icons
         lucide.createIcons();
+
+        // Check if notifications have been cleared previously
+        if (localStorage.getItem('notificationsCleared') === 'true') {
+            clearNotificationsFromTray();
+        }
+
+        // Clear Notifications Button Event Listener
+        var clearNotificationsButton = document.getElementById('clear-notifications');
+        if (clearNotificationsButton) {
+            clearNotificationsButton.addEventListener('click', function() {
+                clearNotificationsFromTray();
+                // Store the state in localStorage
+                localStorage.setItem('notificationsCleared', 'true');
+            });
+        }
+
+        function clearNotificationsFromTray() {
+            var notificationList = document.getElementById('notification-list');
+            if (notificationList) {
+                // Remove all child nodes
+                while (notificationList.firstChild) {
+                    notificationList.removeChild(notificationList.firstChild);
+                }
+                // Display a "No new notifications" message
+                var noNotificationsMessage = document.createElement('div');
+                noNotificationsMessage.className = 'px-4 py-3 text-sm text-gray-500 flex items-center justify-center';
+                noNotificationsMessage.innerHTML = '<i data-lucide="inbox" class="h-5 w-5 mr-2 text-gray-400"></i>No new notifications';
+                notificationList.appendChild(noNotificationsMessage);
+
+                // Re-initialize Lucide icons for the new content
+                lucide.createIcons();
+
+                // Hide the notification badge
+                var notificationBadge = document.getElementById('notification-badge');
+                if (notificationBadge) {
+                    notificationBadge.style.display = 'none';
+                }
+            }
+        }
     });
 </script>

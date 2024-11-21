@@ -76,7 +76,7 @@
                 {% endfor %}
                 
                 <div class="mt-8 flex items-center justify-end space-x-4">
-                    <a href="{% url 'employee_list' %}" 
+                    <a href="{% url 'accounts:employee_list' %}" 
                     class="inline-flex items-center px-5 py-2.5 border border-gray-200 rounded-xl
                            text-gray-600 bg-white
                            hover:bg-gray-50
@@ -125,7 +125,7 @@ function resendInvitation(invitationId) {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            window.location.href = "{% url 'employee_list' %}";
+            window.location.href = "{% url 'accounts:employee_list' %}";
         } else {
             alert('Error resending invitation: ' + (data.error || 'Unknown error'));
         }

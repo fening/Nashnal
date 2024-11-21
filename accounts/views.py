@@ -45,7 +45,7 @@ def register_view(request):
                     messages.success(request, f"Account created successfully! Welcome, {user.username}.")
                     
                     # Always redirect to dashboard initially
-                    return redirect('dashboard')
+                    return redirect('timesheets:dashboard')
                     
             except IntegrityError as e:
                 print(f"IntegrityError: {e}")
@@ -65,8 +65,12 @@ def login_view(request):
         form = CustomAuthenticationForm(data=request.POST)
         if form.is_valid():
             user = form.get_user()
-            login(request, user)
-            return redirect('dashboard')
+            if user is not None:
+                login(request, user)
+                next_url = request.GET.get('next')
+                if next_url:
+                    return redirect(next_url)
+                return redirect('timesheets:dashboard')  # Add namespace
         else:
             return render(request, 'accounts/login.html', {'form': form, 'error': 'Invalid credentials'})
     else:
@@ -77,7 +81,7 @@ def login_view(request):
 def logout_view(request):
     if request.method == 'POST':
         logout(request)
-        return redirect('login')
+        return redirect('accounts:login')
     else:
         return render(request, 'accounts/logout.html')
     
@@ -101,7 +105,7 @@ def employee_list_view(request):
     # Check permissions
     if not (request.user.is_superuser or (hasattr(request.user, 'role') and request.user.role == 'Supervisor')):
         messages.error(request, "You don't have permission to view this page.")
-        return redirect('dashboard')
+        return redirect('timesheets:dashboard')
 
     # Set appropriate view title based on user role
     if request.user.is_superuser:
@@ -169,14 +173,14 @@ def employee_list_view(request):
 def employee_update(request, pk):
     if not (request.user.is_superuser or (hasattr(request.user, 'role') and request.user.role == 'Supervisor')):
         messages.error(request, "You don't have permission to update employees.")
-        return redirect('dashboard')
+        return redirect('timesheets:dashboard')
 
     employee = get_object_or_404(CustomUser, pk=pk)
     
     # Check if the user has permission to edit this employee
     if not request.user.is_superuser and request.user != employee.supervisor:
         messages.error(request, "You don't have permission to edit this employee.")
-        return redirect('employee_list')
+        return redirect('accounts:employee_list')
 
     if request.method == 'POST':
         form = EmployeeForm(request.POST, instance=employee)
@@ -202,7 +206,7 @@ def employee_update(request, pk):
                             employee.groups.remove(supervisor_group)
                     
                     messages.success(request, f"Employee {employee.get_full_name()} updated successfully.")
-                    return redirect('employee_list')
+                    return redirect('accounts:employee_list')
             except Exception as e:
                 messages.error(request, f"Error updating employee: {str(e)}")
     else:
@@ -225,7 +229,7 @@ def employee_delete(request, pk):
     if request.method == 'POST':
         employee.delete()
         messages.success(request, f"Employee {employee.get_full_name()} deleted successfully.")
-        return redirect('employee_list')
+        return redirect('accounts:employee_list')
     return render(request, 'accounts/employee_confirm_delete.html', {'employee': employee})
 
 
@@ -261,7 +265,7 @@ CustomUser = get_user_model()
 def send_invitation_email(invitation, request):
     """Send invitation email to the new employee"""
     registration_url = request.build_absolute_uri(
-        reverse('complete_registration', args=[str(invitation.token)])
+        reverse('accounts:complete_registration', args=[str(invitation.token)])
     )
     
     context = {
@@ -295,7 +299,7 @@ def employee_create(request):
     print("Method:", request.method)  # Debug print
     if not (request.user.is_superuser or (hasattr(request.user, 'role') and request.user.role == 'Supervisor')):
         messages.error(request, "You don't have permission to create employees.")
-        return redirect('dashboard')
+        return redirect('timesheets:dashboard')
 
     if request.method == 'POST':
         print("POST data:", request.POST)  # Debug print
@@ -377,7 +381,7 @@ def employee_create(request):
                 else:
                     messages.success(request, "Employee added successfully.")
                 
-                return redirect('employee_list')
+                return redirect('accounts:employee_list')
                 
         except Exception as e:
             print(f"Error creating employee: {str(e)}")  # Debug print
@@ -410,7 +414,7 @@ def complete_registration(request, token):
             messages.error(request, "This invitation has already been used.")
         else:
             messages.error(request, "This invitation has expired.")
-        return redirect('login')
+        return redirect('accounts:login')
     
     if request.method == 'POST':
         # Validate form data
@@ -484,7 +488,7 @@ def complete_registration(request, token):
                     messages.success(request, "Registration completed successfully! Please log in.")
                     
                     # Redirect to login page
-                    return redirect('login')
+                    return redirect('accounts:login')
                     
             except Exception as e:
                 messages.error(request, f"Error completing registration: {str(e)}")
@@ -500,7 +504,7 @@ def manage_invitations(request):
     """View for managing pending invitations"""
     if not (request.user.is_superuser or (hasattr(request.user, 'role') and request.user.role == 'Supervisor')):
         messages.error(request, "You don't have permission to view this page.")
-        return redirect('dashboard')
+        return redirect('timesheets:dashboard')
 
     # Get pending invitations
     if request.user.is_superuser:
@@ -593,7 +597,7 @@ class CustomPasswordResetView(SuccessMessageMixin, PasswordResetView):
     template_name = 'accounts/password_reset_form.html'
     email_template_name = 'accounts/password_reset_email.html'
     subject_template_name = 'accounts/password_reset_subject.txt'
-    success_url = reverse_lazy('password_reset_done')
+    success_url = reverse_lazy('accounts:password_reset_done')
     success_message = "We've emailed you instructions for setting your password."
     
 class CustomPasswordResetDoneView(PasswordResetDoneView):
@@ -601,7 +605,7 @@ class CustomPasswordResetDoneView(PasswordResetDoneView):
 
 class CustomPasswordResetConfirmView(PasswordResetConfirmView):
     template_name = 'accounts/password_reset_confirm.html'
-    success_url = reverse_lazy('password_reset_complete')
+    success_url = reverse_lazy('accounts:password_reset_complete')
     
 class CustomPasswordResetCompleteView(PasswordResetCompleteView):
     template_name = 'accounts/password_reset_complete.html'

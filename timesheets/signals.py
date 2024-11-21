@@ -1,5 +1,7 @@
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+from django.utils import timezone
+from datetime import timedelta
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group, Permission
 from django.contrib.contenttypes.models import ContentType
@@ -10,6 +12,9 @@ User = get_user_model()
 @receiver(post_save, sender=TimeEntryApproval)
 def create_approval_notifications(sender, instance, created, **kwargs):
     """Create notifications when TimeEntryApproval status changes"""
+    # Check for recent notifications (within last minute)
+    time_threshold = timezone.now() - timedelta(minutes=1)
+    
     if created:
         # Notify superusers of new submission
         superusers = User.objects.filter(is_superuser=True)
@@ -33,13 +38,25 @@ def create_approval_notifications(sender, instance, created, **kwargs):
                     time_entry_approval=instance
                 )
         elif instance.status in [TimeEntryApproval.APPROVED, TimeEntryApproval.REJECTED]:
-            # Notify employee
-            ApprovalNotification.objects.create(
-                recipient=instance.time_entry.user,
-                message=f"Your timesheet for {instance.time_entry.date} has been {'approved' if instance.status == TimeEntryApproval.APPROVED else 'rejected'}",
-                notification_type='approval' if instance.status == TimeEntryApproval.APPROVED else 'rejection',
-                time_entry_approval=instance
-            )
+            # Check for recent notifications for this approval
+            recent_notification = ApprovalNotification.objects.filter(
+                time_entry_approval=instance,
+                notification_type__in=['approval', 'rejection'],
+                created_at__gte=time_threshold
+            ).exists()
+            
+            if not recent_notification:
+                status_text = 'approved' if instance.status == TimeEntryApproval.APPROVED else 'rejected'
+                message = f"Your timesheet for {instance.time_entry.date} was {status_text}"
+                if instance.status == TimeEntryApproval.REJECTED and instance.comments:
+                    message += f" by {instance.reviewer.get_full_name()} Comments: {instance.comments}"
+                
+                ApprovalNotification.objects.create(
+                    recipient=instance.time_entry.user,
+                    message=message,
+                    notification_type='approval' if instance.status == TimeEntryApproval.APPROVED else 'rejection',
+                    time_entry_approval=instance
+                )
 
 @receiver(post_save, sender=User)
 def setup_supervisor_permissions(sender, instance, created, **kwargs):

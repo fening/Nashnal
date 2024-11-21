@@ -61,8 +61,8 @@ INSTALLED_APPS = [
     'widget_tweaks',
 
 ]
+
 MIDDLEWARE = [
-    'django.middleware.cache.UpdateCacheMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
@@ -72,38 +72,16 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    # Add the session timeout middleware
-    'accounts.middleware.SessionTimeoutMiddleware',  # Add this line
-    'django.middleware.cache.FetchFromCacheMiddleware',
+    'accounts.middleware.SessionTimeoutMiddleware',
 ]
 
-# Cache settings
-CACHES = {
-    'default': {
-        'BACKEND': 'django.core.cache.backends.db.DatabaseCache',
-        'LOCATION': 'timesheet_cache_table',
-        'TIMEOUT': 300,  # 5 minutes default timeout
-        'OPTIONS': {
-            'MAX_ENTRIES': 1000,
-            'CULL_FREQUENCY': 3,  # Fraction of entries to remove when MAX_ENTRIES is reached
-        }
-    }
-}
-
-REST_FRAMEWORK = {
-    'DEFAULT_AUTHENTICATION_CLASSES': [
-        'rest_framework.authentication.TokenAuthentication',
-        'rest_framework.authentication.SessionAuthentication',
-    ],
-}
-
-ROOT_URLCONF = 'nst_timesheet.urls'
+# Remove CACHES setting entirely
 
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'DIRS': [BASE_DIR / 'templates'],
-        'APP_DIRS': False,  # Changed to False since we're using the cached loader
+        'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
                 'django.template.context_processors.debug',
@@ -112,21 +90,20 @@ TEMPLATES = [
                 'django.contrib.messages.context_processors.messages',
                 'timesheets.context_processors.notification_context',
             ],
-            'loaders': [
-                ('django.template.loaders.cached.Loader', [
-                    'django.template.loaders.filesystem.Loader',
-                    'django.template.loaders.app_directories.Loader',
-                ]),
-            ] if not DEBUG else [  # Only use cached loader in production
-                'django.template.loaders.filesystem.Loader',
-                'django.template.loaders.app_directories.Loader',
-            ],
         },
     },
 ]
 
-# Add template fragment cache timeout
-TEMPLATE_CACHE_TIMEOUT = 300  # 5 minutes
+# Remove these cache-related settings:
+# - TEMPLATE_CACHE_TIMEOUT
+# - CACHE_MIDDLEWARE_ALIAS
+# - CACHE_MIDDLEWARE_SECONDS
+# - CACHE_MIDDLEWARE_KEY_PREFIX
+
+# Change session engine to db-only
+SESSION_ENGINE = 'django.contrib.sessions.backends.db'
+
+ROOT_URLCONF = 'nst_timesheet.urls'
 
 WSGI_APPLICATION = 'nst_timesheet.wsgi.application'
 
@@ -274,11 +251,3 @@ SESSION_SAVE_EVERY_REQUEST = True
 SESSION_COOKIE_SECURE = not DEBUG  # Use secure cookies in production
 SESSION_COOKIE_HTTPONLY = True  # Prevent JavaScript access to session cookie
 SESSION_COOKIE_SAMESITE = 'Lax'  # Protects against CSRF
-
-# Cache middleware settings
-CACHE_MIDDLEWARE_ALIAS = 'default'
-CACHE_MIDDLEWARE_SECONDS = 300
-CACHE_MIDDLEWARE_KEY_PREFIX = 'timesheet'
-
-# Optional: Set session engine (default is database)
-SESSION_ENGINE = 'django.contrib.sessions.backends.db'

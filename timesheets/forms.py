@@ -212,8 +212,10 @@ class JobForm(forms.ModelForm):
 class JobDetailsForm(forms.ModelForm):
     class Meta:
         model = JobDetails
-        fields = ['job_description', 'distance_office', 'time_office']
+        fields = ['project_number', 'client_number', 'job_description', 'distance_office', 'time_office']
         widgets = {
+            'project_number': forms.TextInput(attrs={'class': 'form-control'}),
+            'client_number': forms.TextInput(attrs={'class': 'form-control'}),
             'job_description': forms.TextInput(attrs={'class': 'form-control'}),
             'distance_office': forms.NumberInput(attrs={'class': 'form-control'}),
             'time_office': forms.NumberInput(attrs={'class': 'form-control'}),  # Use NumberInput for numeric fields

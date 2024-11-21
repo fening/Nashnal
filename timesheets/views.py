@@ -99,7 +99,7 @@ def time_entry_detail(request, pk):
             (is_supervisor and time_entry.user.supervisor == request.user) or 
             time_entry.user == request.user):
         messages.error(request, "You don't have permission to view this time entry.")
-        return redirect('time_entry_list')
+        return redirect('timesheets:time_entry_list')
 
     # Get the approval history if it exists
     approval_history = None
@@ -126,6 +126,35 @@ def time_entry_detail(request, pk):
             time_entry.can_submit_for_approval
         )
     }
+
+    # Get next and previous entries
+    if is_superuser:
+        next_entry = TimeEntry.objects.filter(id__gt=pk).order_by('id').first()
+        prev_entry = TimeEntry.objects.filter(id__lt=pk).order_by('-id').first()
+    elif is_supervisor:
+        next_entry = TimeEntry.objects.filter(
+            user__supervisor=request.user,
+            id__gt=pk
+        ).order_by('id').first()
+        prev_entry = TimeEntry.objects.filter(
+            user__supervisor=request.user,
+            id__lt=pk
+        ).order_by('-id').first()
+    else:
+        next_entry = TimeEntry.objects.filter(
+            user=request.user,
+            id__gt=pk
+        ).order_by('id').first()
+        prev_entry = TimeEntry.objects.filter(
+            user=request.user,
+            id__lt=pk
+        ).order_by('-id').first()
+
+    # Add to existing context
+    context.update({
+        'next_entry': next_entry,
+        'prev_entry': prev_entry,
+    })
 
     return render(request, 'timesheets/time_entry_detail.html', context)
 
@@ -265,7 +294,7 @@ def time_entry_create(request):
                     job.save()
                     print(f"Saved job: {job}")
             
-            return redirect('time_entry_detail', pk=time_entry.pk)
+            return redirect('timesheets:time_entry_detail', pk=time_entry.pk)
         else:
             print(f"Form errors: {form.errors}")
             print(f"Formset errors: {formset.errors}")
@@ -325,7 +354,7 @@ def time_entry_edit(request, pk):
                         raise ValueError("At least one job must be present.")
 
                 messages.success(request, "Time entry updated successfully.")
-                return redirect('time_entry_detail', pk=time_entry.pk)
+                return redirect('timesheets:time_entry_detail', pk=time_entry.pk)
             except ValueError as e:
                 messages.error(request, str(e))
             except Exception as e:
@@ -354,7 +383,7 @@ def time_entry_delete(request, pk):
     time_entry = get_object_or_404(TimeEntry, pk=pk)
     if request.method == 'POST':
         time_entry.delete()
-        return redirect('time_entry_list')
+        return redirect('timesheets:time_entry_list')
     
     return render(request, 'timesheets/time_entry_confirm_delete.html', {'time_entry': time_entry})
 
@@ -367,7 +396,7 @@ def supervisor_dashboard(request):
     # Allow both superusers and supervisors to access
     if not (request.user.is_superuser or (hasattr(request.user, 'role') and request.user.role == 'Supervisor')):
         messages.error(request, "You don't have permission to access this page.")
-        return redirect('dashboard')
+        return redirect('timesheets:dashboard')
 
     # Get supervisor's team members with caching
     cache_key = f'team_members_{request.user.id}'
@@ -459,7 +488,7 @@ def team_timesheets(request):
     # Allow both superusers and supervisors to access
     if not (request.user.is_superuser or (hasattr(request.user, 'role') or request.user.role == 'Supervisor')):
         messages.error(request, "You don't have permission to view this page.")
-        return redirect('dashboard')
+        return redirect('timesheets:dashboard')
 
     # Get all team members based on role
     if request.user.is_superuser:
@@ -581,32 +610,59 @@ def user_summary_report(request):
 
     # Calculate weekly hours per labor code and day
     weekly_hours = {}
-    daily_totals = {day: 0.00 for day in ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']}
-    total_hours_for_week = 0.00
+    daily_totals = {day: Decimal('0.00') for day in ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']}
+    total_hours_for_week = Decimal('0.00')
 
     # Process time entries and jobs
     for entry in time_entries:
-        for job in entry.jobs.all():
-            day_of_week = entry.date.strftime('%A')
-            if job.labor_code.laborcode not in weekly_hours:
-                weekly_hours[job.labor_code.laborcode] = {
-                    "description": job.job_description,
-                    "labor_code_description": job.labor_code_description,
-                    "hours": {day: 0.00 for day in ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']}
-                }
+        day_of_week = entry.date.strftime('%A')
+        job_count = entry.jobs.count()
+        
+        if job_count > 0:
+            hours_per_job = Decimal(str(entry.hours_to_be_paid)) / Decimal(str(job_count))
+            
+            for job in entry.jobs.all():
+                labor_code = job.labor_code.laborcode
+                if labor_code not in weekly_hours:
+                    weekly_hours[labor_code] = {
+                        "description": job.job_description,
+                        "labor_code_description": job.labor_code_description,
+                        "job": job.job_number,
+                        "hours": {day: Decimal('0.00') for day in ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']}
+                    }
+                
+                # Add hours for this job
+                weekly_hours[labor_code]["hours"][day_of_week] += hours_per_job
+                daily_totals[day_of_week] += hours_per_job
+                total_hours_for_week += hours_per_job
 
-            # Calculate hours for this job
-            if entry.hours_to_be_paid:
-                job_hours = float(entry.hours_to_be_paid)
-                weekly_hours[job.labor_code.laborcode]["hours"][day_of_week] += job_hours
-                daily_totals[day_of_week] += job_hours
-                total_hours_for_week += job_hours
+    # Format all decimal numbers to maintain 2 decimal places
+    for labor_code in weekly_hours:
+        for day in weekly_hours[labor_code]["hours"]:
+            weekly_hours[labor_code]["hours"][day] = weekly_hours[labor_code]["hours"][day].quantize(Decimal('0.01'))
 
-    # Calculate regular and overtime hours
-    total_regular_hours = min(total_hours_for_week, 40.00)
-    total_overtime_hours = max(0.00, total_hours_for_week - 40.00)
-    total_double_time_hours = 0.00  # Logic for double time if needed
+    for day in daily_totals:
+        daily_totals[day] = daily_totals[day].quantize(Decimal('0.01'))
+
+    # Calculate regular and overtime hours - maintain decimal precision
+    total_regular_hours = min(total_hours_for_week, Decimal('40.00'))
+    total_overtime_hours = max(Decimal('0.00'), total_hours_for_week - Decimal('40.00'))
+    total_double_time_hours = Decimal('0.00')  # Logic for double time if needed
     grand_total_hours = total_hours_for_week
+
+    # Format all decimal numbers to maintain 2 decimal places
+    for labor_code in weekly_hours:
+        for day in weekly_hours[labor_code]["hours"]:
+            weekly_hours[labor_code]["hours"][day] = Decimal(str(weekly_hours[labor_code]["hours"][day])).quantize(Decimal('0.01'))
+
+    for day in daily_totals:
+        daily_totals[day] = Decimal(str(daily_totals[day])).quantize(Decimal('0.01'))
+
+    # Format the total hours
+    total_regular_hours = total_regular_hours.quantize(Decimal('0.01'))
+    total_overtime_hours = total_overtime_hours.quantize(Decimal('0.01'))
+    total_double_time_hours = total_double_time_hours.quantize(Decimal('0.01'))
+    grand_total_hours = grand_total_hours.quantize(Decimal('0.01'))
 
     # Check for pending approvals
     pending_approvals = TimeEntryApproval.objects.filter(
@@ -614,6 +670,17 @@ def user_summary_report(request):
         time_entry__date__range=[week_start, week_end],
         status='pending'
     ).exists()
+
+    # Create dictionary of week days with dates
+    week_days = {
+        'Sunday': week_start,
+        'Monday': week_start + timedelta(days=1),
+        'Tuesday': week_start + timedelta(days=2),
+        'Wednesday': week_start + timedelta(days=3),
+        'Thursday': week_start + timedelta(days=4),
+        'Friday': week_start + timedelta(days=5),
+        'Saturday': week_start + timedelta(days=6)
+    }
 
     context = {
         'view_title': 'Summary Report',
@@ -631,6 +698,7 @@ def user_summary_report(request):
         'is_superuser': is_superuser,
         'is_supervisor': is_supervisor,
         'pending_approvals': pending_approvals,
+        'week_days': week_days,
     }
 
     return render(request, 'timesheets/summary_report.html', context)
@@ -679,7 +747,7 @@ def add_job_to_time_entry(request):
             formset.save_m2m()  # Save many-to-many relationships if any
             time_entry.save()  # This will trigger the recalculation of hours and mileage
             messages.success(request, "Jobs have been successfully added/updated.")
-            return redirect('time_entry_detail', pk=time_entry.pk)
+            return redirect('timesheets:time_entry_detail', pk=time_entry.pk)
         else:
             messages.error(request, "There was an error in your form. Please check and try again.")
     else:
@@ -941,9 +1009,9 @@ def job_details_create_or_edit(request, pk=None):
             new_job = form.save()
             messages.success(request, 'Job details saved successfully.')
             if pk:
-                return redirect('job_details_edit', pk=new_job.pk)  # Redirect to edit the same job
+                return redirect('timesheets:job_details_edit', pk=new_job.pk)  # Redirect to edit the same job
             else:
-                return redirect('job_details_create')  # Redirect to the create page
+                return redirect('timesheets:job_details_create')  # Redirect to the create page
     else:
         form = JobDetailsForm(instance=job)
     
@@ -962,7 +1030,7 @@ def job_details_delete(request, pk):
     job = get_object_or_404(JobDetails, pk=pk)
     job.delete()
     messages.success(request, 'Job details deleted successfully.')
-    return redirect('job_details_create')  # Redirect back to the job create page after deletion
+    return redirect('timesheets:job_details_create')  # Redirect back to the job create page after deletion
 
 @login_required
 def get_job_details(request, job_id):
@@ -995,7 +1063,7 @@ def create_and_list_laborcode(request):
             new_laborcode.laborcode = next_code  # Assign the next laborcode (integer)
             new_laborcode.save()
 
-            return redirect('create_and_list_laborcode')
+            return redirect('timesheets:create_and_list_laborcode')
     else:
         form = LaborCodeForm()
 
@@ -1046,7 +1114,7 @@ def submit_for_approval(request, pk):
     # Check if time entry can be submitted
     if not time_entry.can_submit_for_approval:
         messages.error(request, 'This time entry cannot be submitted for approval.')
-        return redirect('time_entry_detail', pk=pk)
+        return redirect('timesheets:time_entry_detail', pk=pk)
     
     if request.method == 'POST':
         form = TimeEntryApprovalForm(request.POST)
@@ -1081,11 +1149,11 @@ def submit_for_approval(request, pk):
                     approval.save()
                     
                     messages.success(request, 'Time entry submitted for approval.')
-                    return redirect('time_entry_detail', pk=pk)
+                    return redirect('timesheets:time_entry_detail', pk=pk)
                     
             except Exception as e:
                 messages.error(request, f'Error submitting for approval: {str(e)}')
-                return redirect('time_entry_detail', pk=pk)
+                return redirect('timesheets:time_entry_detail', pk=pk)
     else:
         form = TimeEntryApprovalForm()
     
@@ -1106,11 +1174,11 @@ def review_time_entry(request, pk):
     
     if not approval:
         messages.error(request, "This time entry hasn't been submitted for approval.")
-        return redirect('time_entry_detail', pk=pk)
+        return redirect('timesheets:time_entry_detail', pk=pk)
     
     if not approval.can_approve(request.user):
         messages.error(request, "You don't have permission to review this time entry.")
-        return redirect('pending_approvals')
+        return redirect('timesheets:pending_approvals')
     
     if request.method == 'POST':
         form = TimeEntryReviewForm(request.POST)
@@ -1186,7 +1254,7 @@ def review_time_entry(request, pk):
                     approval.status = new_status
                     approval.save()
                     
-                    return redirect('pending_approvals')
+                    return redirect('timesheets:pending_approvals')
                     
             except Exception as e:
                 messages.error(request, f"Error processing approval: {str(e)}")
@@ -1221,6 +1289,10 @@ def pending_approvals(request):
         'pending_approvals': []
     }
 
+    if not (request.user.is_superuser or context['is_supervisor']):
+        messages.error(request, "You don't have permission to view this page.")
+        return redirect('timesheets:dashboard')  # Add namespace here
+
     try:
         base_queryset = TimeEntryApproval.objects.select_related(
             'time_entry',
@@ -1238,15 +1310,12 @@ def pending_approvals(request):
         else:
             # Supervisors see:
             # 1. Entries pending second approval for their team (after first approval)
-            # 2. Rejected entries for their team
-            # 3. Entries that have been first-approved and are waiting for their review
+            # 2. Entries that have been first-approved and are waiting for their review
             context['pending_approvals'] = base_queryset.filter(
                 Q(time_entry__user__supervisor=request.user) &
                 (
                     # Include entries pending second approval
                     (Q(status=TimeEntryApproval.PENDING_SECOND) | Q(status='pending_second')) |
-                    # Include rejected entries
-                    (Q(status=TimeEntryApproval.REJECTED) | Q(status='rejected')) |
                     # Include entries that were just approved by superuser and need supervisor review
                     (
                         Q(first_reviewed_by__isnull=False) & 
@@ -1333,7 +1402,7 @@ def mark_notification_read(request, notification_id):
 def mark_all_notifications_read(request):
     """Mark all notifications as read"""
     ApprovalNotification.objects.filter(recipient=request.user, read=False).update(read=True)
-    return redirect(request.META.get('HTTP_REFERER', 'dashboard'))
+    return redirect(request.META.get('HTTP_REFERER', 'timesheets:dashboard'))
 
 @login_required
 def all_notifications(request):
@@ -1384,7 +1453,7 @@ def mark_notification_read(request, notification_id):
 def mark_all_notifications_read(request):
     """Mark all notifications as read"""
     ApprovalNotification.objects.filter(recipient=request.user, read=False).update(read=True)
-    return redirect(request.META.get('HTTP_REFERER', 'dashboard'))
+    return redirect(request.META.get('HTTP_REFERER', 'timesheets:dashboard'))
 
 @login_required
 @require_POST
@@ -1392,7 +1461,7 @@ def clear_all_notifications(request):
     """Delete all notifications for the current user"""
     ApprovalNotification.objects.filter(recipient=request.user).delete()
     messages.success(request, "All notifications have been cleared.")
-    return redirect(request.META.get('HTTP_REFERER', 'dashboard'))
+    return redirect(request.META.get('HTTP_REFERER', 'timesheets:dashboard'))
 
 @login_required
 @require_POST
@@ -1401,7 +1470,7 @@ def delete_notification(request, notification_id):
     notification = get_object_or_404(ApprovalNotification, id=notification_id, recipient=request.user)
     notification.delete()
     messages.success(request, "Notification deleted.")
-    return redirect(request.META.get('HTTP_REFERER', 'dashboard'))
+    return redirect(request.META.get('HTTP_REFERER', 'timesheets:dashboard'))
 
 # Add this to your context processor or middleware if not already present
 def notification_context(request):
@@ -1434,28 +1503,81 @@ def notification_context(request):
         }
     return {}
 
+from django.shortcuts import redirect, get_object_or_404
+from .models import ApprovalNotification
+
 @login_required
 def notification_link_handler(request, notification_id):
-    """Handle notification clicks and redirect to appropriate pages"""
     notification = get_object_or_404(ApprovalNotification, id=notification_id, recipient=request.user)
     
-    # Mark as read when clicked
+    # Mark the notification as read
+    if not notification.read:
+        notification.mark_as_read()
+    
+    # Redirect to the appropriate URL
+    return redirect(notification.get_target_url)
+
+@login_required
+def clear_visible_notifications(request):
+    if request.method == 'POST':
+        # First, get the IDs of the recent notifications
+        recent_notification_ids = ApprovalNotification.objects.filter(
+            recipient=request.user,
+            created_at__gte=timezone.now() - timezone.timedelta(days=7)
+        ).order_by('-created_at')[:5].values_list('id', flat=True)
+        
+        # Then, update those notifications using the IDs
+        ApprovalNotification.objects.filter(
+            id__in=list(recent_notification_ids)
+        ).update(read=True)
+        
+        messages.success(request, 'Notifications cleared from tray.')
+        return JsonResponse({'status': 'success'})
+    
+    return JsonResponse({'status': 'error', 'message': 'Invalid request method'})
+
+
+@login_required
+def mark_notification_read(request, notification_id):
+    """Mark a single notification as read"""
+    notification = get_object_or_404(ApprovalNotification, id=notification_id, recipient=request.user)
     notification.mark_as_read()
+    return JsonResponse({'status': 'success'})
+
+@login_required
+def mark_all_notifications_read(request):
+    """Mark all notifications as read"""
+    ApprovalNotification.objects.filter(recipient=request.user, read=False).update(read=True)
+    return redirect(request.META.get('HTTP_REFERER', 'timesheets:dashboard'))
+
+@login_required
+def all_notifications(request):
+    """View for displaying all notifications with filtering and pagination"""
+    notifications = ApprovalNotification.objects.filter(
+        recipient=request.user
+    ).select_related(
+        'time_entry_approval',
+        'time_entry_approval__time_entry'
+    ).order_by('-created_at')
     
-    # Get the associated time entry approval
-    time_entry_approval = notification.time_entry_approval
-    if not time_entry_approval:
-        messages.error(request, "Associated content not found.")
-        return redirect('dashboard')
-    
-    # Determine redirect based on notification type
-    if notification.notification_type == 'submission':
-        if request.user.is_superuser or (hasattr(request.user, 'role') and request.user.role == 'Supervisor'):
-            return redirect('review_time_entry', pk=time_entry_approval.time_entry.pk)
-        return redirect('time_entry_detail', pk=time_entry_approval.time_entry.pk)
-    
-    elif notification.notification_type in ['approval', 'rejection', 'first_approve']:
-        return redirect('time_entry_detail', pk=time_entry_approval.time_entry.pk)
-    
-    # Default fallback
-    return redirect('time_entry_list')
+    # Add pagination
+    paginator = Paginator(notifications, 20)
+    page_number = request.GET.get('page')
+    notifications = paginator.get_page(page_number)
+
+    context = {
+        'view_title': 'Notifications',
+        'notifications': notifications,
+        'unread_notifications_count': ApprovalNotification.objects.filter(
+            recipient=request.user,
+            read=False
+        ).count()
+    }
+    return render(request, 'timesheets/all_notifications.html', context)
+
+@login_required
+def delete_notification(request, notification_id):
+    """Delete a specific notification"""
+    notification = get_object_or_404(ApprovalNotification, id=notification_id, recipient=request.user)
+    notification.delete()
+    return redirect(request.META.get('HTTP_REFERER', 'timesheets:all_notifications'))
