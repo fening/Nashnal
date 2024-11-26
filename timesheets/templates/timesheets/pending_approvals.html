@@ -102,6 +102,19 @@
                                             </svg>
                                             View Details
                                         </a>
+                                        <!-- Add this near other time entry details -->
+                                        {% if approval.time_entry.attachment %}
+                                        <div class="mt-2">
+                                            <a href="{{ approval.time_entry.attachment.url }}" 
+                                               class="inline-flex items-center px-3 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100 rounded-md transition duration-150">
+                                                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                                                          d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/>
+                                                </svg>
+                                                View Attachment
+                                            </a>
+                                        </div>
+                                        {% endif %}
                                     </div>
                                 </td>
                             </tr>

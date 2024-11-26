@@ -2,6 +2,8 @@ from django.urls import path, include
 from . import views
 from .views import TimeEntryViewSet
 from rest_framework.routers import DefaultRouter
+from django.conf import settings
+from django.conf.urls.static import static
 
 router = DefaultRouter()
 router.register(r'time-entries', TimeEntryViewSet)
@@ -50,7 +52,7 @@ urlpatterns = [
         path('submit/<int:pk>/', views.submit_for_approval, name='submit_for_approval'),
         path('review/<int:pk>/', views.review_time_entry, name='review_time_entry'),
     ])),
-
+    path('batch-delete/', views.batch_delete, name='batch_delete'),
     # Notifications
     path('notifications/', views.all_notifications, name='all_notifications'),
     path('notifications/<int:notification_id>/read/', views.mark_notification_read, name='mark_notification_read'),
@@ -58,7 +60,7 @@ urlpatterns = [
     path('notifications/clear-all/', views.clear_all_notifications, name='clear_all_notifications'),
     path('notifications/<int:notification_id>/delete/', views.delete_notification, name='delete_notification'),
     path('notifications/<int:notification_id>/handle/', views.notification_link_handler, name='notification_link_handler'),
-]
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 # Add DRF router URLs
 urlpatterns += router.urls

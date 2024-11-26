@@ -30,6 +30,29 @@
                 </div>
             </div>
             
+            <!-- Add this after time entry details -->
+            {% if time_entry.attachment %}
+            <div class="mt-4">
+                <div class="bg-white rounded-md p-4 border border-gray-200">
+                    <h4 class="text-sm font-medium text-gray-700 mb-2">Attached Document</h4>
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center space-x-3">
+                            <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                                      d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/>
+                            </svg>
+                            <span class="text-sm text-gray-600">{{ time_entry.get_attachment_filename }}</span>
+                        </div>
+                        <a href="{{ time_entry.attachment.url }}" 
+                           class="text-sm text-gray-600 hover:text-gray-900"
+                           target="_blank">
+                            View Attachment
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
             <!-- Jobs List -->
             <div class="mt-6">
                 <h3 class="text-md font-semibold mb-3">Jobs Completed:</h3>

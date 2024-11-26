@@ -138,6 +138,12 @@
             <table id="timeEntriesTable" class="min-w-full divide-y divide-gray-200">
                 <thead class="bg-gray-50/75">
                     <tr>
+                        <!-- Add checkbox column -->
+                        <th class="px-2 py-4 text-center text-xs font-medium text-gray-600 uppercase tracking-wider">
+                            <input type="checkbox" 
+                                   id="selectAll"
+                                   class="rounded border-gray-300 text-gray-600 focus:ring-gray-500 cursor-pointer">
+                        </th>
                         {% if is_superuser or is_supervisor %}
                             <th class="px-2 py-4 text-center text-xs font-medium text-gray-600 uppercase tracking-wider">
                                 <div class="flex items-center justify-center gap-2 cursor-pointer group" 
@@ -217,6 +223,15 @@
                         {% for job in entry.jobs.all %}
                             <tr class="hover:bg-gray-50/50 transition-colors duration-150">
                                 {% if forloop.first %}
+                                    <!-- Add checkbox cell -->
+                                    <td class="px-2 py-5 whitespace-nowrap text-center" rowspan="{{ jobs_count }}">
+                                        {% if not entry.approval or entry.approval.status == 'rejected' %}
+                                        <input type="checkbox" 
+                                               name="entry_ids" 
+                                               value="{{ entry.id }}"
+                                               class="entry-checkbox rounded border-gray-300 text-gray-600 focus:ring-gray-500 cursor-pointer">
+                                        {% endif %}
+                                    </td>
                                     {% if is_superuser or is_supervisor %}
                                         <td class="px-8 py-5 whitespace-nowrap" rowspan="{{ jobs_count }}">
                                             <div class="flex items-center">
@@ -306,6 +321,17 @@
                                                 </svg>
                                             </a>
                                         {% endif %}
+                                        {% if entry.attachment %}
+<a href="{{ entry.attachment.url }}" 
+   class="inline-flex items-center px-3 py-1.5 bg-gray-100 text-gray-700 
+          rounded-lg text-sm font-medium hover:bg-gray-200 transition-colors"
+   target="_blank">
+    <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+              d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/>
+    </svg>
+</a>
+{% endif %}
                                     </td>
                                 {% endif %}
                             </tr>
@@ -314,6 +340,25 @@
                     {% endfor %}
                 </tbody>
             </table>
+        </div>
+
+        <!-- Add Batch Actions Bar -->
+        <div id="batchActionsBar" 
+             class="hidden fixed bottom-4 left-1/2 transform -translate-x-1/2 
+                    bg-white shadow-lg rounded-lg border border-gray-200 px-4 py-3 
+                    flex items-center space-x-4">
+            <span id="selectedCount" class="text-sm text-gray-600">0 items selected</span>
+            <button id="batchDeleteBtn"
+                    class="inline-flex items-center px-4 py-2 border border-transparent 
+                           text-sm font-medium rounded-md text-white bg-red-600 
+                           hover:bg-red-700 focus:outline-none focus:ring-2 
+                           focus:ring-offset-2 focus:ring-red-500">
+                <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                          d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                </svg>
+                Delete Selected
+            </button>
         </div>
 
         {% if page_obj.paginator.num_pages > 1 %}
@@ -362,30 +407,275 @@
         {% endif %}
     </div>
 </div>
-{% endblock %}
 
-    <!-- Details Toggle Script -->
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            document.querySelectorAll('details').forEach((detail) => {
-                // Remove the 'open' attribute to start collapsed
-                detail.removeAttribute('open');
-                
-                const summary = detail.querySelector('summary');
-                const arrow = summary.querySelector('svg');
-                
-                // Initialize arrow to point down (collapsed state)
-                arrow.classList.add('rotate-180');
-                
-                detail.addEventListener('toggle', () => {
-                    if (detail.open) {
-                        // When opening, arrow points up
-                        arrow.classList.remove('rotate-180');
-                    } else {
-                        // When closing, arrow points down
-                        arrow.classList.add('rotate-180');
+<!-- Add JavaScript for handling selections and batch delete -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Get references to key elements
+        const selectAllCheckbox = document.getElementById('selectAll');
+        const entryCheckboxes = document.getElementsByClassName('entry-checkbox');
+        const batchActionsBar = document.getElementById('batchActionsBar');
+        const selectedCountSpan = document.getElementById('selectedCount');
+        const batchDeleteBtn = document.getElementById('batchDeleteBtn');
+        const timeEntriesTable = document.getElementById('timeEntriesTable');
+    
+        // Get CSRF token from cookies
+        function getCSRFToken() {
+            const name = 'csrftoken';
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
                     }
+                }
+            }
+            return cookieValue;
+        }
+    
+        // Initialize the batch actions bar
+        function initializeBatchActions() {
+            // Handle "Select All" checkbox
+            selectAllCheckbox?.addEventListener('change', function() {
+                Array.from(entryCheckboxes).forEach(checkbox => {
+                    checkbox.checked = selectAllCheckbox.checked;
+                });
+                updateBatchActionsBar();
+            });
+    
+            // Handle individual checkboxes
+            Array.from(entryCheckboxes).forEach(checkbox => {
+                checkbox.addEventListener('change', function() {
+                    updateBatchActionsBar();
+                    updateSelectAllCheckbox();
                 });
             });
+    
+            // Initialize batch delete button
+            batchDeleteBtn?.addEventListener('click', handleBatchDelete);
+    
+            // Initial update of the batch actions bar
+            updateBatchActionsBar();
+        }
+    
+        // Update the select all checkbox state
+        function updateSelectAllCheckbox() {
+            if (!selectAllCheckbox) return;
+            
+            const totalCheckboxes = entryCheckboxes.length;
+            const checkedCheckboxes = Array.from(entryCheckboxes).filter(cb => cb.checked).length;
+            
+            selectAllCheckbox.checked = totalCheckboxes > 0 && totalCheckboxes === checkedCheckboxes;
+            selectAllCheckbox.indeterminate = checkedCheckboxes > 0 && checkedCheckboxes < totalCheckboxes;
+        }
+    
+        // Update the batch actions bar visibility and count
+        function updateBatchActionsBar() {
+            const selectedCount = Array.from(entryCheckboxes)
+                .filter(checkbox => checkbox.checked).length;
+            
+            if (selectedCount > 0) {
+                batchActionsBar.classList.remove('hidden');
+                selectedCountSpan.textContent = `${selectedCount} item${selectedCount === 1 ? '' : 's'} selected`;
+            } else {
+                batchActionsBar.classList.add('hidden');
+            }
+        }
+    
+        // Handle the batch delete operation
+        async function handleBatchDelete() {
+    const selectedCheckboxes = Array.from(entryCheckboxes).filter(checkbox => checkbox.checked);
+    const selectedIds = selectedCheckboxes.map(checkbox => checkbox.value);
+
+    if (selectedIds.length === 0) {
+        showAlert('Please select items to delete', 'error');
+        return;
+    }
+
+    if (!confirm(`Are you sure you want to delete ${selectedIds.length} selected item(s)?`)) {
+        return;
+    }
+
+    // Disable delete button to prevent double submission
+    batchDeleteBtn.disabled = true;
+    batchDeleteBtn.classList.add('opacity-50', 'cursor-not-allowed');
+
+    try {
+        // Show loading state
+        const originalButtonContent = batchDeleteBtn.innerHTML;
+        batchDeleteBtn.innerHTML = `
+            <svg class="animate-spin h-5 w-5 mr-2" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            Deleting...
+        `;
+
+        const response = await fetch('{% url "timesheets:batch_delete" %}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCSRFToken(),
+            },
+            body: JSON.stringify({ entry_ids: selectedIds }),
+            credentials: 'same-origin'
         });
+
+        const result = await response.json();
+
+        if (response.ok) {
+            // Remove the deleted rows with animation
+            selectedCheckboxes.forEach(checkbox => {
+                const row = checkbox.closest('tr');
+                if (row) {
+                    const rowspan = parseInt(checkbox.closest('td').getAttribute('rowspan')) || 1;
+                    let currentRow = row;
+                    
+                    for (let i = 0; i < rowspan; i++) {
+                        if (currentRow) {
+                            currentRow.style.transition = 'all 0.3s ease-out';
+                            currentRow.style.opacity = '0';
+                            currentRow.style.transform = 'translateX(20px)';
+                            const rowToRemove = currentRow;
+                            setTimeout(() => rowToRemove.remove(), 300);
+                            currentRow = currentRow.nextElementSibling;
+                        }
+                    }
+                }
+            });
+
+            showAlert(result.message, 'success');
+            updateBatchActionsBar();
+            updateSelectAllCheckbox();
+            updatePageCounts(result.deleted_count);
+
+            // Check if table is empty
+            setTimeout(() => {
+                const tbody = timeEntriesTable.querySelector('tbody');
+                if (tbody.children.length === 0) {
+                    tbody.innerHTML = `
+                        <tr>
+                            <td colspan="8" class="px-6 py-4 text-center text-gray-500">
+                                No entries found
+                            </td>
+                        </tr>
+                    `;
+                }
+            }, 350);
+        } else {
+            showAlert(result.message || 'Error deleting entries', 'error');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        showAlert('An unexpected error occurred', 'error');
+    } finally {
+        // Reset delete button state
+        batchDeleteBtn.disabled = false;
+        batchDeleteBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+        batchDeleteBtn.innerHTML = `
+            <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+            </svg>
+            Delete Selected
+        `;
+    }
+}
+    
+        // Restore removed rows in case of error
+        function restoreRows(removedRows) {
+            removedRows.forEach(({rows, nextSibling}, id) => {
+                rows.forEach(row => {
+                    row.style.opacity = '0';
+                    if (nextSibling) {
+                        timeEntriesTable.querySelector('tbody').insertBefore(row, nextSibling);
+                    } else {
+                        timeEntriesTable.querySelector('tbody').appendChild(row);
+                    }
+                    // Trigger reflow to enable animation
+                    row.offsetHeight;
+                    row.style.opacity = '1';
+                });
+            });
+        }
+    
+        // Update page counts without reload
+        function updatePageCounts(deletedCount) {
+            // Update total entries count if it exists
+            const totalEntriesElement = document.querySelector('.total-entries');
+            if (totalEntriesElement) {
+                const currentTotal = parseInt(totalEntriesElement.textContent);
+                totalEntriesElement.textContent = Math.max(0, currentTotal - deletedCount);
+            }
+    
+            // Update pagination info if it exists
+            const paginationInfo = document.querySelector('.pagination-info');
+            if (paginationInfo) {
+                const matches = paginationInfo.textContent.match(/Showing (\d+) to (\d+) of (\d+)/);
+                if (matches) {
+                    const [, start, end, total] = matches;
+                    const newTotal = Math.max(0, parseInt(total) - deletedCount);
+                    const newEnd = Math.min(parseInt(end), newTotal);
+                    paginationInfo.textContent = `Showing ${start} to ${newEnd} of ${newTotal}`;
+                }
+            }
+        }
+    
+        // Show alert message
+        function showAlert(message, type = 'success') {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `fixed top-4 right-4 p-4 rounded-lg ${
+                type === 'success' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+            } shadow-lg z-50 transition-opacity duration-300`;
+            
+            alertDiv.innerHTML = `
+                <div class="flex items-center">
+                    ${type === 'success' ? 
+                        '<svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>' :
+                        '<svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>'
+                    }
+                    <span>${message}</span>
+                </div>
+            `;
+            
+            document.body.appendChild(alertDiv);
+            
+            // Fade in
+            setTimeout(() => alertDiv.style.opacity = '1', 10);
+            
+            // Fade out and remove
+            setTimeout(() => {
+                alertDiv.style.opacity = '0';
+                setTimeout(() => alertDiv.remove(), 300);
+            }, 3000);
+        }
+    
+        // Initialize all functionality
+        initializeBatchActions();
+    
+        // Details Toggle Script
+        document.querySelectorAll('details').forEach((detail) => {
+            // Remove the 'open' attribute to start collapsed
+            detail.removeAttribute('open');
+            
+            const summary = detail.querySelector('summary');
+            const arrow = summary.querySelector('svg');
+            
+            // Initialize arrow to point down (collapsed state)
+            arrow.classList.add('rotate-180');
+            
+            detail.addEventListener('toggle', () => {
+                if (detail.open) {
+                    // When opening, arrow points up
+                    arrow.classList.remove('rotate-180');
+                } else {
+                    // When closing, arrow points down
+                    arrow.classList.add('rotate-180');
+                }
+            });
+        });
+    });
     </script>
+{% endblock %}

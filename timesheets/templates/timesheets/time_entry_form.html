@@ -2,9 +2,13 @@
 {% load static %}
 
 {% block title %}<h1 class="text-xl font-semibold">Time Entries Form - Time Sheet App</h1>
-  {% endblock %}
+{% endblock %}
 {% load custom_filters %}
 {% block content %}
+
+<!-- Add alert container at the top of the content -->
+<div id="alert-container" class="fixed top-4 right-4 z-50 max-w-md"></div>
+
 <style>
   /* Remove spinner buttons for Webkit browsers (Chrome, Safari, Edge) */
   input[type="number"]::-webkit-outer-spin-button,
@@ -17,10 +21,32 @@
   input[type="number"] {
       -moz-appearance: textfield;
   }
+    /* Alert animations */
+    @keyframes slideIn {
+      from {
+          transform: translateX(100%);
+          opacity: 0;
+      }
+      to {
+          transform: translateX(0);
+          opacity: 1;
+      }
+  }
+
+  @keyframes slideOut {
+      from {
+          transform: translateX(0);
+          opacity: 1;
+      }
+      to {
+          transform: translateX(100%);
+          opacity: 0;
+      }
+  }
 </style>
 <div class="container mx-auto px-4 py-8">
     <div class="bg-white p-6  rounded-lg shadow-lg">
-      <form method="post" class="space-y-6">
+      <form method="post" enctype="multipart/form-data" class="space-y-6">
         {% csrf_token %}
         <div class="flex items-center space-x-4 mb-6">
             <label class="text-base font-medium text-gray-700 whitespace-nowrap" for="{{ form.date.id_for_label }}">Date:</label>
@@ -173,37 +199,64 @@
           <label class="block text-base font-semibold text-gray-700" for="{{ form.comments.id_for_label }}">Comments:</label>
           {{ form.comments|add_class:"mt-1 block w-full text-base rounded-md border border-gray-500 shadow-sm focus:outline-none px-3 py-2 bg-white" }}
         </div>
-  
-        <div class="mt-8 flex justify-center gap-4">
-          <button type="submit" 
-                  class="inline-flex items-center px-6 py-2.5 bg-gradient-to-r from-gray-800 to-gray-900 
-                         text-white rounded-xl font-medium
-                         border border-transparent
-                         hover:from-gray-700 hover:to-gray-800
-                         focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2
-                         transform transition-all duration-200
-                         hover:scale-[1.02] active:scale-95">
-              <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                        d="M5 13l4 4L19 7"/>
-              </svg>
-              Save Changes
-          </button>
-      
-          <a href="{% url 'timesheets:time_entry_list' %}" 
-             class="inline-flex items-center px-6 py-2.5 border border-gray-200 rounded-xl
-                    text-gray-600 bg-white
-                    hover:bg-gray-50
-                    focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2
-                    transform transition-all duration-200
-                    hover:scale-[1.02] active:scale-95">
-              <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                        d="M6 18L18 6M6 6l12 12"/>
-              </svg>
-              Cancel
-          </a>
+        <div class="mt-6">
+          <label class="block text-base font-semibold text-gray-700" for="{{ form.attachment.id_for_label }}">
+              Attachment:
+              {% if form.instance.attachment %}
+                  <span class="text-sm text-gray-500">(Current: {{ form.instance.get_attachment_filename }})</span>
+              {% endif %}
+          </label>
+          {{ form.attachment|add_class:"mt-1 block w-full text-base rounded-md border border-gray-500 shadow-sm focus:outline-none px-3 py-2 bg-white" }}
+          {% if form.attachment.help_text %}
+              <p class="mt-1 text-sm text-gray-500">{{ form.attachment.help_text }}</p>
+          {% endif %}
+          {% if form.attachment.errors %}
+              <div class="text-red-500 text-sm mt-1">
+                  {{ form.attachment.errors }}
+              </div>
+          {% endif %}
+          {% if form.instance.attachment %}
+              <div class="mt-2 flex items-center space-x-2">
+                  <a href="{{ form.instance.attachment.url }}" 
+                     class="text-sm text-gray-600 hover:text-gray-900"
+                     target="_blank">
+                      View current attachment
+                  </a>
+              </div>
+          {% endif %}
       </div>
+      <div class="mt-8 flex justify-center gap-4">
+        <button type="submit" 
+                id="submit-button"
+                class="inline-flex items-center px-6 py-2.5 bg-gradient-to-r from-gray-800 to-gray-900 
+                       text-white rounded-xl font-medium
+                       border border-transparent
+                       hover:from-gray-700 hover:to-gray-800
+                       focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2
+                       transform transition-all duration-200
+                       hover:scale-[1.02] active:scale-95
+                       disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100">
+            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                      d="M5 13l4 4L19 7"/>
+            </svg>
+            Save Changes
+        </button>
+    
+        <a href="{% url 'timesheets:time_entry_list' %}" 
+           class="inline-flex items-center px-6 py-2.5 border border-gray-200 rounded-xl
+                  text-gray-600 bg-white
+                  hover:bg-gray-50
+                  focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2
+                  transform transition-all duration-200
+                  hover:scale-[1.02] active:scale-95">
+            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                      d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+            Cancel
+        </a>
+    </div>
       </form>
     </div>
   </div>
@@ -211,127 +264,333 @@
 
   <script type="text/javascript">
     document.addEventListener('DOMContentLoaded', function () {
-        const formsetContainer = document.getElementById('formset-container');
-        const addJobButton = document.getElementById('add-job');
-        const totalFormsInput = document.getElementById('id_jobs-TOTAL_FORMS');
-    
-        function attachEventListeners(container) {
-            const jobDescriptionFields = container.querySelectorAll('[name$="-job_description"]');
-            const jobNumberFields = container.querySelectorAll('[name$="-job_number"]');
-            const laborCodeFields = container.querySelectorAll('[name$="-labor_code"]');
-            const laborCodeDescriptionFields = container.querySelectorAll('[name$="-labor_code_description"]');
+      // Core DOM elements
+      const formsetContainer = document.getElementById('formset-container');
+      const addJobButton = document.getElementById('add-job');
+      const totalFormsInput = document.getElementById('id_jobs-TOTAL_FORMS');
+      const form = document.querySelector('form');
+
+        // Function to enable or disable the submit button
+        function setSubmitButtonState(isValid) {
+          const submitButton = document.getElementById('submit-button');
+          console.log('Setting submit button state:', { 
+              isValid, 
+              buttonFound: !!submitButton,
+              buttonElement: submitButton
+          });
           
-            jobDescriptionFields.forEach((field, index) => {
-                field.addEventListener('change', function () {
-                    const selectedDescription = field.value;
-                    if (selectedDescription) {
-                        // Fetch and set job number
-                        fetch(`/time-entry/get-job-number/${encodeURIComponent(selectedDescription)}/`)
-                            .then(response => response.json())
-                            .then(data => {
-                                if (data.success) {
-                                    jobNumberFields[index].value = data.job_number;
-                                }
-                            });
+          if (submitButton) {
+              // Force boolean value and set disabled property
+              submitButton.disabled = !isValid;
+              
+              // Also set the attribute to ensure it's visible in the DOM
+              if (!isValid) {
+                  submitButton.setAttribute('disabled', 'disabled');
+                  submitButton.classList.add('opacity-50', 'cursor-not-allowed');
+                  submitButton.classList.remove('hover:scale-[1.02]', 'hover:from-gray-700', 'hover:to-gray-800');
+              } else {
+                  submitButton.removeAttribute('disabled');
+                  submitButton.classList.remove('opacity-50', 'cursor-not-allowed');
+                  submitButton.classList.add('hover:scale-[1.02]', 'hover:from-gray-700', 'hover:to-gray-800');
+              }
+              
+              // Log the current state
+              console.log('Button state after update:', {
+                  disabled: submitButton.disabled,
+                  hasDisabledAttribute: submitButton.hasAttribute('disabled'),
+                  classList: Array.from(submitButton.classList)
+              });
+          } else {
+              console.error('Submit button not found in DOM');
+          }
+      }
     
-                        // Fetch job details for computed time and distance
-                        fetch(`/time-entry/get-job-details/${encodeURIComponent(selectedDescription)}/`)
-                            .then(response => response.json())
-                            .then(data => {
-                                if (data.success) {
-                                    const timeField = document.getElementById('computed_time');
-                                    const distanceField = document.getElementById('computed_distance');
-                                    timeField.textContent = `Travel Time: ${data.travel_time} hours`;
-                                    distanceField.textContent = `Distance: ${data.distance} miles`;
-                                } else {
-                                    alert('Job details not found.');
-                                }
-                            });
-                    }
-                });
-            });
-    
-            laborCodeDescriptionFields.forEach((field, index) => {
-                field.addEventListener('change', function () {
-                    const selectedDescription = field.value;
-                    if (selectedDescription) {
-                        fetch(`/time-entry/get-labor-code/${encodeURIComponent(selectedDescription)}/`)
-                            .then(response => response.json())
-                            .then(data => {
-                                if (data.success) {
-                                    laborCodeFields[index].value = data.labor_code;
-                                }
-                            });
-                    }
-                });
-            });
-        }
-    
-        function initializeFields() {
-            const jobDescriptionFields = formsetContainer.querySelectorAll('[name$="job_description"]');
-            const jobNumberFields = formsetContainer.querySelectorAll('[name$="job_number"]');
-    
-            jobDescriptionFields.forEach((field, index) => {
-                const selectedDescription = field.value;
-                if (selectedDescription) {
-                    // Fetch job number
-                    fetch(`/time-entry/get-job-number/${encodeURIComponent(selectedDescription)}/`)
-                        .then(response => response.json())
-                        .then(data => {
-                            if (data.success) {
-                                jobNumberFields[index].value = data.job_number;
-                            }
-                        });
-                   }
-            });
-    
-            const laborCodeDescriptionFields = formsetContainer.querySelectorAll('[name$="labor_code_description"]');
-            const laborCodeFields = formsetContainer.querySelectorAll('[name$="labor_code"]');
-    
-            laborCodeDescriptionFields.forEach((field, index) => {
-                const selectedDescription = field.value;
-                if (selectedDescription) {
-                    fetch(`/time-entry/get-labor-code/${encodeURIComponent(selectedDescription)}/`)
-                        .then(response => response.json())
-                        .then(data => {
-                            if (data.success) {
-                                laborCodeFields[index].value = data.labor_code;
-                            }
-                        });
-                }
-            });
-        }
+      // Replace the old showError and clearError functions with these new ones
+      function showError(message) {
+        const alertContainer = document.getElementById('alert-container');
+        if (!alertContainer) return;
+
+        const alert = document.createElement('div');
+        alert.className = 'bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-4 rounded shadow-md transform transition-all duration-500 ease-in-out';
+        alert.style.animation = 'slideIn 0.5s ease-out';
         
-        function updateFormIndices() {
+        alert.innerHTML = `
+            <div class="flex items-center">
+                <div class="flex-shrink-0">
+                    <svg class="h-5 w-5 text-red-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+                    </svg>
+                </div>
+                <div class="ml-3">
+                    <p class="text-sm">${message}</p>
+                </div>
+                <div class="ml-auto pl-3">
+                    <button type="button" class="close-alert">
+                        <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        `;
+
+        alertContainer.appendChild(alert);
+
+        // Add click event for close button
+        alert.querySelector('.close-alert').addEventListener('click', () => {
+            alert.style.animation = 'slideOut 0.5s ease-out';
+            setTimeout(() => alert.remove(), 500);
+        });
+
+        // Auto remove after 5 seconds
+        setTimeout(() => {
+            if (alert.parentNode) {
+                alert.style.animation = 'slideOut 0.5s ease-out';
+                setTimeout(() => alert.remove(), 500);
+            }
+        }, 5000);
+    }
+
+    function clearError() {
+        const alertContainer = document.getElementById('alert-container');
+        if (alertContainer) {
+            alertContainer.innerHTML = '';
+        }
+    }
+  
+      // Validation functions
+      function validateMileage(showAlert = false) {
+        console.log('Starting mileage validation');
+        let initialMileage = parseFloat(document.getElementById('id_initial_mileage').value) || 0;
+        let previousMileage = initialMileage;
+        console.log('Initial mileage:', initialMileage);
+    
+        const jobForms = formsetContainer.querySelectorAll('.job-form:not([style*="display: none"])');
+        console.log('Number of job forms to validate:', jobForms.length);
+        
+        for (const form of jobForms) {
+            const startMileage = parseFloat(form.querySelector('[name$="-activity_start_mileage"]').value) || 0;
+            const endMileage = parseFloat(form.querySelector('[name$="-activity_end_mileage"]').value) || 0;
+            console.log('Validating mileage:', { previousMileage, startMileage, endMileage });
+    
+            if (startMileage < previousMileage) {
+                console.log('Mileage validation failed: start < previous');
+                if (showAlert) {
+                    showError(`Start mileage (${startMileage}) must be greater than previous mileage (${previousMileage})`);
+                }
+                setSubmitButtonState(false);
+                return false;
+            }
+            if (endMileage <= startMileage) {
+                console.log('Mileage validation failed: end <= start');
+                if (showAlert) {
+                    showError(`End mileage (${endMileage}) must be greater than start mileage (${startMileage})`);
+                }
+                setSubmitButtonState(false);
+                return false;
+            }
+            previousMileage = endMileage;
+        }
+    
+        const finalMileage = parseFloat(document.getElementById('id_final_mileage').value) || 0;
+        console.log('Validating final mileage:', { previousMileage, finalMileage });
+        
+        if (finalMileage < previousMileage) {
+            console.log('Final mileage validation failed');
+            if (showAlert) {
+                showError(`Final mileage (${finalMileage}) must be greater than previous mileage (${previousMileage})`);
+            }
+            setSubmitButtonState(false);
+            return false;
+        }
+    
+        console.log('Mileage validation passed');
+        return true;
+    }
+    
+    function validateTimes(showAlert = false) {
+        console.log('Starting time validation');
+        let initialTime = document.getElementById('id_initial_leave_time').value;
+        let previousTime = initialTime;
+        console.log('Initial time:', initialTime);
+    
+        const jobForms = formsetContainer.querySelectorAll('.job-form:not([style*="display: none"])');
+        console.log('Number of job forms to validate:', jobForms.length);
+        
+        for (const form of jobForms) {
+            const arriveTime = form.querySelector('[name$="-activity_arrive_time"]').value;
+            const leaveTime = form.querySelector('[name$="-activity_leave_time"]').value;
+            console.log('Validating times:', { previousTime, arriveTime, leaveTime });
+    
+            if (arriveTime && previousTime && arriveTime < previousTime) {
+                console.log('Time validation failed: arrive < previous');
+                if (showAlert) {
+                    showError(`Arrival time (${arriveTime}) must be after previous time (${previousTime})`);
+                }
+                setSubmitButtonState(false);
+                return false;
+            }
+            if (leaveTime && arriveTime && leaveTime <= arriveTime) {
+                console.log('Time validation failed: leave <= arrive');
+                if (showAlert) {
+                    showError(`Leave time (${leaveTime}) must be after arrival time (${arriveTime})`);
+                }
+                setSubmitButtonState(false);
+                return false;
+            }
+            if (leaveTime) {
+                previousTime = leaveTime;
+            }
+        }
+    
+        const finalTime = document.getElementById('id_final_arrive_time').value;
+        console.log('Validating final time:', { previousTime, finalTime });
+        
+        if (finalTime && previousTime && finalTime < previousTime) {
+            console.log('Final time validation failed');
+            if (showAlert) {
+                showError(`Final arrival time (${finalTime}) must be after previous time (${previousTime})`);
+            }
+            setSubmitButtonState(false);
+            return false;
+        }
+    
+        console.log('Time validation passed');
+        return true;
+    }
+  
+      function validateForm(showAlert = false) {  // Add showAlert parameter
+        console.log('Starting form validation');
+        clearError();
+        let isValid = true;
+    
+        // Check job forms
+        const jobForms = formsetContainer.querySelectorAll('.job-form:not([style*="display: none"])');
+        console.log('Number of visible job forms:', jobForms.length);
+    
+        jobForms.forEach((form, index) => {
+            const jobDescription = form.querySelector('[name$="-job_description"]').value;
+            const arriveTime = form.querySelector('[name$="-activity_arrive_time"]').value;
+            const leaveTime = form.querySelector('[name$="-activity_leave_time"]').value;
+            const startMileage = form.querySelector('[name$="-activity_start_mileage"]').value;
+            const endMileage = form.querySelector('[name$="-activity_end_mileage"]').value;
+    
+            console.log(`Job form ${index} fields:`, {
+                jobDescription,
+                arriveTime,
+                leaveTime,
+                startMileage,
+                endMileage
+            });
+    
+            if (!jobDescription || !arriveTime || !leaveTime || !startMileage || !endMileage) {
+                console.log(`Job form ${index} validation failed: missing required fields`);
+                if (showAlert) {  // Only show alert if showAlert is true
+                    showError('Please fill in all fields for each job');
+                }
+                isValid = false;
+            }
+        });
+    
+        // Only check mileage and time validations if basic validation passes
+        if (isValid) {
+            console.log('Basic validation passed, checking mileage and times');
+            isValid = validateMileage(showAlert) && validateTimes(showAlert);  // Pass showAlert parameter
+        }
+    
+        console.log('Final validation result:', isValid);
+        setSubmitButtonState(isValid);
+        return isValid;
+    }
+  
+      // Form field event handlers
+      function attachEventListeners(container) {
+          const jobDescriptionFields = container.querySelectorAll('[name$="-job_description"]');
+          const jobNumberFields = container.querySelectorAll('[name$="-job_number"]');
+          const laborCodeFields = container.querySelectorAll('[name$="-labor_code"]');
+          const laborCodeDescriptionFields = container.querySelectorAll('[name$="-labor_code_description"]');
+  
+          jobDescriptionFields.forEach((field, index) => {
+              field.addEventListener('change', function () {
+                  const selectedDescription = field.value;
+                  if (selectedDescription) {
+                      // Fetch and set job number
+                      fetch(`/time-entry/get-job-number/${encodeURIComponent(selectedDescription)}/`)
+                          .then(response => response.json())
+                          .then(data => {
+                              if (data.success) {
+                                  jobNumberFields[index].value = data.job_number;
+                              }
+                          })
+                          .catch(error => console.error('Error fetching job number:', error));
+  
+                      // Fetch job details
+                      fetch(`/time-entry/get-job-details/${encodeURIComponent(selectedDescription)}/`)
+                          .then(response => response.json())
+                          .then(data => {
+                              if (data.success) {
+                                  const timeField = document.getElementById('computed_time');
+                                  const distanceField = document.getElementById('computed_distance');
+                                  if (timeField) timeField.textContent = `Travel Time: ${data.travel_time} hours`;
+                                  if (distanceField) distanceField.textContent = `Distance: ${data.distance} miles`;
+                              }
+                          })
+                          .catch(error => console.error('Error fetching job details:', error));
+                  }
+              });
+          });
+  
+          laborCodeDescriptionFields.forEach((field, index) => {
+              field.addEventListener('change', function () {
+                  const selectedDescription = field.value;
+                  if (selectedDescription) {
+                      fetch(`/time-entry/get-labor-code/${encodeURIComponent(selectedDescription)}/`)
+                          .then(response => response.json())
+                          .then(data => {
+                              if (data.success) {
+                                  laborCodeFields[index].value = data.labor_code;
+                              }
+                          })
+                          .catch(error => console.error('Error fetching labor code:', error));
+                  }
+              });
+          });
+      }
+  
+      // Form management functions
+      function updateFormIndices() {
           const forms = formsetContainer.querySelectorAll('.job-form');
           forms.forEach((form, index) => {
               form.querySelectorAll('input, select, textarea').forEach(input => {
                   const oldName = input.name;
-                  const newName = oldName.replace(/jobs-\d+-/, `jobs-${index}-`);  // Use 'jobs' prefix
+                  const newName = oldName.replace(/jobs-\d+-/, `jobs-${index}-`);
                   input.name = newName;
-                  input.id = input.id.replace(/jobs-\d+-/, `jobs-${index}-`);       // Use 'jobs' prefix
+                  input.id = input.id.replace(/jobs-\d+-/, `jobs-${index}-`);
               });
           });
-          totalFormsInput.value = forms.length;
+          if (totalFormsInput) {
+              totalFormsInput.value = forms.length;
+          }
       }
-      
-        function addNewForm() {
+  
+      function addNewForm() {
           const forms = formsetContainer.querySelectorAll('.job-form');
           const formCount = forms.length;
-          let newForm;
-          let templateForm = formsetContainer.querySelector('.job-form');
-      
-          if (templateForm) {
-              newForm = templateForm.cloneNode(true);
-              newForm.style.display = ''; // Ensure the new form is visible
-          } else {
-              alert('No forms available to clone.');
+          const templateForm = formsetContainer.querySelector('.job-form');
+  
+          if (!templateForm) {
+              console.error('No template form found');
               return;
           }
-      
-          // Update indices in form fields
-          const formRegex = new RegExp(`jobs-(\\d+)-`, 'g');
+  
+          const newForm = templateForm.cloneNode(true);
+          newForm.style.display = '';
+  
+          // Update form field names and IDs
+          const formRegex = new RegExp('jobs-(\\d+)-', 'g');
           newForm.innerHTML = newForm.innerHTML.replace(formRegex, `jobs-${formCount}-`);
+  
+          // Reset form field values
           newForm.querySelectorAll('input, select, textarea').forEach(input => {
               if (input.type === 'checkbox' || input.type === 'radio') {
                   input.checked = false;
@@ -341,94 +600,145 @@
               input.name = input.name.replace(formRegex, `jobs-${formCount}-`);
               input.id = input.id.replace(formRegex, `jobs-${formCount}-`);
           });
-      
-          // Ensure the id field is present and empty for new forms
-          let idField = newForm.querySelector('input[name$="-id"]');
-          if (!idField) {
-              idField = document.createElement('input');
-              idField.type = 'hidden';
-              idField.name = `jobs-${formCount}-id`;
-              idField.id = `id_jobs-${formCount}-id`;
-              newForm.appendChild(idField);
-          }
-          idField.value = '';
-      
-          // Ensure the DELETE checkbox is included and unchecked
-          let deleteCheckbox = newForm.querySelector('input[name$="-DELETE"]');
-          if (!deleteCheckbox) {
-              const deleteCell = newForm.querySelector('td'); // Adjust as needed
-              deleteCheckbox = document.createElement('input');
-              deleteCheckbox.type = 'checkbox';
-              deleteCheckbox.name = `jobs-${formCount}-DELETE`;
-              deleteCheckbox.id = `id_jobs-${formCount}-DELETE`;
-              deleteCell.appendChild(deleteCheckbox);
-          }
-          deleteCheckbox.checked = false;
-      
-          // Insert the new form before the "End Location" row
+  
+          // Handle hidden fields
+          const idField = newForm.querySelector('input[name$="-id"]') || createHiddenField(newForm, formCount, 'id');
+          const deleteCheckbox = newForm.querySelector('input[name$="-DELETE"]') || createHiddenField(newForm, formCount, 'DELETE', 'checkbox');
+          
+          // Insert the new form
           const endLocationRow = formsetContainer.querySelector('tr:last-of-type');
           formsetContainer.insertBefore(newForm, endLocationRow);
-          totalFormsInput.value = formCount + 1;
-      
-          // Attach event listeners to the new form only
+  
+          // Update form count
+          if (totalFormsInput) {
+              totalFormsInput.value = formCount + 1;
+          }
+  
+          // Initialize the new form
           attachEventListeners(newForm);
-      
-          // Hide the placeholder row since we now have a visible job form
-          document.querySelector('.no-job-forms').style.display = 'none';
-        }
+          addValidationListeners(newForm);
+  
+          // Hide placeholder row
+          const placeholderRow = document.querySelector('.no-job-forms');
+          if (placeholderRow) {
+              placeholderRow.style.display = 'none';
+          }
+  
+          // Validate the updated form
+          validateForm();
+      }
+  
+      function createHiddenField(form, formCount, fieldName, type = 'hidden') {
+          const field = document.createElement('input');
+          field.type = type;
+          field.name = `jobs-${formCount}-${fieldName}`;
+          field.id = `id_jobs-${formCount}-${fieldName}`;
+          field.value = '';
+          form.appendChild(field);
+          return field;
+      }
   
       function removeForm(e) {
-          if (e.target.classList.contains('remove-job')) {
-              const jobForms = formsetContainer.querySelectorAll('.job-form');
-              const visibleForms = formsetContainer.querySelectorAll('.job-form:not([style*="display: none"])');
+          if (e.target.classList.contains('remove-job') || e.target.closest('.remove-job')) {
               const jobForm = e.target.closest('.job-form');
+              const visibleForms = formsetContainer.querySelectorAll('.job-form:not([style*="display: none"])');
   
               if (visibleForms.length > 1) {
-                  // Proceed with deletion
                   const deleteCheckbox = jobForm.querySelector('input[name$="-DELETE"]');
                   if (deleteCheckbox) {
                       deleteCheckbox.checked = true;
                       jobForm.style.display = 'none';
                   } else {
                       jobForm.remove();
-                      updateFormIndices();
                   }
               } else {
-                  // Hide the form and show the placeholder row
                   const deleteCheckbox = jobForm.querySelector('input[name$="-DELETE"]');
                   if (deleteCheckbox) {
                       deleteCheckbox.checked = true;
                   }
                   jobForm.style.display = 'none';
-                  // Show the placeholder row
-                  document.querySelector('.no-job-forms').style.display = '';
+                  const placeholderRow = document.querySelector('.no-job-forms');
+                  if (placeholderRow) {
+                      placeholderRow.style.display = '';
+                  }
               }
   
-              // Update indices
               updateFormIndices();
+              validateForm();
           }
       }
+  
+      // Validation event listeners
+      function addValidationListeners(container = document) {
+        const inputs = container.querySelectorAll('input[type="number"], input[type="time"], input[type="text"], select, textarea');
+        inputs.forEach(input => {
+            input.addEventListener('input', () => validateForm(false));  // Don't show alerts on input
+            input.addEventListener('change', () => validateForm(false)); // Don't show alerts on change
+            input.addEventListener('blur', () => validateForm(false));   // Don't show alerts on blur
+        });
+    }
+  
+      // Initialize form
+      function initializeForm() {
+          // Initialize fields and attach event listeners
+          attachEventListeners(formsetContainer);
+          addValidationListeners();
+  
+          // Set up form submission
+          if (form) {
+              form.addEventListener('submit', function(e) {
+                  const isValid = validateForm(true);  // Show alerts on form submission
+                  if (!isValid) {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      showError('Please correct the errors before submitting.');
+                  }
+              });
+          }
+  
+          // Add job button event listeners
+          document.addEventListener('click', function(e) {
+              if (e.target.classList.contains('add-job') || 
+                  e.target.id === 'add-job' || 
+                  e.target.id === 'add-job-when-empty' || 
+                  e.target.closest('#add-job') || 
+                  e.target.closest('#add-job-when-empty')) {
+                  addNewForm();
+              }
+          });
+  
+          // Remove job button event listener
+          if (formsetContainer) {
+              formsetContainer.addEventListener('click', removeForm);
+          }
+  
+          const visibleForms = formsetContainer.querySelectorAll('.job-form:not([style*="display: none"])');
+          const placeholderRow = document.querySelector('.no-job-forms');
+          if (placeholderRow) {
 
-      // Attach event listeners for "Add Job" buttons using event delegation
-      document.addEventListener('click', function (e) {
-          if (e.target && (e.target.id === 'add-job' || e.target.id === 'add-job-when-empty' || e.target.closest('#add-job') || e.target.closest('#add-job-when-empty'))) {
-              addNewForm();
+              placeholderRow.style.display = visibleForms.length === 0 ? '' : 'none';
           }
-      });
   
-      formsetContainer.addEventListener('click', removeForm);
-  
-      // Initial check to show/hide the placeholder row
-      const visibleForms = formsetContainer.querySelectorAll('.job-form:not([style*="display: none"])');
-      if (visibleForms.length === 0) {
-          document.querySelector('.no-job-forms').style.display = '';
-      } else {
-          document.querySelector('.no-job-forms').style.display = 'none';
+          // Initial validation
+          validateForm(false);  // Don't show alerts on initial validation
       }
   
-      // Initialize fields and attach event listeners
-      attachEventListeners(formsetContainer);
-      initializeFields();
+      // Start initialization
+      initializeForm();
   });
+
+  // Add this additional code to ensure the initial state is set correctly
+  document.addEventListener('DOMContentLoaded', function() {
+    // Force an initial validation check
+    const submitButton = document.getElementById('submit-button');
+    if (submitButton) {
+        console.log('Initial button state:', {
+            disabled: submitButton.disabled,
+            hasDisabledAttribute: submitButton.hasAttribute('disabled'),
+            classList: Array.from(submitButton.classList)
+        });
+        validateForm();
+    }
+});
     </script>
 {% endblock %}

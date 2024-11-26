@@ -111,11 +111,24 @@
                         {% endif %}
 
                         <div class="space-y-0.5">
-                            <label for="week-start" class="text-sm font-medium text-gray-600">Week Start Date</label>
+                            <label for="start-date" class="text-sm font-medium text-gray-600">Start Date</label>
                             <input type="date" 
-                                   name="week_start" 
-                                   id="week-start" 
-                                   value="{{ week_start|date:'Y-m-d' }}"
+                                   name="start_date" 
+                                   id="start-date" 
+                                   value="{{ start_date|date:'Y-m-d' }}"
+                                   class="w-full pl-3 pr-3 py-2 bg-gray-50 border border-gray-200 rounded-xl
+                                          text-gray-900
+                                          focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent
+                                          focus:bg-white
+                                          transition-all duration-200">
+                        </div>
+
+                        <div class="space-y-0.5">
+                            <label for="end-date" class="text-sm font-medium text-gray-600">End Date</label>
+                            <input type="date" 
+                                   name="end_date" 
+                                   id="end-date" 
+                                   value="{{ end_date|date:'Y-m-d' }}"
                                    class="w-full pl-3 pr-3 py-2 bg-gray-50 border border-gray-200 rounded-xl
                                           text-gray-900
                                           focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent
@@ -165,7 +178,7 @@
     <!-- Report Header -->
     <h2 class="px-2 py-4 text-xl font-semibold mb-6 text-gray-800">
         Report for {{ selected_user.first_name }} {{ selected_user.last_name }} 
-        (Week of {{ week_start|date:'M d, Y' }} to {{ week_end|date:'M d, Y' }})
+        ( {{ start_date|date:'Y-m-d' }} to {{ end_date|date:'Y-m-d' }})
     </h2>
 
 <!-- Weekly Hours Table -->
@@ -177,11 +190,11 @@
                 <th scope="col" class="px-8 py-4 text-left text-xs font-medium text-gray-600 uppercase tracking-wider whitespace-nowrap">Client No</th>
                 <th scope="col" class="px-8 py-4 text-left text-xs font-medium text-gray-600 uppercase tracking-wider whitespace-nowrap">Project Name</th>
                 <th scope="col" class="px-8 py-4 text-left text-xs font-medium text-gray-600 uppercase tracking-wider whitespace-nowrap">Labor Code</th>
-                <!-- Days of Week -->
-                {% for day, date in week_days.items %}
+                <!-- Dynamic dates -->
+                {% for date in date_range %}
                 <th scope="col" class="px-6 py-4 text-center text-xs font-medium text-gray-600 uppercase tracking-wider">
                     <div class="flex flex-col items-center">
-                        <span class="text-gray-400 text-[10px]">{{ day|slice:":3" }}</span>
+                        <span class="text-gray-400 text-[10px]">{{ date|date:"D" }}</span>
                         <span class="mt-1">{{ date|date:"d" }}</span>
                     </div>
                 </th>
@@ -204,32 +217,22 @@
                 <td class="px-8 py-5 whitespace-nowrap">
                     <div class="text-sm text-gray-900">{{ labor_code }} - {{ data.labor_code_description }}</div>
                 </td>
+                {% for date in date_range %}
                 <td class="px-6 py-5 whitespace-nowrap text-center">
-                    <div class="text-sm text-gray-900">{{ data.hours.Sunday|default:"--" }}</div>
+                    <div class="text-sm text-gray-900">
+                        {% with hours=data.hours|get_item:date|default:0 %}
+                            {% if hours == 0 %}
+                                --
+                            {% else %}
+                                {{ hours|floatformat:2 }}
+                            {% endif %}
+                        {% endwith %}
+                    </div>
                 </td>
-                <td class="px-6 py-5 whitespace-nowrap text-center">
-                    <div class="text-sm text-gray-900">{{ data.hours.Monday|default:"--" }}</div>
-                </td>
-                <td class="px-6 py-5 whitespace-nowrap text-center">
-                    <div class="text-sm text-gray-900">{{ data.hours.Tuesday|default:"--" }}</div>
-                </td>
-                <td class="px-6 py-5 whitespace-nowrap text-center">
-                    <div class="text-sm text-gray-900">{{ data.hours.Wednesday|default:"--" }}</div>
-                </td>
-                <td class="px-6 py-5 whitespace-nowrap text-center">
-                    <div class="text-sm text-gray-900">{{ data.hours.Thursday|default:"--" }}</div>
-                </td>
-                <td class="px-6 py-5 whitespace-nowrap text-center">
-                    <div class="text-sm text-gray-900">{{ data.hours.Friday|default:"--" }}</div>
-                </td>
-                <td class="px-6 py-5 whitespace-nowrap text-center">
-                    <div class="text-sm text-gray-900">{{ data.hours.Saturday|default:"--" }}</div>
-                </td>
+                {% endfor %}
                 <td class="px-8 py-5 whitespace-nowrap text-center">
                     <div class="text-sm font-medium text-gray-900">
-                        {% with total=data.hours.Sunday|default:"0"|precise_add:data.hours.Monday|default:"0"|precise_add:data.hours.Tuesday|default:"0"|precise_add:data.hours.Wednesday|default:"0"|precise_add:data.hours.Thursday|default:"0"|precise_add:data.hours.Friday|default:"0"|precise_add:data.hours.Saturday|default:"0" %}
-                            {{ total|floatformat:2 }}
-                        {% endwith %}
+                        {{ data.total|floatformat:2 }}
                     </div>
                 </td>
             </tr>
@@ -238,64 +241,66 @@
             <!-- Daily Totals Row - Regular Time (RT) -->
             <tr class="bg-gray-50/75 font-medium border-t-2 border-gray-200">
                 <td colspan="4" class="px-8 py-5 whitespace-nowrap">
-                    <div class="text-sm font-semibold text-gray-900">Time to be paid RT:</div>
+                    <div class="text-sm font-semibold text-gray-900">Regular Time (≤ 8hrs/day):</div>
                 </td>
+                {% for date in date_range %}
                 <td class="px-6 py-5 whitespace-nowrap text-center">
-                    <div class="text-sm font-semibold text-gray-900">{{ daily_rt.Sunday|default:0|floatformat:2 }}</div>
+                    <div class="text-sm font-semibold text-gray-900">
+                        {% with rt=daily_rt|get_item:date|default:0 %}
+                            {% if rt == 0 %}
+                                --
+                            {% else %}
+                                {{ rt|floatformat:2 }}
+                            {% endif %}
+                        {% endwith %}
+                    </div>
                 </td>
-                <td class="px-6 py-5 whitespace-nowrap text-center">
-                    <div class="text-sm font-semibold text-gray-900">{{ daily_rt.Monday|default:0|floatformat:2 }}</div>
-                </td>
-                <td class="px-6 py-5 whitespace-nowrap text-center">
-                    <div class="text-sm font-semibold text-gray-900">{{ daily_rt.Tuesday|default:0|floatformat:2 }}</div>
-                </td>
-                <td class="px-6 py-5 whitespace-nowrap text-center">
-                    <div class="text-sm font-semibold text-gray-900">{{ daily_rt.Wednesday|default:0|floatformat:2 }}</div>
-                </td>
-                <td class="px-6 py-5 whitespace-nowrap text-center">
-                    <div class="text-sm font-semibold text-gray-900">{{ daily_rt.Thursday|default:0|floatformat:2 }}</div>
-                </td>
-                <td class="px-6 py-5 whitespace-nowrap text-center">
-                    <div class="text-sm font-semibold text-gray-900">{{ daily_rt.Friday|default:0|floatformat:2 }}</div>
-                </td>
-                <td class="px-6 py-5 whitespace-nowrap text-center">
-                    <div class="text-sm font-semibold text-gray-900">{{ daily_rt.Saturday|default:0|floatformat:2 }}</div>
-                </td>
+                {% endfor %}
                 <td class="px-8 py-5 whitespace-nowrap text-center">
                     <div class="text-sm font-semibold text-gray-900">
                         {{ total_rt_hours|floatformat:2 }}
                     </div>
                 </td>
             </tr>
+
             <!-- Daily Totals Row - Overtime (OT) -->
-            <tr class="bg-gray-50/75 font-medium border-t-2 border-gray-200">
+            <tr class="bg-gray-50/75 font-medium">
                 <td colspan="4" class="px-8 py-5 whitespace-nowrap">
-                    <div class="text-sm font-semibold text-gray-900">Time to be paid OT:</div>
+                    <div class="text-sm font-semibold text-gray-900">Overtime (> 8hrs/day):</div>
                 </td>
+                {% for date in date_range %}
                 <td class="px-6 py-5 whitespace-nowrap text-center">
-                    <div class="text-sm font-semibold text-gray-900">{{ daily_ot.Sunday|default:0|floatformat:2 }}</div>
+                    <div class="text-sm font-semibold text-gray-900">
+                        {% with ot=daily_ot|get_item:date|default:0 %}
+                            {% if ot == 0 %}
+                                --
+                            {% else %}
+                                {{ ot|floatformat:2 }}
+                            {% endif %}
+                        {% endwith %}
+                    </div>
                 </td>
-                <td class="px-6 py-5 whitespace-nowrap text-center">
-                    <div class="text-sm font-semibold text-gray-900">{{ daily_ot.Monday|default:0|floatformat:2 }}</div>
-                </td>
-                <td class="px-6 py-5 whitespace-nowrap text-center">
-                    <div class="text-sm font-semibold text-gray-900">{{ daily_ot.Tuesday|default:0|floatformat:2 }}</div>
-                </td>
-                <td class="px-6 py-5 whitespace-nowrap text-center">
-                    <div class="text-sm font-semibold text-gray-900">{{ daily_ot.Wednesday|default:0|floatformat:2 }}</div>
-                </td>
-                <td class="px-6 py-5 whitespace-nowrap text-center">
-                    <div class="text-sm font-semibold text-gray-900">{{ daily_ot.Thursday|default:0|floatformat:2 }}</div>
-                </td>
-                <td class="px-6 py-5 whitespace-nowrap text-center">
-                    <div class="text-sm font-semibold text-gray-900">{{ daily_ot.Friday|default:0|floatformat:2 }}</div>
-                </td>
-                <td class="px-6 py-5 whitespace-nowrap text-center">
-                    <div class="text-sm font-semibold text-gray-900">{{ daily_ot.Saturday|default:0|floatformat:2 }}</div>
-                </td>
+                {% endfor %}
                 <td class="px-8 py-5 whitespace-nowrap text-center">
                     <div class="text-sm font-semibold text-gray-900">
                         {{ total_ot_hours|floatformat:2 }}
+                    </div>
+                </td>
+            </tr>
+
+            <!-- Grand Total -->
+            <tr class="bg-gray-800 text-white font-medium">
+                <td colspan="4" class="px-8 py-5 whitespace-nowrap">
+                    <div class="text-sm font-semibold">GRAND TOTAL:</div>
+                </td>
+                <td colspan="{{ date_range|length }}" class="px-6 py-5 whitespace-nowrap text-center">
+                    <div class="text-sm font-semibold">
+
+                    </div>
+                </td>
+                <td class="px-8 py-5 whitespace-nowrap text-center">
+                    <div class="text-sm font-semibold">
+                        {{ grand_total_hours|floatformat:2 }}
                     </div>
                 </td>
             </tr>
@@ -303,124 +308,93 @@
     </table>
 </div>
 
-    <!-- Labor Code Section - Hidden by default, visible when printing -->
-    <div class="bg-white shadow-md rounded-lg overflow-hidden mb-8 hidden print-only">
-        <table class="min-w-full divide-y divide-gray-300 ">
-            <thead class="bg-gray-300">
-                <tr>
-                    <th colspan="2" class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-r text-center ">Field Technician & Engineering Codes</th>
-                    <th colspan="2" class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-r text-center ">Lab Service Codes</th>
-                    <th colspan="6" class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider text-center ">Time Sheet Summary</th>
+<!-- Labor Code Section - Hidden by default, visible when printing -->
+<div class="hidden print-only mx-auto p-4">
+    <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+        <table class="min-w-full">
+            <thead>
+                <tr class="bg-gradient-to-r from-gray-500 to-gray-600">
+                    <th colspan="2" class="px-6 py-4 text-center text-white text-lg font-semibold">
+                        Time Sheet Summary
+                    </th>
                 </tr>
             </thead>
-            <tbody class="bg-white divide-y divide-gray-300 ">
-                <!-- Row 1 -->
-                <tr class="hover:bg-gray-300">
-                    <td class="px-4 py-1 text-sm text-gray-900 border-r">1. Project Management/P.E.</td>
-                    <td class="px-4 py-1 text-sm text-gray-900 border-r ">13. Concrete Lab</td>
-                    <td class="px-4 py-1 text-sm text-gray-900 border-r ">25. Moisture Content</td>
-                    <td class="px-4 py-1 text-sm text-gray-900 border-r ">37. Modified Proctor 4" Mold</td>
-                    <td colspan="3" class="px-4 py-1 text-sm font-semibold text-gray-900 ">Total Regular Hours</td>
-                    <td colspan="3" class="px-4 py-1 text-sm font-semibold text-gray-900">{{ total_regular_hours }}</td>
+            <tbody class="divide-y divide-gray-100">
+                <!-- Regular Hours Row -->
+                <tr class="hover:bg-gray-50 transition-colors">
+                    <td colspan="1" class="px-6 py-4">
+                        <div class="flex items-center space-x-3">
+                            <div class="h-8 w-8 rounded-lg bg-blue-100 flex items-center justify-center">
+                                <svg class="h-4 w-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                            </div>
+                            <span class="text-gray-700 font-medium">Total Regular Hours</span>
+                        </div>
+                    </td>
+                    <td colspan="1" class="px-6 py-4 text-right">
+                        <span class="text-gray-900 font-semibold">{{ total_regular_hours }}</span>
+                    </td>
                 </tr>
-                <!-- Row 2 -->
-                <tr class="hover:bg-gray-300">
-                    <td class="px-4 py-1 text-sm text-gray-900 border-r">2. Senior Engineer/P.E.</td>
-                    <td class="px-4 py-1 text-sm text-gray-900 border-r">14. Concrete Coring</td>
-                    <td class="px-4 py-1 text-sm text-gray-900 border-r">26. Particle Size Analysis</td>
-                    <td class="px-4 py-1 text-sm text-gray-900 border-r">38. Modified Proctor 6" Mold</td>
-                    <td colspan="3" class="px-4 py-1 text-sm font-semibold text-gray-900">Total Overtime Hours</td>
-                    <td colspan="3" class="px-4 py-1 text-sm font-semibold text-gray-900">{{ total_overtime_hours }}</td>
+                
+                <!-- Overtime Hours Row -->
+                <tr class="hover:bg-gray-50 transition-colors">
+                    <td colspan="1" class="px-6 py-4">
+                        <div class="flex items-center space-x-3">
+                            <div class="h-8 w-8 rounded-lg bg-orange-100 flex items-center justify-center">
+                                <svg class="h-4 w-4 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                            </div>
+                            <span class="text-gray-700 font-medium">Total Overtime Hours</span>
+                        </div>
+                    </td>
+                    <td colspan="1" class="px-6 py-4 text-right">
+                        <span class="text-gray-900 font-semibold">{{ total_overtime_hours }}</span>
+                    </td>
                 </tr>
-                <!-- Row 3 -->
-                <tr class="hover:bg-gray-300">
-                    <td class="px-4 py-1 text-sm text-gray-900 border-r">3. Project Engineer</td>
-                    <td class="px-4 py-1 text-sm text-gray-900 border-r">15. Windsor Probe/Pin</td>
-                    <td class="px-4 py-1 text-sm text-gray-900 border-r">27. Hydrometer</td>
-                    <td class="px-4 py-1 text-sm text-gray-900 border-r">39. Unconsolidated Triaxle Shear Test</td>
-                    <td colspan="3" class="px-4 py-1 text-sm font-semibold text-gray-900">Double Time Hours</td>
-                    <td colspan="3" class="px-4 py-1 text-sm font-semibold text-gray-900">{{ total_double_time_hours }}</td>
+                
+                <!-- Double Time Hours Row -->
+                <tr class="hover:bg-gray-50 transition-colors">
+                    <td colspan="1" class="px-6 py-4">
+                        <div class="flex items-center space-x-3">
+                            <div class="h-8 w-8 rounded-lg bg-purple-100 flex items-center justify-center">
+                                <svg class="h-4 w-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                            </div>
+                            <span class="text-gray-700 font-medium">Double Time Hours</span>
+                        </div>
+                    </td>
+                    <td colspan="1" class="px-6 py-4 text-right">
+                        <span class="text-gray-900 font-semibold">{{ total_double_time_hours }}</span>
+                    </td>
                 </tr>
-                <!-- Row 4 -->
-                <tr class="hover:bg-gray-300">
-                    <td class="px-4 py-1 text-sm text-gray-900 border-r">4. Lab Manager</td>
-                    <td class="px-4 py-1 text-sm text-gray-900 border-r">16. Schmidt Hammer</td>
-                    <td class="px-4 py-1 text-sm text-gray-900 border-r">28. Atterberg Limits</td>
-                    <td class="px-4 py-1 text-sm text-gray-900 border-r">40. Consolidated Triaxle Shear Test</td>
-                    <td colspan="3" class="px-4 py-1 text-sm font-semibold text-gray-900">Grand Total Hours</td>
-                    <td colspan="3" class="px-4 py-1 text-sm font-semibold text-gray-900">{{ grand_total_hours }}</td>
-                </tr>
-                <!-- Row 5 -->
-                <tr class="hover:bg-gray-300">
-                    <td class="px-4 py-1 text-sm text-gray-900 border-r">5. Laboratory Technician</td>
-                    <td class="px-4 py-1 text-sm text-gray-900 border-r">17. Ground Penetrating Radar</td>
-                    <td class="px-4 py-1 text-sm text-gray-900 border-r">29. Specific Gravity</td>
-                    <td class="px-4 py-1 text-sm text-gray-900 border-r">41. Unconfined Compression</td>
-                    <td colspan="6" class="px-4 py-1"></td>
-                </tr>
-                <!-- Row 6 -->
-                <tr class="hover:bg-gray-300">
-                    <td class="px-4 py-1 text-sm text-gray-900 border-r">6. Field Engineer</td>
-                    <td class="px-4 py-1 text-sm text-gray-900 border-r">18. Floor Flatness</td>
-                    <td class="px-4 py-1 text-sm text-gray-900 border-r">30. Organic Content</td>
-                    <td class="px-4 py-1 text-sm text-gray-900 border-r">42. One Dimensional Consolidation</td>
-                    <td colspan="6" class="px-4 py-1"></td>
-                </tr>
-                <!-- Row 7 -->
-                <tr class="hover:bg-gray-300">
-                    <td class="px-4 py-1 text-sm text-gray-900 border-r">7. Field Technician Level I</td>
-                    <td class="px-4 py-1 text-sm text-gray-900 border-r">19. CAD Drawing</td>
-                    <td class="px-4 py-1 text-sm text-gray-900 border-r">31. Unit Weight</td>
-                    <td class="px-4 py-1 text-sm text-gray-900 border-r">43. Asphalt Extraction Test</td>
-                    <td colspan="6" class="px-4 py-1"></td>
-                </tr>
-                <!-- Row 8 -->
-                <tr class="hover:bg-gray-300">
-                    <td class="px-4 py-1 text-sm text-gray-900 border-r">8. Field Technician Level II</td>
-                    <td class="px-4 py-1 text-sm text-gray-900 border-r">20. Administration</td>
-                    <td class="px-4 py-1 text-sm text-gray-900 border-r">32. Density, Soil Particle</td>
-                    <td class="px-4 py-1 text-sm text-gray-900 border-r">44. Gyratory Compaction</td>
-                    <td colspan="6" class="px-4 py-1"></td>
-                </tr>
-                <!-- Row 9 -->
-                <tr class="hover:bg-gray-300">
-                    <td class="px-4 py-1 text-sm text-gray-900 border-r">9. CWI</td>
-                    <td class="px-4 py-1 text-sm text-gray-900 border-r">21. Marketing</td>
-                    <td class="px-4 py-1 text-sm text-gray-900 border-r">33. Fractional Organic Carbon</td>
-                    <td class="px-4 py-1 text-sm text-gray-900 border-r">45. Asphalt Bulk Specific Gravity</td>
-                    <td colspan="6" class="px-4 py-1"></td>
-                </tr>
-                <!-- Row 10 -->
-                <tr class="hover:bg-gray-300">
-                    <td class="px-4 py-1 text-sm text-gray-900 border-r">10. Report / Documentation Preparation</td>
-                    <td class="px-4 py-1 text-sm text-gray-900 border-r">22. Clerical Support</td>
-                    <td class="px-4 py-1 text-sm text-gray-900 border-r">34. Hydraulic Conductivity</td>
-                    <td class="px-4 py-1 text-sm text-gray-900 border-r">46. Asphalt Apparent Specific Gravity</td>
-                    <td colspan="6" class="px-4 py-1"></td>
-                </tr>
-                <!-- Row 11 -->
-                <tr class="hover:bg-gray-300">
-                    <td class="px-4 py-1 text-sm text-gray-900 border-r">11. Report / Document Quality Review</td>
-                    <td class="px-4 py-1 text-sm text-gray-900 border-r">23. Training</td>
-                    <td class="px-4 py-1 text-sm text-gray-900 border-r">35. Standard Proctor 4" Mold</td>
-                    <td class="px-4 py-1 text-sm text-gray-900 border-r">47. pH</td>
-                    <td colspan="6" class="px-4 py-1"></td>
-                </tr>
-                <!-- Row 12 -->
-                <tr class="hover:bg-gray-300">
-                    <td class="px-4 py-1 text-sm text-gray-900 border-r">12. Concrete / Sample Collection Pick-Up</td>
-                    <td class="px-4 py-1 text-sm text-gray-900 border-r">24. School</td>
-                    <td class="px-4 py-1 text-sm text-gray-900 border-r">36. Standard Proctor 6" Mold</td>
-                    <td class="px-4 py-1 text-sm text-gray-900 border-r">48. Other</td>
-                    <td colspan="6" class="px-4 py-1"></td>
+                
+                <!-- Grand Total Row -->
+                <tr class="bg-gray-50">
+                    <td colspan="1" class="px-6 py-4">
+                        <div class="flex items-center space-x-3">
+                            <div class="h-8 w-8 rounded-lg bg-green-100 flex items-center justify-center">
+                                <svg class="h-4 w-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                                </svg>
+                            </div>
+                            <span class="text-gray-900 font-semibold">Grand Total Hours</span>
+                        </div>
+                    </td>
+                    <td colspan="1" class="px-6 py-4 text-right">
+                        <span class="text-gray-900 font-bold">{{ grand_total_hours }}</span>
+                    </td>
                 </tr>
             </tbody>
         </table>
     </div>
+</div>
     
     <div class="p-4 screen-only">
         <!-- Summary Grid -->
-        <div class="summary-grid grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div class="summary-grid grid grid-cols-1 md:grid-cols-7 gap-4">
             <!-- Regular Hours -->
             <div class="summary-card rounded-lg border border-gray-200 shadow-lg p-4 bg-white">
                 <div class="flex flex-col">
@@ -464,44 +438,115 @@
                     </div>
                 </div>
             </div>
-        </div>
-<!-- Print Button -->
-<div class="py-6 mb-4">
-    <button onclick="window.print()" 
-            class="inline-flex items-center px-4 py-2.5 bg-gradient-to-r from-gray-800 to-gray-900 
-                   text-white rounded-xl font-medium
-                   border border-transparent
-                   hover:from-gray-700 hover:to-gray-800
-                   focus:outline-none
-                   transform transition-all duration-200
-                   hover:scale-[1.02] active:scale-95
-                   no-print">
-        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                  d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
-        </svg>
-        Print Report
-    </button>
-</div>
+            <!-- Total Miles -->
+            <div class="summary-card rounded-lg border border-gray-200 shadow-lg p-4 bg-white">
+                <div class="flex flex-col">
+                    <div class="text-sm font-medium text-gray-500 mb-1">Total Miles to be Paid</div>
+                    <div class="flex items-baseline">
+                        <span class="text-2xl font-semibold text-green-600">{{ total_miles_to_be_paid|floatformat:2 }}</span>
+                        <span class="ml-1 text-sm text-gray-500">miles</span>
+                    </div>
+                </div>
+            </div>
 
-<script>
-    document.addEventListener('DOMContentLoaded', () => {
-        document.querySelectorAll('details').forEach((detail) => {
-            detail.removeAttribute('open');
-            
-            const summary = detail.querySelector('summary');
-            const arrow = summary.querySelector('svg');
-            
-            arrow.classList.add('rotate-180');
-            
-            detail.addEventListener('toggle', () => {
-                if (detail.open) {
-                    arrow.classList.remove('rotate-180');
-                } else {
+            <!-- Vehicle Allowance -->
+            <div class="summary-card rounded-lg border border-gray-200 shadow-lg p-4 bg-white">
+                <div class="flex flex-col">
+                    <div class="text-sm font-medium text-gray-500 mb-1">Vehicle Allowance</div>
+                    <div class="flex items-baseline">
+                        <span class="text-2xl font-semibold text-green-600">${{ vehicle_allowance|floatformat:2 }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Rate Info -->
+            <div class="summary-card rounded-lg border border-gray-200 shadow-lg p-4 bg-white">
+                <div class="flex flex-col">
+                    <div class="text-sm font-medium text-gray-500 mb-1">Mileage Rate</div>
+                    <div class="flex items-baseline">
+                        <span class="text-2xl font-semibold text-gray-600">$0.55</span>
+                        <span class="ml-1 text-sm text-gray-500">per mile</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- Attachments Section -->
+        {% if attachments %}
+        <div class="bg-white shadow-xl rounded-2xl overflow-hidden mb-8">
+            <div class="px-6 py-4 border-b border-gray-100">
+                <h2 class="text-lg font-semibold text-gray-800">Attachments</h2>
+            </div>
+            <div class="divide-y divide-gray-100">
+                {% for attachment in attachments %}
+                <div class="px-6 py-4 flex items-center justify-between hover:bg-gray-50">
+                    <div class="flex items-center space-x-4">
+                        <div class="text-gray-400">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                                      d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <p class="text-sm font-medium text-gray-900">{{ attachment.name }}</p>
+                            <p class="text-xs text-gray-500">{{ attachment.date|date:"Y-m-d" }}</p>
+                        </div>
+                    </div>
+                    <a href="{{ attachment.url }}" 
+                       target="_blank"
+                       class="inline-flex items-center px-3 py-1.5 border border-gray-300 shadow-sm text-sm font-medium rounded-lg 
+                              text-gray-700 bg-white hover:bg-gray-50 
+                              focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
+                        <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                                  d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                        </svg>
+                        View
+                    </a>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Print Button -->
+        <div class="py-6 mb-4">
+            <button onclick="window.print()" 
+                    class="inline-flex items-center px-4 py-2.5 bg-gradient-to-r from-gray-800 to-gray-900 
+                           text-white rounded-xl font-medium
+                           border border-transparent
+                           hover:from-gray-700 hover:to-gray-800
+                           focus:outline-none
+                           transform transition-all duration-200
+                           hover:scale-[1.02] active:scale-95
+                           no-print">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                          d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
+                </svg>
+                Print Report
+            </button>
+        </div>
+
+        <script>
+            document.addEventListener('DOMContentLoaded', () => {
+                document.querySelectorAll('details').forEach((detail) => {
+                    detail.removeAttribute('open');
+                    
+                    const summary = detail.querySelector('summary');
+                    const arrow = summary.querySelector('svg');
+                    
                     arrow.classList.add('rotate-180');
-                }
+                    
+                    detail.addEventListener('toggle', () => {
+                        if (detail.open) {
+                            arrow.classList.remove('rotate-180');
+                        } else {
+                            arrow.classList.add('rotate-180');
+                        }
+                    });
+                });
             });
-        });
-    });
-</script>
-{% endblock %} 
+        </script>
+{% endblock %}

@@ -71,3 +71,33 @@ def get(dictionary, key):
     Usage: {{ dictionary|get:key }}
     """
     return dictionary.get(key, '')
+
+@register.filter
+def format_decimal(value):
+    try:
+        return "{:.2f}".format(float(value))
+    except (TypeError, ValueError):
+        return "0.00"
+    
+@register.filter
+def get_item(dictionary, key):
+    """
+    Template filter to get an item from a dictionary safely
+    """
+    try:
+        return dictionary.get(key, 0)
+    except (AttributeError, TypeError):
+        return 0
+
+@register.filter
+def format_hours(value):
+    """
+    Format hours with proper decimal places and handling of zero values
+    """
+    try:
+        float_value = float(value)
+        if float_value == 0:
+            return '--'
+        return '{:.2f}'.format(float_value)
+    except (ValueError, TypeError):
+        return '--'

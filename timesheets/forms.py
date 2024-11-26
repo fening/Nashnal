@@ -1,6 +1,7 @@
 from django import forms
 from .models import TimeEntry, Job, JobDetails, LaborCode, TimeEntryApproval
 from datetime import datetime, timedelta
+from django.core.validators import FileExtensionValidator
 
 class JobDescriptionChoiceField(forms.ModelChoiceField):
     def label_from_instance(self, obj):
@@ -66,6 +67,19 @@ class TimeEntryForm(forms.ModelForm):
         initial=False,
         label="Vehicle Used"
     )
+    attachment = forms.FileField(
+        required=False,
+        widget=forms.FileInput(attrs={
+            'class': 'form-control',
+            'accept': '.pdf,.doc,.docx,.jpg,.jpeg,.png'
+        }),
+        validators=[
+            FileExtensionValidator(
+                allowed_extensions=['pdf', 'doc', 'docx', 'jpg', 'jpeg', 'png']
+            )
+        ],
+        help_text="Allowed file types: PDF, DOC, DOCX, JPG, PNG (Max size: 5MB)"
+    )
 
     class Meta:
         model = TimeEntry
@@ -74,7 +88,7 @@ class TimeEntryForm(forms.ModelForm):
             'initial_leave_time', 'final_arrive_time', 'initial_mileage', 'final_mileage',
             'hours_on_site', 'hours_for_the_day', 'travel_time_subtract', 'hours_to_be_paid',
             'total_miles', 'travel_miles_subtract', 'miles_to_be_paid',
-            'comments'
+            'comments', 'attachment'  # Add attachment to fields
         ]
         widgets = {
             'start_time': forms.TimeInput(attrs={'type': 'time', 'class': 'form-control start-time-field'}),
@@ -90,6 +104,14 @@ class TimeEntryForm(forms.ModelForm):
         # Remove start_time and end_time from the form fields if they're somehow still there
         self.fields.pop('start_time', None)
         self.fields.pop('end_time', None)
+
+    def clean_attachment(self):
+        attachment = self.cleaned_data.get('attachment')
+        if attachment:
+            # 5MB maximum file size
+            if attachment.size > 5 * 1024 * 1024:
+                raise forms.ValidationError("File size must be under 5MB")
+        return attachment
 
 
 class JobForm(forms.ModelForm):

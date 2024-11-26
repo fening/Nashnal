@@ -7,6 +7,8 @@ from django.core.exceptions import ValidationError
 from django.forms import IntegerField
 from django.utils.functional import cached_property
 from django.urls import reverse
+from django.core.validators import FileExtensionValidator
+import os
 
 class JobDetails(models.Model):
     job_number = models.CharField(max_length=50, unique=True, editable=False)
@@ -81,6 +83,20 @@ class TimeEntry(models.Model):
     
     company_vehicle_used = models.BooleanField(choices=VEHICLE_CHOICES,default=False, verbose_name="Vehicle Used")
     comments = models.TextField(blank=True, null=True, help_text="Any additional notes or comments for this time entry.")
+    
+    # Add these new fields
+    attachment = models.FileField(
+        upload_to='timesheet_attachments/%Y/%m/%d/',
+        null=True,
+        blank=True,
+        validators=[
+            FileExtensionValidator(
+                allowed_extensions=['pdf', 'doc', 'docx', 'jpg', 'jpeg', 'png']
+            )
+        ],
+        help_text="Allowed file types: PDF, DOC, DOCX, JPG, PNG"
+    )
+    attachment_name = models.CharField(max_length=255, blank=True)
 
     class Meta:
         indexes = [
@@ -198,7 +214,8 @@ class TimeEntry(models.Model):
                 self.miles_to_be_paid = round(self.total_miles - self.travel_miles_subtract, 2)
             
     def save(self, *args, **kwargs):
-        # Save the instance first to ensure we have a primary key
+        if self.attachment and not self.attachment_name:
+            self.attachment_name = self.attachment.name
         super().save(*args, **kwargs)
         
         if self.jobs.exists():
@@ -328,6 +345,16 @@ class TimeEntry(models.Model):
     def last_job(self):
         return self.jobs.order_by('-activity_leave_time').first()
     
+    def get_attachment_url(self):
+        if self.attachment:
+            return self.attachment.url
+        return None
+
+    def get_attachment_filename(self):
+        if self.attachment:
+            return os.path.basename(self.attachment.name)
+        return None
+
 class LaborCode(models.Model):
     laborcode = models.IntegerField(unique=True)
     labor_code_description = models.CharField(max_length=255)

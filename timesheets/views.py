@@ -66,7 +66,7 @@ def cache_per_user(timeout=300):
             response = cache.get(cache_key)
             
             if response is None:
-                response = view_func(request, *args, **kwargs)
+                response = view_func(request, *args, *kwargs)
                 cache.set(cache_key, response, timeout)
             
             return response
@@ -294,7 +294,7 @@ def time_entry_create(request):
         JobFormSet = formset_factory(JobForm, extra=1, can_delete=True)
         
         if request.method == 'POST':
-            form = TimeEntryForm(request.POST)
+            form = TimeEntryForm(request.POST, request.FILES)  # Add request.FILES here
             formset = JobFormSet(request.POST, prefix='jobs')  # Add prefix to match template
             
             print("POST data:", request.POST)
@@ -310,6 +310,12 @@ def time_entry_create(request):
                     with transaction.atomic():
                         time_entry = form.save(commit=False)
                         time_entry.user = request.user
+                        
+                        # Handle file upload
+                        if 'attachment' in request.FILES:
+                            time_entry.attachment = request.FILES['attachment']
+                            time_entry.attachment_name = request.FILES['attachment'].name
+                            
                         time_entry.save()
                         
                         logger.debug(f"Number of forms in formset: {len(formset)}")
@@ -361,7 +367,7 @@ def time_entry_edit(request, pk):
     )
 
     if request.method == 'POST':
-        form = TimeEntryForm(request.POST, instance=time_entry)
+        form = TimeEntryForm(request.POST, request.FILES, instance=time_entry)  # Add request.FILES here
         formset = JobFormSet(request.POST, instance=time_entry, prefix='jobs')
 
         print("POST data:", request.POST)
@@ -604,27 +610,31 @@ User = get_user_model()
 
 @login_required
 def user_summary_report(request):
+    # Initialize context at the beginning
+    context = {
+        'view_title': 'Summary Report',
+        'is_superuser': request.user.is_superuser,
+        'is_supervisor': hasattr(request.user, 'role') and request.user.role == 'Supervisor',
+    }
+    
     # Initialize context variables for user permissions
     is_superuser = request.user.is_superuser
     is_supervisor = hasattr(request.user, 'role') and request.user.role == 'Supervisor'
     
     # Determine the available users based on permissions
     if is_superuser:
-        # Superusers can see all users
         all_users = User.objects.all().order_by('first_name', 'last_name')
     elif is_supervisor:
-        # Supervisors can only see their team members
         all_users = User.objects.filter(supervisor=request.user).order_by('first_name', 'last_name')
     else:
         all_users = None
 
-    # Get the selected user
+    # Get the selected user with proper validation
     selected_user_id = request.GET.get('user')
     if selected_user_id:
         if is_superuser:
             selected_user = User.objects.filter(id=selected_user_id).first()
         elif is_supervisor:
-            # Ensure supervisor can only access their team members
             selected_user = User.objects.filter(
                 id=selected_user_id,
                 supervisor=request.user
@@ -634,208 +644,183 @@ def user_summary_report(request):
     else:
         selected_user = request.user
 
-    # If no valid selection, default to current user
+    # Default to current user if no valid selection
     if not selected_user:
         selected_user = request.user
 
-    # Get the selected week or default to the current week
-    week_start = request.GET.get('week_start')
-    if week_start:
-        try:
-            week_start = timezone.datetime.strptime(week_start, '%Y-%m-%d').date()
-        except ValueError:
-            week_start = None
-    
-    if not week_start:
+    # Get and validate date range
+    try:
+        start_date = request.GET.get('start_date')
+        end_date = request.GET.get('end_date')
+        
+        if start_date and end_date:
+            start_date = datetime.strptime(start_date, '%Y-%m-%d').date()
+            end_date = datetime.strptime(end_date, '%Y-%m-%d').date()
+        else:
+            # Get current week's Monday and Sunday
+            today = timezone.now().date()
+            start_date = today - timedelta(days=today.weekday())  # Monday
+            end_date = start_date + timedelta(days=6)  # Sunday
+
+        # Validate date range isn't too large
+        if (end_date - start_date).days > 366:  # Max one year
+            messages.warning(request, "Date range limited to one year maximum.")
+            end_date = start_date + timedelta(days=365)
+
+    except ValueError as e:
+        logger.error(f"Date parsing error: {str(e)}")
+        # Get current week's Monday and Sunday as fallback
         today = timezone.now().date()
-        week_start = today - timedelta(days=today.weekday())  # Monday
+        start_date = today - timedelta(days=today.weekday())  # Monday
+        end_date = start_date + timedelta(days=6)  # Sunday
 
-    week_end = week_start + timedelta(days=6)  # Sunday
+    # Generate date range
+    date_range = []
+    current_date = start_date
+    while current_date <= end_date:
+        date_range.append(current_date)
+        current_date += timedelta(days=1)
 
-    # Filter time entries for the selected user and week with related job data
+    # Initialize data structures with Decimal for precise calculations
+    weekly_hours = {}
+    daily_totals = {date: Decimal('0.00') for date in date_range}
+    daily_rt = {date: Decimal('0.00') for date in date_range}
+    daily_ot = {date: Decimal('0.00') for date in date_range}
+    
+    total_rt_hours = Decimal('0.00')
+    total_ot_hours = Decimal('0.00')
+    
+    # Get time entries with optimized queries
     time_entries = TimeEntry.objects.filter(
-        user=selected_user, 
-        date__range=[week_start, week_end]
+        user=selected_user,
+        date__range=[start_date, end_date]
     ).prefetch_related(
-        'jobs', 
-        'jobs__labor_code', 
+        'jobs',
+        'jobs__labor_code',
         'approval'
     ).select_related('user')
 
-    # Initialize dictionaries with Decimal
-    weekly_hours = {}
-    daily_totals = {
-        'Sunday': Decimal('0.00'),
-        'Monday': Decimal('0.00'),
-        'Tuesday': Decimal('0.00'),
-        'Wednesday': Decimal('0.00'),
-        'Thursday': Decimal('0.00'),
-        'Friday': Decimal('0.00'),
-        'Saturday': Decimal('0.00')
-    }
-    
-    daily_rt = {
-        'Sunday': Decimal('0.00'),
-        'Monday': Decimal('0.00'),
-        'Tuesday': Decimal('0.00'),
-        'Wednesday': Decimal('0.00'),
-        'Thursday': Decimal('0.00'),
-        'Friday': Decimal('0.00'),
-        'Saturday': Decimal('0.00')
-    }
-    
-    daily_ot = {
-        'Sunday': Decimal('0.00'),
-        'Monday': Decimal('0.00'),
-        'Tuesday': Decimal('0.00'),
-        'Wednesday': Decimal('0.00'),
-        'Thursday': Decimal('0.00'),
-        'Friday': Decimal('0.00'),
-        'Saturday': Decimal('0.00')
-    }
-
-    grand_total_hours = Decimal('0.00')
-    total_rt_hours = Decimal('0.00')
-    total_ot_hours = Decimal('0.00')
-
-    # First pass: Calculate daily totals
+    # Process time entries
     for entry in time_entries:
-        day_of_week = entry.date.strftime('%A')
-        if entry.hours_to_be_paid:
-            try:
+        entry_date = entry.date
+        
+        try:
+            if entry.hours_to_be_paid:
+                # Convert the hours value to Decimal
                 entry_hours = Decimal(str(entry.hours_to_be_paid))
-                daily_totals[day_of_week] += entry_hours
-                grand_total_hours += entry_hours
-            except (ValueError, TypeError) as e:
-                logger.error(f"Error processing hours for entry {entry.id}: {str(e)}")
-                continue
-
-    # Second pass: Process time entries and jobs with RT/OT split
-    for day, total_hours in daily_totals.items():
-        # Calculate RT and OT for this day
-        rt_hours = min(Decimal('8.00'), total_hours)
-        ot_hours = max(Decimal('0.00'), total_hours - Decimal('8.00'))
-        
-        # Update daily RT and OT totals
-        daily_rt[day] = rt_hours.quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
-        daily_ot[day] = ot_hours.quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
-        
-        # Update total RT and OT hours
-        total_rt_hours += rt_hours
-        total_ot_hours += ot_hours
-
-    # Process individual jobs for the weekly hours breakdown
-    for entry in time_entries:
-        day_of_week = entry.date.strftime('%A')
-        jobs_for_entry = entry.jobs.all()
-        job_count = len(jobs_for_entry)
-        
-        if job_count > 0 and entry.hours_to_be_paid:
-            try:
-                # Convert entry hours to Decimal and distribute among jobs
-                entry_hours = Decimal(str(entry.hours_to_be_paid))
-                hours_per_job = (entry_hours / Decimal(str(job_count))).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
                 
-                for job in jobs_for_entry:
-                    labor_code = job.labor_code.laborcode
-                    if labor_code not in weekly_hours:
-                        weekly_hours[labor_code] = {
-                            "description": job.job_description,
-                            "labor_code_description": job.labor_code.labor_code_description,
-                            "job": job.job_number,
-                            "hours": {day: Decimal('0.00') for day in daily_totals.keys()}
-                        }
+                # Calculate RT and OT for this day
+                rt_hours = min(Decimal('8.00'), entry_hours)
+                ot_hours = max(Decimal('0.00'), entry_hours - Decimal('8.00'))
+                
+                # Update daily totals
+                daily_rt[entry_date] += rt_hours
+                daily_ot[entry_date] += ot_hours
+                
+                # Update running totals
+                total_rt_hours += rt_hours
+                total_ot_hours += ot_hours
+
+                # Process jobs for this entry
+                jobs_for_entry = entry.jobs.all()
+                job_count = len(jobs_for_entry)
+                
+                if job_count > 0:
+                    # Calculate hours per job
+                    hours_per_job = (entry_hours / Decimal(str(job_count))).quantize(
+                        Decimal('0.01'),
+                        rounding=ROUND_HALF_UP
+                    )
                     
-                    # Add hours for this job
-                    weekly_hours[labor_code]["hours"][day_of_week] = (
-                        weekly_hours[labor_code]["hours"][day_of_week] + hours_per_job
-                    ).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
-                    
-            except (ValueError, TypeError, decimal.InvalidOperation) as e:
-                logger.error(f"Error processing hours for entry {entry.id}: {str(e)}")
-                continue
+                    # Distribute hours to labor codes
+                    for job in jobs_for_entry:
+                        labor_code = job.labor_code.laborcode
+                        
+                        # Initialize labor code data if needed
+                        if labor_code not in weekly_hours:
+                            weekly_hours[labor_code] = {
+                                "description": job.job_description,
+                                "labor_code_description": job.labor_code.labor_code_description,
+                                "job": job.job_number,
+                                "hours": {date: Decimal('0.00') for date in date_range},
+                                "total": Decimal('0.00')
+                            }
+                        
+                        # Update hours for this labor code
+                        weekly_hours[labor_code]["hours"][entry_date] += hours_per_job
+                        weekly_hours[labor_code]["total"] += hours_per_job
 
-    # Ensure all values are properly rounded Decimals
-    for labor_code in weekly_hours:
-        for day in weekly_hours[labor_code]["hours"]:
-            weekly_hours[labor_code]["hours"][day] = (
-                weekly_hours[labor_code]["hours"][day]
-            ).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+        except (ValueError, TypeError, decimal.InvalidOperation) as e:
+            logger.error(f"Error processing entry {entry.id}: {str(e)}")
+            continue
 
-    for day in daily_totals:
-        daily_totals[day] = daily_totals[day].quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+    # Round all daily totals
+    for date in date_range:
+        daily_rt[date] = daily_rt[date].quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+        daily_ot[date] = daily_ot[date].quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
 
-    # Round all totals
+    # Round final totals
     total_rt_hours = total_rt_hours.quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
     total_ot_hours = total_ot_hours.quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
-    grand_total_hours = grand_total_hours.quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
 
+    # Calculate weekly totals
+    total_hours = total_rt_hours + total_ot_hours
+    
     # Calculate weekly regular and overtime hours
-    total_regular_hours = min(grand_total_hours, Decimal('40.00'))
-    total_overtime_hours = max(Decimal('0.00'), grand_total_hours - Decimal('40.00'))
-    total_double_time_hours = Decimal('0.00')  # Add double time logic if needed
+    total_regular_hours = min(total_hours, Decimal('40.00'))
+    total_overtime_hours = max(Decimal('0.00'), total_hours - Decimal('40.00'))
+    total_double_time_hours = Decimal('0.00')  # Implement double time logic if needed
 
-    # Round these new totals
+    # Round all totals
     total_regular_hours = total_regular_hours.quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
     total_overtime_hours = total_overtime_hours.quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
     total_double_time_hours = total_double_time_hours.quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+    grand_total_hours = (total_regular_hours + total_overtime_hours + total_double_time_hours).quantize(
+        Decimal('0.01'),
+        rounding=ROUND_HALF_UP
+    )
 
-    # Add debug logging for the new calculations
-    logger.debug(f"Weekly totals calculation:")
-    logger.debug(f"Grand total hours: {grand_total_hours}")
-    logger.debug(f"Regular hours (≤40): {total_regular_hours}")
-    logger.debug(f"Overtime hours (>40): {total_overtime_hours}")
-    logger.debug(f"Double time hours: {total_double_time_hours}")
+    # Calculate miles and vehicle allowance
+    total_miles_to_be_paid = sum(entry.miles_to_be_paid or 0 for entry in time_entries)
+    vehicle_allowance = total_miles_to_be_paid * Decimal('0.55')  # Assuming $0.55 per mile
 
-    # Check for pending approvals
-    pending_approvals = TimeEntryApproval.objects.filter(
-        time_entry__user=selected_user,
-        time_entry__date__range=[week_start, week_end],
-        status='pending'
-    ).exists()
+    # Get attachments
+    attachments = []
+    for entry in time_entries:
+        if entry.attachment and entry.attachment_name:
+            attachments.append({
+                'date': entry.date,
+                'name': entry.attachment_name,
+                'url': entry.get_attachment_url(),
+                'entry_id': entry.id
+            })
 
-    # Create dictionary of week days with dates
-    week_days = {
-        'Sunday': week_start,
-        'Monday': week_start + timedelta(days=1),
-        'Tuesday': week_start + timedelta(days=2),
-        'Wednesday': week_start + timedelta(days=3),
-        'Thursday': week_start + timedelta(days=4),
-        'Friday': week_start + timedelta(days=5),
-        'Saturday': week_start + timedelta(days=6)
-    }
+    # Add new data to context
+    context.update({
+        'total_miles_to_be_paid': total_miles_to_be_paid,
+        'vehicle_allowance': vehicle_allowance,
+        'attachments': attachments,
+    })
 
-    # Add debug logging
-    logger.debug(f"Weekly hours calculation for user {selected_user.id}:")
-    logger.debug(f"Daily totals: {daily_totals}")
-    logger.debug(f"Daily RT: {daily_rt}")
-    logger.debug(f"Daily OT: {daily_ot}")
-    logger.debug(f"Grand total: {grand_total_hours}")
-    logger.debug(f"Total RT: {total_rt_hours}")
-    logger.debug(f"Total OT: {total_ot_hours}")
-    
-    context = {
-        'view_title': 'Summary Report',
-        'time_entries': time_entries,
-        'weekly_hours': weekly_hours,
-        'total_rt_hours': total_rt_hours,
-        'total_ot_hours': total_ot_hours,
-        'grand_total_hours': grand_total_hours,
-        'daily_totals': daily_totals,
-        'daily_rt': daily_rt,
-        'daily_ot': daily_ot,
+    # Consolidate all context updates into a single update
+    context.update({
         'all_users': all_users,
         'selected_user': selected_user,
-        'week_start': week_start,
-        'week_end': week_end,
-        'is_superuser': is_superuser,
-        'is_supervisor': is_supervisor,
-        'pending_approvals': pending_approvals,
-        'week_days': week_days,
+        'start_date': start_date,
+        'end_date': end_date,
+        'date_range': date_range,
+        'weekly_hours': weekly_hours,
+        'daily_rt': daily_rt,
+        'daily_ot': daily_ot,
+        'total_rt_hours': total_rt_hours,
+        'total_ot_hours': total_ot_hours,
         'total_regular_hours': total_regular_hours,
         'total_overtime_hours': total_overtime_hours,
         'total_double_time_hours': total_double_time_hours,
-    }
+        'grand_total_hours': grand_total_hours,
+        'is_superuser': is_superuser,
+        'is_supervisor': is_supervisor,
+    })
 
     return render(request, 'timesheets/summary_report.html', context)
 
@@ -1718,3 +1703,73 @@ def delete_notification(request, notification_id):
     notification = get_object_or_404(ApprovalNotification, id=notification_id, recipient=request.user)
     notification.delete()
     return redirect(request.META.get('HTTP_REFERER', 'timesheets:all_notifications'))
+
+from django.http import JsonResponse
+from django.views.decorators.http import require_http_methods
+from django.contrib.auth.decorators import login_required
+import json
+
+@login_required
+@require_http_methods(["POST"])
+def batch_delete(request):
+    """Handle batch deletion of time entries"""
+    try:
+        # Parse JSON data with better error handling
+        try:
+            data = json.loads(request.body)
+            entry_ids = data.get('entry_ids', [])
+        except json.JSONDecodeError:
+            return JsonResponse({
+                'status': 'error',
+                'message': 'Invalid JSON data'
+            }, status=400)
+
+        if not entry_ids:
+            return JsonResponse({
+                'status': 'error',
+                'message': 'No entries selected'
+            }, status=400)
+
+        # Log the incoming request
+        logger.debug(f"Batch delete request for entries: {entry_ids}")
+
+        # Get entries that belong to the user and aren't approved
+        deletable_entries = TimeEntry.objects.filter(
+            id__in=entry_ids,
+            user=request.user
+        ).exclude(
+            Q(approval__status='approved') | 
+            Q(approval__status='pending_first') | 
+            Q(approval__status='pending_second')
+        )
+
+        # Get count before deletion
+        count_to_delete = deletable_entries.count()
+        
+        if count_to_delete == 0:
+            return JsonResponse({
+                'status': 'error',
+                'message': 'No eligible entries found to delete'
+            }, status=404)
+
+        # Perform deletion within transaction
+        with transaction.atomic():
+            # Delete the time entries - cascade will handle related records
+            deletion_result = deletable_entries.delete()
+            
+            # Log the deletion result
+            logger.info(f"Deleted {count_to_delete} entries. Deletion result: {deletion_result}")
+
+            return JsonResponse({
+                'status': 'success',
+                'message': f'Successfully deleted {count_to_delete} entries',
+                'deleted_count': count_to_delete,
+                'deleted_ids': list(deletable_entries.values_list('id', flat=True))
+            })
+
+    except Exception as e:
+        logger.error(f"Error in batch deletion: {str(e)}", exc_info=True)
+        return JsonResponse({
+            'status': 'error',
+            'message': 'Server error occurred during deletion'
+        }, status=500)
