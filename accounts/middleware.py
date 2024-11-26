@@ -12,20 +12,15 @@ class SessionTimeoutMiddleware:
 
     def __call__(self, request):
         if request.user.is_authenticated:
-            # Get last activity time from session
+            current_time = timezone.now()
             last_activity = request.session.get('last_activity')
             
-            # Check if last_activity exists and if enough time has passed
             if last_activity:
                 last_activity = timezone.datetime.fromisoformat(last_activity)
-                if timezone.now() - last_activity > timedelta(hours=8):
-                    # Clear session and logout user
+                if (current_time - last_activity).seconds > 8 * 3600:  # 8 hours
                     logout(request)
-                    messages.warning(request, 'Your session has expired due to inactivity. Please log in again.')
-                    return redirect(reverse('login'))
+                    return redirect('accounts:logged_out')  # Changed from login to logged_out
+            
+            request.session['last_activity'] = current_time.isoformat()
 
-            # Update last activity time
-            request.session['last_activity'] = timezone.now().isoformat()
-
-        response = self.get_response(request)
-        return response
+        return self.get_response(request)

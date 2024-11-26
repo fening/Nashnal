@@ -29,10 +29,16 @@ urlpatterns = [
     path('job-details/<int:pk>/delete/', views.job_details_delete, name='job_details_delete'),
     path('job-details/<int:job_id>/get/', views.get_job_details, name='get_job_details'),
     path('job-number/<int:job_id>/get/', views.get_job_number, name='get_job_number'),
+    
+    # Add new patterns to match the client requests
+    path('time-entry/get-job-details/<int:job_id>/', views.get_job_details, name='get_job_details_for_entry'),
+    path('time-entry/get-job-number/<int:job_id>/', views.get_job_number, name='get_job_number_for_entry'),
 
     # Labor Code Management
     path('labor-codes/', views.create_and_list_laborcode, name='create_and_list_laborcode'),
     path('labor-code/<int:description_id>/get/', views.get_labor_code, name='get_labor_code'),
+    # Add this new URL pattern
+    path('time-entry/get-labor-code/<int:description_id>/', views.get_labor_code, name='get_labor_code_for_entry'),
 
     # Reports and Summaries
     path('summary-report/', views.user_summary_report, name='user_summary_report'),

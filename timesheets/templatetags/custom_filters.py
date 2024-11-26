@@ -1,6 +1,7 @@
 from django import template
 from datetime import timedelta
 from django.utils.safestring import SafeString
+from decimal import Decimal
 
 register = template.Library()
 
@@ -23,7 +24,7 @@ def add_class(value, arg):
     else:
         # If it's a form field, add the class to its widget
         css_classes = value.field.widget.attrs.get('class', '')
-        if css_classes:
+        if (css_classes):
             css_classes = f"{css_classes} {arg}"
         else:
             css_classes = arg
@@ -46,3 +47,27 @@ def add(value, arg):
 @register.filter
 def get_item(dictionary, key):
     return dictionary.get(key)
+
+@register.filter
+def to_decimal(value):
+    try:
+        return Decimal(str(value))
+    except (TypeError, ValueError):
+        return Decimal('0')
+    
+@register.filter
+def precise_add(value1, value2):
+    try:
+        dec1 = Decimal(str(value1)) if value1 != '--' else Decimal('0')
+        dec2 = Decimal(str(value2)) if value2 != '--' else Decimal('0')
+        return (dec1 + dec2).quantize(Decimal('0.01'))
+    except:
+        return Decimal('0.00')
+
+@register.filter(name='get')
+def get(dictionary, key):
+    """
+    Gets a value from a dictionary using the given key.
+    Usage: {{ dictionary|get:key }}
+    """
+    return dictionary.get(key, '')

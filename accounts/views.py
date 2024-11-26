@@ -68,7 +68,7 @@ def login_view(request):
             if user is not None:
                 login(request, user)
                 next_url = request.GET.get('next')
-                if next_url:
+                if (next_url):
                     return redirect(next_url)
                 return redirect('timesheets:dashboard')  # Add namespace
         else:
@@ -81,9 +81,15 @@ def login_view(request):
 def logout_view(request):
     if request.method == 'POST':
         logout(request)
-        return redirect('accounts:login')
-    else:
-        return render(request, 'accounts/logout.html')
+        return render(request, 'accounts/logged_out.html')
+    return render(request, 'accounts/logout.html')
+
+def logged_out_view(request):
+    session_expired = request.GET.get('expired', False)
+    context = {
+        'session_expired': session_expired
+    }
+    return render(request, 'accounts/logged_out.html', context)
     
 @login_required
 def profile_view(request):

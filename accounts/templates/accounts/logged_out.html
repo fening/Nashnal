@@ -1,0 +1,47 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Logged Out</title>
+    <link rel="icon" href="{% static 'favicon.ico' %}" type="image/x-icon">
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 flex justify-center items-center min-h-screen">
+    <div class="bg-white p-8 rounded-2xl shadow-lg max-w-md w-full mx-4">
+        <div class="text-center space-y-4">
+            <!-- Icon - Changes based on context -->
+            <div class="flex justify-center">
+                <div class="rounded-full {% if session_expired %}bg-yellow-100{% else %}bg-green-100{% endif %} p-3">
+                    {% if session_expired %}
+                    <svg class="w-8 h-8 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    {% else %}
+                    <svg class="w-8 h-8 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                    </svg>
+                    {% endif %}
+                </div>
+            </div>
+
+            {% if session_expired %}
+                <h2 class="text-2xl font-bold text-gray-800">Session Expired</h2>
+                <p class="text-gray-600">Your session has timed out for your security.</p>
+                <p class="text-gray-500 text-sm">Please log in again to continue.</p>
+            {% else %}
+                <h2 class="text-2xl font-bold text-gray-800">Successfully Logged Out</h2>
+
+                <p class="text-gray-500 text-sm">You will be redirected to the login page shortly...</p>
+            {% endif %}
+
+
+    <script>
+        // Redirect to login page after 3 seconds
+        setTimeout(function() {
+            window.location.href = "{% url 'accounts:login' %}";
+        }, 3000);
+    </script>
+</body>
+</html>

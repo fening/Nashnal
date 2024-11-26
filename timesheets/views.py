@@ -1,5 +1,6 @@
 # Python standard library imports
 from datetime import datetime, timedelta
+import decimal
 from decimal import Decimal
 import json
 import logging
@@ -11,7 +12,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.core.cache import cache
 from django.core.paginator import Paginator
-from django.db import IntegrityError, transaction
+from django.db import IntegrityError, transaction, OperationalError, connection  # Changed this line
 from django.db.models import (Count,F,Max,Prefetch,Q,Sum,ExpressionWrapper,fields,)
 from django.db.models.functions import ExtractYear, ExtractMonth
 from django.forms import inlineformset_factory, formset_factory
@@ -37,6 +38,24 @@ from .decorators import (
     superuser_required,
     supervisor_or_superuser_required
 )
+
+# Add at the top with other imports
+from contextlib import contextmanager
+
+@contextmanager
+def handle_connection():
+    """Context manager to handle database connections properly"""
+    try:
+        yield
+    except OperationalError as e:  # Now uses the correct import
+        logger.error(f"Database connection error: {e}")
+        connection.close()
+        raise
+    except Exception as e:
+        logger.error(f"Unexpected error: {e}")
+        raise
+    finally:
+        connection.close()
 
 def cache_per_user(timeout=300):
     def decorator(view_func):
@@ -161,153 +180,170 @@ def time_entry_detail(request, pk):
 @login_required
 @cache_per_user(timeout=300)
 def time_entry_list(request):
-    # Initialize role flags
-    is_superuser = request.user.is_superuser
-    is_supervisor = hasattr(request.user, 'role') and request.user.role == 'Supervisor'
-    
-    # Get pagination parameters
-    page_number = request.GET.get('page', 1)
-    entries_per_page = 25
+    with handle_connection():
+        # Initialize role flags
+        is_superuser = request.user.is_superuser
+        is_supervisor = hasattr(request.user, 'role') and request.user.role == 'Supervisor'
+        
+        # Get pagination parameters
+        page_number = request.GET.get('page', 1)
+        entries_per_page = 25
 
-    # Base queryset with optimized joins
-    queryset = TimeEntry.objects.select_related(
-        'user',
-        'approval'
-    ).prefetch_related(
-        Prefetch(
-            'jobs',
-            queryset=Job.objects.order_by('activity_arrive_time')
+        # Base queryset with optimized joins
+        queryset = TimeEntry.objects.select_related(
+            'user',
+            'approval'
+        ).prefetch_related(
+            Prefetch(
+                'jobs',
+                queryset=Job.objects.order_by('activity_arrive_time')
+            )
         )
-    )
 
-    # Filter queryset based on user role
-    if is_superuser:
-        # Superusers can see all time entries
-        pass  # No additional filtering
-    elif is_supervisor:
-        # Supervisors can see their team members' time entries
-        team_member_ids = User.objects.filter(supervisor=request.user).values_list('id', flat=True)
-        queryset = queryset.filter(user__in=team_member_ids)
-    else:
-        # Regular users can only see their own time entries
-        queryset = queryset.filter(user=request.user)
+        # Filter queryset based on user role
+        if is_superuser:
+            # Superusers can see all time entries
+            pass  # No additional filtering
+        elif is_supervisor:
+            # Supervisors can see their team members' time entries
+            team_member_ids = User.objects.filter(supervisor=request.user).values_list('id', flat=True)
+            queryset = queryset.filter(user__in=team_member_ids)
+        else:
+            # Regular users can only see their own time entries
+            queryset = queryset.filter(user=request.user)
 
-    # Search functionality
-    search_query = request.GET.get('search', '').strip()
-    if search_query:
-        queryset = queryset.filter(
-            Q(user__username__icontains=search_query) |
-            Q(user__first_name__icontains=search_query) |
-            Q(user__last_name__icontains=search_query) |
-            Q(jobs__job_number__job_description__icontains=search_query) |
-            Q(jobs__labor_code__labor_code_description__icontains=search_query) |
-            Q(approval__status__icontains=search_query) |
-            Q(date__icontains=search_query) |
-            Q(hours_for_the_day__icontains=search_query) |
-            Q(total_miles__icontains=search_query)
-        ).distinct()
+        # Search functionality
+        search_query = request.GET.get('search', '').strip()
+        if search_query:
+            queryset = queryset.filter(
+                Q(user__username__icontains=search_query) |
+                Q(user__first_name__icontains=search_query) |
+                Q(user__last_name__icontains=search_query) |
+                Q(jobs__job_number__job_description__icontains=search_query) |
+                Q(jobs__labor_code__labor_code_description__icontains=search_query) |
+                Q(approval__status__icontains=search_query) |
+                Q(date__icontains=search_query) |
+                Q(hours_for_the_day__icontains=search_query) |
+                Q(total_miles__icontains=search_query)
+            ).distinct()
 
-    # Sorting functionality
-    sort_by = request.GET.get('sort_by', '-date')
-    valid_sort_fields = {
-        'date': 'date',
-        '-date': '-date',
-        'start_time': 'start_time',
-        '-start_time': '-start_time',
-        'end_time': 'end_time',
-        '-end_time': '-end_time',
-        'hours_for_the_day': 'hours_for_the_day',
-        '-hours_for_the_day': '-hours_for_the_day',
-        'total_miles': 'total_miles',
-        '-total_miles': '-total_miles',
-        'miles_to_be_paid': 'miles_to_be_paid',
-        '-miles_to_be_paid': '-miles_to_be_paid',
-        'hours_to_be_paid': 'hours_to_be_paid',
-        '-hours_to_be_paid': '-hours_to_be_paid',
-    }
-    
-    if is_superuser or is_supervisor:
-        valid_sort_fields.update({
-            'user': 'user__username',
-            '-user': '-user__username'
-        })
+        # Sorting functionality
+        sort_by = request.GET.get('sort_by', '-date')
+        valid_sort_fields = {
+            'date': 'date',
+            '-date': '-date',
+            'start_time': 'start_time',
+            '-start_time': '-start_time',
+            'end_time': 'end_time',
+            '-end_time': '-end_time',
+            'hours_for_the_day': 'hours_for_the_day',
+            '-hours_for_the_day': '-hours_for_the_day',
+            'total_miles': 'total_miles',
+            '-total_miles': '-total_miles',
+            'miles_to_be_paid': 'miles_to_be_paid',
+            '-miles_to_be_paid': '-miles_to_be_paid',
+            'hours_to_be_paid': 'hours_to_be_paid',
+            '-hours_to_be_paid': '-hours_to_be_paid',
+        }
+        
+        if is_superuser or is_supervisor:
+            valid_sort_fields.update({
+                'user': 'user__username',
+                '-user': '-user__username'
+            })
 
-    sort_field = valid_sort_fields.get(sort_by, '-date')
-    queryset = queryset.order_by(sort_field)
+        sort_field = valid_sort_fields.get(sort_by, '-date')
+        queryset = queryset.order_by(sort_field)
 
-    # Create paginator
-    paginator = Paginator(queryset, entries_per_page)
-    try:
-        page_obj = paginator.page(page_number)
-    except:
-        page_obj = paginator.page(1)
+        # Create paginator
+        paginator = Paginator(queryset, entries_per_page)
+        try:
+            page_obj = paginator.page(page_number)
+        except:
+            page_obj = paginator.page(1)
 
-    # If supervisor, include list of team members for filtering
-    all_users = None
-    if is_superuser:
-        all_users = User.objects.all().order_by('first_name', 'last_name')
-    elif is_supervisor:
-        all_users = User.objects.filter(supervisor=request.user).order_by('first_name', 'last_name')
+        # If supervisor, include list of team members for filtering
+        all_users = None
+        if is_superuser:
+            all_users = User.objects.all().order_by('first_name', 'last_name')
+        elif is_supervisor:
+            all_users = User.objects.filter(supervisor=request.user).order_by('first_name', 'last_name')
 
-    context = {
-        'view_title': 'Time Entries',
-        'page_obj': page_obj,
-        'search_query': search_query,
-        'sort_by': sort_by,
-        'valid_sort_fields': valid_sort_fields.keys(),
-        'entries_per_page': entries_per_page,
-        'total_entries': paginator.count,
-        'start_index': page_obj.start_index(),
-        'end_index': page_obj.end_index(),
-        'is_superuser': is_superuser,
-        'is_supervisor': is_supervisor,
-        'all_users': all_users,
-        'selected_user_id': request.GET.get('user'),
-    }
+        context = {
+            'view_title': 'Time Entries',
+            'page_obj': page_obj,
+            'search_query': search_query,
+            'sort_by': sort_by,
+            'valid_sort_fields': valid_sort_fields.keys(),
+            'entries_per_page': entries_per_page,
+            'total_entries': paginator.count,
+            'start_index': page_obj.start_index(),
+            'end_index': page_obj.end_index(),
+            'is_superuser': is_superuser,
+            'is_supervisor': is_supervisor,
+            'all_users': all_users,
+            'selected_user_id': request.GET.get('user'),
+        }
 
-    return render(request, 'timesheets/time_entry_list.html', context)
+        return render(request, 'timesheets/time_entry_list.html', context)
 
 @login_required
 @regular_user_required
 def time_entry_create(request):
-    JobFormSet = formset_factory(JobForm, extra=1, can_delete=True)
-    
-    if request.method == 'POST':
-        form = TimeEntryForm(request.POST)
-        formset = JobFormSet(request.POST)
+    with handle_connection():
+        JobFormSet = formset_factory(JobForm, extra=1, can_delete=True)
         
-        print(f"Form is valid: {form.is_valid()}")
-        print(f"Formset is valid: {formset.is_valid()}")
-        
-        if form.is_valid() and formset.is_valid():
-            time_entry = form.save(commit=False)
-            time_entry.user = request.user
-            time_entry.save()
+        if request.method == 'POST':
+            form = TimeEntryForm(request.POST)
+            formset = JobFormSet(request.POST, prefix='jobs')  # Add prefix to match template
             
-            print(f"Number of forms in formset: {len(formset)}")
+            print("POST data:", request.POST)
+            print(f"Form is valid: {form.is_valid()}")
+            print(f"Formset is valid: {formset.is_valid()}")
             
-            for job_form in formset:
-                print(f"Job form cleaned data: {job_form.cleaned_data}")
-                if job_form.cleaned_data and not job_form.cleaned_data.get('DELETE', False):
-                    job = job_form.save(commit=False)
-                    job.time_entry = time_entry
-                    job.save()
-                    print(f"Saved job: {job}")
+            logger.debug(f"POST data: {request.POST}")
+            logger.debug(f"Form is valid: {form.is_valid()}")
+            logger.debug(f"Formset is valid: {formset.is_valid()}")
             
-            return redirect('timesheets:time_entry_detail', pk=time_entry.pk)
+            if form.is_valid() and formset.is_valid():
+                try:
+                    with transaction.atomic():
+                        time_entry = form.save(commit=False)
+                        time_entry.user = request.user
+                        time_entry.save()
+                        
+                        logger.debug(f"Number of forms in formset: {len(formset)}")
+                        
+                        for job_form in formset:
+                            logger.debug(f"Job form cleaned data: {job_form.cleaned_data}")
+                            if job_form.cleaned_data and not job_form.cleaned_data.get('DELETE', False):
+                                job = job_form.save(commit=False)
+                                job.time_entry = time_entry
+                                job.save()
+                                logger.debug(f"Saved job: {job}")
+                        
+                        if not time_entry.jobs.exists():
+                            raise ValueError("At least one job must be present.")
+                        
+                        messages.success(request, "Time entry created successfully.")
+                        return redirect('timesheets:time_entry_detail', pk=time_entry.pk)
+                except Exception as e:
+                    logger.error(f"Error creating time entry: {str(e)}")
+                    messages.error(request, f"Error creating time entry: {str(e)}")
+            else:
+                logger.error(f"Form errors: {form.errors}")
+                logger.error(f"Formset errors: {formset.errors}")
+                messages.error(request, "Please correct the errors below.")
         else:
-            print(f"Form errors: {form.errors}")
-            print(f"Formset errors: {formset.errors}")
-    else:
-        form = TimeEntryForm()
-        formset = JobFormSet()
-        
-    context = {
-        'view_title': 'Create Time Entry',
-        'form': form,
-        'job_formset': formset
-    }
-    return render(request, 'timesheets/time_entry_form.html', context)
+            form = TimeEntryForm()
+            formset = JobFormSet(prefix='jobs')  # Add prefix to match template
+            
+        context = {
+            'view_title': 'Create Time Entry',
+            'form': form,
+            'job_formset': formset
+        }
+        return render(request, 'timesheets/time_entry_form.html', context)
     
 @login_required
 @regular_user_required
@@ -552,6 +588,20 @@ def team_timesheets(request):
 
     return render(request, 'timesheets/team_timesheets.html', context)
 
+from datetime import datetime, timedelta
+from decimal import Decimal, ROUND_HALF_UP
+import logging
+from django.contrib import messages
+from django.contrib.auth import get_user_model
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import render
+from django.utils import timezone
+
+from .models import TimeEntry, TimeEntryApproval
+
+logger = logging.getLogger(__name__)
+User = get_user_model()
+
 @login_required
 def user_summary_report(request):
     # Initialize context variables for user permissions
@@ -606,63 +656,136 @@ def user_summary_report(request):
     time_entries = TimeEntry.objects.filter(
         user=selected_user, 
         date__range=[week_start, week_end]
-    ).prefetch_related('jobs', 'jobs__labor_code', 'approval').select_related('user')
+    ).prefetch_related(
+        'jobs', 
+        'jobs__labor_code', 
+        'approval'
+    ).select_related('user')
 
-    # Calculate weekly hours per labor code and day
+    # Initialize dictionaries with Decimal
     weekly_hours = {}
-    daily_totals = {day: Decimal('0.00') for day in ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']}
-    total_hours_for_week = Decimal('0.00')
+    daily_totals = {
+        'Sunday': Decimal('0.00'),
+        'Monday': Decimal('0.00'),
+        'Tuesday': Decimal('0.00'),
+        'Wednesday': Decimal('0.00'),
+        'Thursday': Decimal('0.00'),
+        'Friday': Decimal('0.00'),
+        'Saturday': Decimal('0.00')
+    }
+    
+    daily_rt = {
+        'Sunday': Decimal('0.00'),
+        'Monday': Decimal('0.00'),
+        'Tuesday': Decimal('0.00'),
+        'Wednesday': Decimal('0.00'),
+        'Thursday': Decimal('0.00'),
+        'Friday': Decimal('0.00'),
+        'Saturday': Decimal('0.00')
+    }
+    
+    daily_ot = {
+        'Sunday': Decimal('0.00'),
+        'Monday': Decimal('0.00'),
+        'Tuesday': Decimal('0.00'),
+        'Wednesday': Decimal('0.00'),
+        'Thursday': Decimal('0.00'),
+        'Friday': Decimal('0.00'),
+        'Saturday': Decimal('0.00')
+    }
 
-    # Process time entries and jobs
+    grand_total_hours = Decimal('0.00')
+    total_rt_hours = Decimal('0.00')
+    total_ot_hours = Decimal('0.00')
+
+    # First pass: Calculate daily totals
     for entry in time_entries:
         day_of_week = entry.date.strftime('%A')
-        job_count = entry.jobs.count()
+        if entry.hours_to_be_paid:
+            try:
+                entry_hours = Decimal(str(entry.hours_to_be_paid))
+                daily_totals[day_of_week] += entry_hours
+                grand_total_hours += entry_hours
+            except (ValueError, TypeError) as e:
+                logger.error(f"Error processing hours for entry {entry.id}: {str(e)}")
+                continue
+
+    # Second pass: Process time entries and jobs with RT/OT split
+    for day, total_hours in daily_totals.items():
+        # Calculate RT and OT for this day
+        rt_hours = min(Decimal('8.00'), total_hours)
+        ot_hours = max(Decimal('0.00'), total_hours - Decimal('8.00'))
         
-        if job_count > 0:
-            hours_per_job = Decimal(str(entry.hours_to_be_paid)) / Decimal(str(job_count))
-            
-            for job in entry.jobs.all():
-                labor_code = job.labor_code.laborcode
-                if labor_code not in weekly_hours:
-                    weekly_hours[labor_code] = {
-                        "description": job.job_description,
-                        "labor_code_description": job.labor_code_description,
-                        "job": job.job_number,
-                        "hours": {day: Decimal('0.00') for day in ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']}
-                    }
+        # Update daily RT and OT totals
+        daily_rt[day] = rt_hours.quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+        daily_ot[day] = ot_hours.quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+        
+        # Update total RT and OT hours
+        total_rt_hours += rt_hours
+        total_ot_hours += ot_hours
+
+    # Process individual jobs for the weekly hours breakdown
+    for entry in time_entries:
+        day_of_week = entry.date.strftime('%A')
+        jobs_for_entry = entry.jobs.all()
+        job_count = len(jobs_for_entry)
+        
+        if job_count > 0 and entry.hours_to_be_paid:
+            try:
+                # Convert entry hours to Decimal and distribute among jobs
+                entry_hours = Decimal(str(entry.hours_to_be_paid))
+                hours_per_job = (entry_hours / Decimal(str(job_count))).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
                 
-                # Add hours for this job
-                weekly_hours[labor_code]["hours"][day_of_week] += hours_per_job
-                daily_totals[day_of_week] += hours_per_job
-                total_hours_for_week += hours_per_job
+                for job in jobs_for_entry:
+                    labor_code = job.labor_code.laborcode
+                    if labor_code not in weekly_hours:
+                        weekly_hours[labor_code] = {
+                            "description": job.job_description,
+                            "labor_code_description": job.labor_code.labor_code_description,
+                            "job": job.job_number,
+                            "hours": {day: Decimal('0.00') for day in daily_totals.keys()}
+                        }
+                    
+                    # Add hours for this job
+                    weekly_hours[labor_code]["hours"][day_of_week] = (
+                        weekly_hours[labor_code]["hours"][day_of_week] + hours_per_job
+                    ).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+                    
+            except (ValueError, TypeError, decimal.InvalidOperation) as e:
+                logger.error(f"Error processing hours for entry {entry.id}: {str(e)}")
+                continue
 
-    # Format all decimal numbers to maintain 2 decimal places
+    # Ensure all values are properly rounded Decimals
     for labor_code in weekly_hours:
         for day in weekly_hours[labor_code]["hours"]:
-            weekly_hours[labor_code]["hours"][day] = weekly_hours[labor_code]["hours"][day].quantize(Decimal('0.01'))
+            weekly_hours[labor_code]["hours"][day] = (
+                weekly_hours[labor_code]["hours"][day]
+            ).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
 
     for day in daily_totals:
-        daily_totals[day] = daily_totals[day].quantize(Decimal('0.01'))
+        daily_totals[day] = daily_totals[day].quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
 
-    # Calculate regular and overtime hours - maintain decimal precision
-    total_regular_hours = min(total_hours_for_week, Decimal('40.00'))
-    total_overtime_hours = max(Decimal('0.00'), total_hours_for_week - Decimal('40.00'))
-    total_double_time_hours = Decimal('0.00')  # Logic for double time if needed
-    grand_total_hours = total_hours_for_week
+    # Round all totals
+    total_rt_hours = total_rt_hours.quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+    total_ot_hours = total_ot_hours.quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+    grand_total_hours = grand_total_hours.quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
 
-    # Format all decimal numbers to maintain 2 decimal places
-    for labor_code in weekly_hours:
-        for day in weekly_hours[labor_code]["hours"]:
-            weekly_hours[labor_code]["hours"][day] = Decimal(str(weekly_hours[labor_code]["hours"][day])).quantize(Decimal('0.01'))
+    # Calculate weekly regular and overtime hours
+    total_regular_hours = min(grand_total_hours, Decimal('40.00'))
+    total_overtime_hours = max(Decimal('0.00'), grand_total_hours - Decimal('40.00'))
+    total_double_time_hours = Decimal('0.00')  # Add double time logic if needed
 
-    for day in daily_totals:
-        daily_totals[day] = Decimal(str(daily_totals[day])).quantize(Decimal('0.01'))
+    # Round these new totals
+    total_regular_hours = total_regular_hours.quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+    total_overtime_hours = total_overtime_hours.quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+    total_double_time_hours = total_double_time_hours.quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
 
-    # Format the total hours
-    total_regular_hours = total_regular_hours.quantize(Decimal('0.01'))
-    total_overtime_hours = total_overtime_hours.quantize(Decimal('0.01'))
-    total_double_time_hours = total_double_time_hours.quantize(Decimal('0.01'))
-    grand_total_hours = grand_total_hours.quantize(Decimal('0.01'))
+    # Add debug logging for the new calculations
+    logger.debug(f"Weekly totals calculation:")
+    logger.debug(f"Grand total hours: {grand_total_hours}")
+    logger.debug(f"Regular hours (≤40): {total_regular_hours}")
+    logger.debug(f"Overtime hours (>40): {total_overtime_hours}")
+    logger.debug(f"Double time hours: {total_double_time_hours}")
 
     # Check for pending approvals
     pending_approvals = TimeEntryApproval.objects.filter(
@@ -682,15 +805,25 @@ def user_summary_report(request):
         'Saturday': week_start + timedelta(days=6)
     }
 
+    # Add debug logging
+    logger.debug(f"Weekly hours calculation for user {selected_user.id}:")
+    logger.debug(f"Daily totals: {daily_totals}")
+    logger.debug(f"Daily RT: {daily_rt}")
+    logger.debug(f"Daily OT: {daily_ot}")
+    logger.debug(f"Grand total: {grand_total_hours}")
+    logger.debug(f"Total RT: {total_rt_hours}")
+    logger.debug(f"Total OT: {total_ot_hours}")
+    
     context = {
         'view_title': 'Summary Report',
         'time_entries': time_entries,
         'weekly_hours': weekly_hours,
-        'total_regular_hours': total_regular_hours,
-        'total_overtime_hours': total_overtime_hours,
-        'total_double_time_hours': total_double_time_hours,
+        'total_rt_hours': total_rt_hours,
+        'total_ot_hours': total_ot_hours,
         'grand_total_hours': grand_total_hours,
         'daily_totals': daily_totals,
+        'daily_rt': daily_rt,
+        'daily_ot': daily_ot,
         'all_users': all_users,
         'selected_user': selected_user,
         'week_start': week_start,
@@ -699,6 +832,9 @@ def user_summary_report(request):
         'is_supervisor': is_supervisor,
         'pending_approvals': pending_approvals,
         'week_days': week_days,
+        'total_regular_hours': total_regular_hours,
+        'total_overtime_hours': total_overtime_hours,
+        'total_double_time_hours': total_double_time_hours,
     }
 
     return render(request, 'timesheets/summary_report.html', context)
@@ -772,226 +908,227 @@ logger = logging.getLogger(__name__)
 
 @login_required
 def dashboard(request):
-    # Initialize permission flags
-    is_superuser = request.user.is_superuser
-    is_supervisor = hasattr(request.user, 'role') and request.user.role == 'Supervisor'
-    
-    # Get and validate selected user
-    selected_user_id = request.GET.get('user_id')
-    if selected_user_id:
-        try:
-            selected_user_id = int(selected_user_id)
-        except ValueError:
-            selected_user_id = None
-    
-    # Get date range from request or default to current month
-    start_date = request.GET.get('start_date')
-    end_date = request.GET.get('end_date')
-    
-    if not start_date or not end_date:
-        today = timezone.now().date()
-        start_date = today.replace(day=1)
-        end_date = (start_date + timedelta(days=32)).replace(day=1) - timedelta(days=1)
-    else:
-        try:
-            start_date = datetime.strptime(start_date, '%Y-%m-%d').date()
-            end_date = datetime.strptime(end_date, '%Y-%m-%d').date()
-        except ValueError:
+    with handle_connection():
+        # Initialize permission flags
+        is_superuser = request.user.is_superuser
+        is_supervisor = hasattr(request.user, 'role') and request.user.role == 'Supervisor'
+        
+        # Get and validate selected user
+        selected_user_id = request.GET.get('user_id')
+        if selected_user_id:
+            try:
+                selected_user_id = int(selected_user_id)
+            except ValueError:
+                selected_user_id = None
+        
+        # Get date range from request or default to current month
+        start_date = request.GET.get('start_date')
+        end_date = request.GET.get('end_date')
+        
+        if not start_date or not end_date:
             today = timezone.now().date()
             start_date = today.replace(day=1)
             end_date = (start_date + timedelta(days=32)).replace(day=1) - timedelta(days=1)
-    
-    # Get team members based on role
-    if is_superuser:
-        team_members = User.objects.all().select_related('supervisor')
-        all_users = team_members
-    elif is_supervisor:
-        team_members = User.objects.filter(supervisor=request.user).select_related('supervisor')
-        all_users = team_members
-    else:
-        team_members = None
-        all_users = None
-
-    # Get the selected user
-    if selected_user_id:
+        else:
+            try:
+                start_date = datetime.strptime(start_date, '%Y-%m-%d').date()
+                end_date = datetime.strptime(end_date, '%Y-%m-%d').date()
+            except ValueError:
+                today = timezone.now().date()
+                start_date = today.replace(day=1)
+                end_date = (start_date + timedelta(days=32)).replace(day=1) - timedelta(days=1)
+        
+        # Get team members based on role
         if is_superuser:
-            selected_user = User.objects.filter(id=selected_user_id).first()
+            team_members = User.objects.all().select_related('supervisor')
+            all_users = team_members
         elif is_supervisor:
-            selected_user = User.objects.filter(
-                id=selected_user_id,
-                supervisor=request.user
-            ).first()
+            team_members = User.objects.filter(supervisor=request.user).select_related('supervisor')
+            all_users = team_members
+        else:
+            team_members = None
+            all_users = None
+
+        # Get the selected user
+        if selected_user_id:
+            if is_superuser:
+                selected_user = User.objects.filter(id=selected_user_id).first()
+            elif is_supervisor:
+                selected_user = User.objects.filter(
+                    id=selected_user_id,
+                    supervisor=request.user
+                ).first()
+            else:
+                selected_user = request.user
         else:
             selected_user = request.user
-    else:
-        selected_user = request.user
 
-    # Calculate team statistics
-    if is_superuser or is_supervisor:
-        users_to_track = team_members
-        
-        team_stats = {
-            'total_members': team_members.count(),
-            'active_members': team_members.filter(is_active=True).count(),
-            'pending_approvals': TimeEntryApproval.objects.filter(
-                time_entry__user__in=users_to_track,
-                status__in=['pending_first', 'pending_second']
-            ).count(),
-            'total_approved': TimeEntryApproval.objects.filter(
-                time_entry__user__in=users_to_track,
-                status='approved'
-            ).count(),
-            'total_hours': TimeEntry.objects.filter(
-                user__in=users_to_track,
-                date__range=[start_date, end_date]
-            ).aggregate(
-                total_hours=Sum('hours_to_be_paid')
-            )['total_hours'] or 0
-        }
+        # Calculate team statistics
+        if is_superuser or is_supervisor:
+            users_to_track = team_members
+            
+            team_stats = {
+                'total_members': team_members.count(),
+                'active_members': team_members.filter(is_active=True).count(),
+                'pending_approvals': TimeEntryApproval.objects.filter(
+                    time_entry__user__in=users_to_track,
+                    status__in=['pending_first', 'pending_second']
+                ).count(),
+                'total_approved': TimeEntryApproval.objects.filter(
+                    time_entry__user__in=users_to_track,
+                    status='approved'
+                ).count(),
+                'total_hours': TimeEntry.objects.filter(
+                    user__in=users_to_track,
+                    date__range=[start_date, end_date]
+                ).aggregate(
+                    total_hours=Sum('hours_to_be_paid')
+                )['total_hours'] or 0
+            }
 
-        # Get pending approvals
-        if is_superuser:
-            pending_approvals = TimeEntryApproval.objects.filter(
-                status__in=['pending_first', 'pending_second']
-            )
+            # Get pending approvals
+            if is_superuser:
+                pending_approvals = TimeEntryApproval.objects.filter(
+                    status__in=['pending_first', 'pending_second']
+                )
+            else:
+                pending_approvals = TimeEntryApproval.objects.filter(
+                    time_entry__user__in=team_members,
+                    status__in=['pending_first', 'pending_second']
+                )
+            
+            pending_approvals = pending_approvals.select_related(
+                'time_entry',
+                'time_entry__user'
+            ).order_by('-submitted_at')
         else:
-            pending_approvals = TimeEntryApproval.objects.filter(
-                time_entry__user__in=team_members,
-                status__in=['pending_first', 'pending_second']
-            )
-        
-        pending_approvals = pending_approvals.select_related(
-            'time_entry',
-            'time_entry__user'
-        ).order_by('-submitted_at')
-    else:
-        team_stats = None
-        pending_approvals = None
+            team_stats = None
+            pending_approvals = None
 
-    # Calculate individual statistics for the selected user
-    user_entries = TimeEntry.objects.filter(
-        user=selected_user,
-        date__range=[start_date, end_date]
-    )
+        # Calculate individual statistics for the selected user
+        user_entries = TimeEntry.objects.filter(
+            user=selected_user,
+            date__range=[start_date, end_date]
+        )
 
-    total_hours = user_entries.aggregate(Sum('hours_to_be_paid'))['hours_to_be_paid__sum'] or 0
-    total_jobs = Job.objects.filter(time_entry__in=user_entries).count()
-    avg_daily_hours = user_entries.aggregate(Avg('hours_to_be_paid'))['hours_to_be_paid__avg'] or 0
-    total_mileage = user_entries.aggregate(Sum('miles_to_be_paid'))['miles_to_be_paid__sum'] or 0
+        total_hours = user_entries.aggregate(Sum('hours_to_be_paid'))['hours_to_be_paid__sum'] or 0
+        total_jobs = Job.objects.filter(time_entry__in=user_entries).count()
+        avg_daily_hours = user_entries.aggregate(Avg('hours_to_be_paid'))['hours_to_be_paid__avg'] or 0
+        total_mileage = user_entries.aggregate(Sum('miles_to_be_paid'))['miles_to_be_paid__sum'] or 0
 
-    # Get recent entries
-    recent_entries = user_entries.prefetch_related('jobs').order_by('-date')[:5]
+        # Get recent entries
+        recent_entries = user_entries.prefetch_related('jobs').order_by('-date')[:5]
 
-    # Calculate trends
-    previous_start_date = start_date - timedelta(days=(end_date - start_date).days + 1)
-    previous_entries = TimeEntry.objects.filter(
-        user=selected_user,
-        date__range=[previous_start_date, start_date - timedelta(days=1)]
-    )
+        # Calculate trends
+        previous_start_date = start_date - timedelta(days=(end_date - start_date).days + 1)
+        previous_entries = TimeEntry.objects.filter(
+            user=selected_user,
+            date__range=[previous_start_date, start_date - timedelta(days=1)]
+        )
 
-    previous_hours = previous_entries.aggregate(Sum('hours_to_be_paid'))['hours_to_be_paid__sum'] or 1
-    previous_jobs = Job.objects.filter(time_entry__in=previous_entries).count() or 1
-    previous_daily_hours = previous_entries.aggregate(Avg('hours_to_be_paid'))['hours_to_be_paid__avg'] or 1
+        previous_hours = previous_entries.aggregate(Sum('hours_to_be_paid'))['hours_to_be_paid__sum'] or 1
+        previous_jobs = Job.objects.filter(time_entry__in=previous_entries).count() or 1
+        previous_daily_hours = previous_entries.aggregate(Avg('hours_to_be_paid'))['hours_to_be_paid__avg'] or 1
 
-    hours_trend = ((total_hours - previous_hours) / previous_hours * 100) if previous_hours != 0 else 0
-    jobs_trend = ((total_jobs - previous_jobs) / previous_jobs * 100) if previous_jobs != 0 else 0
-    daily_hours_trend = ((avg_daily_hours - previous_daily_hours) / previous_daily_hours * 100) if previous_daily_hours != 0 else 0
+        hours_trend = ((total_hours - previous_hours) / previous_hours * 100) if previous_hours != 0 else 0
+        jobs_trend = ((total_jobs - previous_jobs) / previous_jobs * 100) if previous_jobs != 0 else 0
+        daily_hours_trend = ((avg_daily_hours - previous_daily_hours) / previous_daily_hours * 100) if previous_daily_hours != 0 else 0
 
-    # Rest of your context data...
-    # [Previous context building code remains the same]
+        # Rest of your context data...
+        # [Previous context building code remains the same]
 
-    # Prepare data for charts
-    labor_code_data = []
-    daily_hours_data = []
+        # Prepare data for charts
+        labor_code_data = []
+        daily_hours_data = []
 
-    # Get time entries for the selected user and date range
-    user_entries = TimeEntry.objects.filter(
-        user=selected_user,
-        date__range=[start_date, end_date]
-    ).prefetch_related(
-        'jobs',
-        'jobs__labor_code'
-    )
+        # Get time entries for the selected user and date range
+        user_entries = TimeEntry.objects.filter(
+            user=selected_user,
+            date__range=[start_date, end_date]
+        ).prefetch_related(
+            'jobs',
+            'jobs__labor_code'
+        )
 
-    # Calculate Labor Code Distribution
-    labor_code_hours = {}
-    for entry in user_entries:
-        for job in entry.jobs.all():
-            labor_code = job.labor_code
-            if labor_code.laborcode not in labor_code_hours:
-                labor_code_hours[labor_code.laborcode] = {
-                    'labor_code__laborcode': labor_code.laborcode,
-                    'labor_code__labor_code_description': labor_code.labor_code_description,
-                    'count': 0
-                }
-            # Add the hours for this entry to the labor code total
-            if entry.hours_to_be_paid:
-                labor_code_hours[labor_code.laborcode]['count'] += float(entry.hours_to_be_paid)
+        # Calculate Labor Code Distribution
+        labor_code_hours = {}
+        for entry in user_entries:
+            for job in entry.jobs.all():
+                labor_code = job.labor_code
+                if labor_code.laborcode not in labor_code_hours:
+                    labor_code_hours[labor_code.laborcode] = {
+                        'labor_code__laborcode': labor_code.laborcode,
+                        'labor_code__labor_code_description': labor_code.labor_code_description,
+                        'count': 0
+                    }
+                # Add the hours for this entry to the labor code total
+                if entry.hours_to_be_paid:
+                    labor_code_hours[labor_code.laborcode]['count'] += float(entry.hours_to_be_paid)
 
-    # Convert dictionary to list for the template
-    labor_code_data = list(labor_code_hours.values())
+        # Convert dictionary to list for the template
+        labor_code_data = list(labor_code_hours.values())
 
-    # Calculate Daily Hours
-    daily_hours = {}
-    current_date = start_date
-    while current_date <= end_date:
-        daily_hours[current_date] = {
-            'date': current_date.strftime('%Y-%m-%d'),
-            'hours': 0
+        # Calculate Daily Hours
+        daily_hours = {}
+        current_date = start_date
+        while current_date <= end_date:
+            daily_hours[current_date] = {
+                'date': current_date.strftime('%Y-%m-%d'),
+                'hours': 0
+            }
+            current_date += timedelta(days=1)
+
+        for entry in user_entries:
+            if entry.date in daily_hours and entry.hours_to_be_paid:
+                daily_hours[entry.date]['hours'] += float(entry.hours_to_be_paid)
+
+        # Convert dictionary to list for the template
+        daily_hours_data = list(daily_hours.values())
+
+        # Create context dictionary at the beginning
+        context = {
+            'view_title': 'Dashboard',
+            'selected_user': selected_user,
+            'total_hours': 0,
+            'total_jobs': 0,
+            'avg_daily_hours': 0,
+            'total_mileage': 0,
+            'hours_trend': 0,
+            'jobs_trend': 0,
+            'daily_hours_trend': 0,
+            'start_date': start_date,
+            'end_date': end_date,
+            'all_users': all_users,
+            'team_members': team_members,
+            'team_stats': team_stats,
+            'pending_approvals': pending_approvals,
+            'is_admin': is_superuser,
+            'is_supervisor': is_supervisor,
         }
-        current_date += timedelta(days=1)
 
-    for entry in user_entries:
-        if entry.date in daily_hours and entry.hours_to_be_paid:
-            daily_hours[entry.date]['hours'] += float(entry.hours_to_be_paid)
+        # Update context with calculated values
+        context.update({
+            'total_hours': round(total_hours, 2),
+            'total_jobs': total_jobs,
+            'avg_daily_hours': round(avg_daily_hours, 2),
+            'total_mileage': round(total_mileage, 2),
+            'hours_trend': round(hours_trend, 2),
+            'jobs_trend': round(jobs_trend, 2),
+            'daily_hours_trend': round(daily_hours_trend, 2),
+            'recent_entries': recent_entries,
+        })
 
-    # Convert dictionary to list for the template
-    daily_hours_data = list(daily_hours.values())
+        # Update context with chart data
+        context.update({
+            'labor_code_data': json.dumps(labor_code_data, cls=DecimalEncoder),
+            'daily_hours_data': json.dumps(daily_hours_data, cls=DecimalEncoder),
+        })
 
-    # Create context dictionary at the beginning
-    context = {
-        'view_title': 'Dashboard',
-        'selected_user': selected_user,
-        'total_hours': 0,
-        'total_jobs': 0,
-        'avg_daily_hours': 0,
-        'total_mileage': 0,
-        'hours_trend': 0,
-        'jobs_trend': 0,
-        'daily_hours_trend': 0,
-        'start_date': start_date,
-        'end_date': end_date,
-        'all_users': all_users,
-        'team_members': team_members,
-        'team_stats': team_stats,
-        'pending_approvals': pending_approvals,
-        'is_admin': is_superuser,
-        'is_supervisor': is_supervisor,
-    }
+        # Debug logging
+        logger.debug(f"Labor code data: {labor_code_data}")
+        logger.debug(f"Daily hours data: {daily_hours_data}")
 
-    # Update context with calculated values
-    context.update({
-        'total_hours': round(total_hours, 2),
-        'total_jobs': total_jobs,
-        'avg_daily_hours': round(avg_daily_hours, 2),
-        'total_mileage': round(total_mileage, 2),
-        'hours_trend': round(hours_trend, 2),
-        'jobs_trend': round(jobs_trend, 2),
-        'daily_hours_trend': round(daily_hours_trend, 2),
-        'recent_entries': recent_entries,
-    })
-
-    # Update context with chart data
-    context.update({
-        'labor_code_data': json.dumps(labor_code_data, cls=DecimalEncoder),
-        'daily_hours_data': json.dumps(daily_hours_data, cls=DecimalEncoder),
-    })
-
-    # Debug logging
-    logger.debug(f"Labor code data: {labor_code_data}")
-    logger.debug(f"Daily hours data: {daily_hours_data}")
-
-    return render(request, 'timesheets/dashboard.html', context)
+        return render(request, 'timesheets/dashboard.html', context)
 
 
 

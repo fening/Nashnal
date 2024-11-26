@@ -227,49 +227,81 @@
                 </td>
                 <td class="px-8 py-5 whitespace-nowrap text-center">
                     <div class="text-sm font-medium text-gray-900">
-                        {{ data.hours.Sunday|add:data.hours.Monday|add:data.hours.Tuesday|add:data.hours.Wednesday|add:data.hours.Thursday|add:data.hours.Friday|add:data.hours.Saturday }}
+                        {% with total=data.hours.Sunday|default:"0"|precise_add:data.hours.Monday|default:"0"|precise_add:data.hours.Tuesday|default:"0"|precise_add:data.hours.Wednesday|default:"0"|precise_add:data.hours.Thursday|default:"0"|precise_add:data.hours.Friday|default:"0"|precise_add:data.hours.Saturday|default:"0" %}
+                            {{ total|floatformat:2 }}
+                        {% endwith %}
                     </div>
                 </td>
             </tr>
             {% endfor %}
 
-            <!-- Daily Totals Row -->
+            <!-- Daily Totals Row - Regular Time (RT) -->
             <tr class="bg-gray-50/75 font-medium border-t-2 border-gray-200">
                 <td colspan="4" class="px-8 py-5 whitespace-nowrap">
-                    <div class="text-sm font-semibold text-gray-900">Total Daily Hours</div>
+                    <div class="text-sm font-semibold text-gray-900">Time to be paid RT:</div>
                 </td>
                 <td class="px-6 py-5 whitespace-nowrap text-center">
-                    <div class="text-sm font-semibold text-gray-900">{{ daily_totals.Sunday|default:"0" }}</div>
+                    <div class="text-sm font-semibold text-gray-900">{{ daily_rt.Sunday|default:0|floatformat:2 }}</div>
                 </td>
                 <td class="px-6 py-5 whitespace-nowrap text-center">
-                    <div class="text-sm font-semibold text-gray-900">{{ daily_totals.Monday|default:"0" }}</div>
+                    <div class="text-sm font-semibold text-gray-900">{{ daily_rt.Monday|default:0|floatformat:2 }}</div>
                 </td>
                 <td class="px-6 py-5 whitespace-nowrap text-center">
-                    <div class="text-sm font-semibold text-gray-900">{{ daily_totals.Tuesday|default:"0" }}</div>
+                    <div class="text-sm font-semibold text-gray-900">{{ daily_rt.Tuesday|default:0|floatformat:2 }}</div>
                 </td>
                 <td class="px-6 py-5 whitespace-nowrap text-center">
-                    <div class="text-sm font-semibold text-gray-900">{{ daily_totals.Wednesday|default:"0" }}</div>
+                    <div class="text-sm font-semibold text-gray-900">{{ daily_rt.Wednesday|default:0|floatformat:2 }}</div>
                 </td>
                 <td class="px-6 py-5 whitespace-nowrap text-center">
-                    <div class="text-sm font-semibold text-gray-900">{{ daily_totals.Thursday|default:"0" }}</div>
+                    <div class="text-sm font-semibold text-gray-900">{{ daily_rt.Thursday|default:0|floatformat:2 }}</div>
                 </td>
                 <td class="px-6 py-5 whitespace-nowrap text-center">
-                    <div class="text-sm font-semibold text-gray-900">{{ daily_totals.Friday|default:"0" }}</div>
+                    <div class="text-sm font-semibold text-gray-900">{{ daily_rt.Friday|default:0|floatformat:2 }}</div>
                 </td>
                 <td class="px-6 py-5 whitespace-nowrap text-center">
-                    <div class="text-sm font-semibold text-gray-900">{{ daily_totals.Saturday|default:"0" }}</div>
+                    <div class="text-sm font-semibold text-gray-900">{{ daily_rt.Saturday|default:0|floatformat:2 }}</div>
                 </td>
                 <td class="px-8 py-5 whitespace-nowrap text-center">
                     <div class="text-sm font-semibold text-gray-900">
-                        {{ daily_totals.Sunday|add:daily_totals.Monday|add:daily_totals.Tuesday|add:daily_totals.Wednesday|add:daily_totals.Thursday|add:daily_totals.Friday|add:daily_totals.Saturday }}
+                        {{ total_rt_hours|floatformat:2 }}
+                    </div>
+                </td>
+            </tr>
+            <!-- Daily Totals Row - Overtime (OT) -->
+            <tr class="bg-gray-50/75 font-medium border-t-2 border-gray-200">
+                <td colspan="4" class="px-8 py-5 whitespace-nowrap">
+                    <div class="text-sm font-semibold text-gray-900">Time to be paid OT:</div>
+                </td>
+                <td class="px-6 py-5 whitespace-nowrap text-center">
+                    <div class="text-sm font-semibold text-gray-900">{{ daily_ot.Sunday|default:0|floatformat:2 }}</div>
+                </td>
+                <td class="px-6 py-5 whitespace-nowrap text-center">
+                    <div class="text-sm font-semibold text-gray-900">{{ daily_ot.Monday|default:0|floatformat:2 }}</div>
+                </td>
+                <td class="px-6 py-5 whitespace-nowrap text-center">
+                    <div class="text-sm font-semibold text-gray-900">{{ daily_ot.Tuesday|default:0|floatformat:2 }}</div>
+                </td>
+                <td class="px-6 py-5 whitespace-nowrap text-center">
+                    <div class="text-sm font-semibold text-gray-900">{{ daily_ot.Wednesday|default:0|floatformat:2 }}</div>
+                </td>
+                <td class="px-6 py-5 whitespace-nowrap text-center">
+                    <div class="text-sm font-semibold text-gray-900">{{ daily_ot.Thursday|default:0|floatformat:2 }}</div>
+                </td>
+                <td class="px-6 py-5 whitespace-nowrap text-center">
+                    <div class="text-sm font-semibold text-gray-900">{{ daily_ot.Friday|default:0|floatformat:2 }}</div>
+                </td>
+                <td class="px-6 py-5 whitespace-nowrap text-center">
+                    <div class="text-sm font-semibold text-gray-900">{{ daily_ot.Saturday|default:0|floatformat:2 }}</div>
+                </td>
+                <td class="px-8 py-5 whitespace-nowrap text-center">
+                    <div class="text-sm font-semibold text-gray-900">
+                        {{ total_ot_hours|floatformat:2 }}
                     </div>
                 </td>
             </tr>
         </tbody>
     </table>
 </div>
-
-
 
     <!-- Labor Code Section - Hidden by default, visible when printing -->
     <div class="bg-white shadow-md rounded-lg overflow-hidden mb-8 hidden print-only">
@@ -472,4 +504,4 @@
         });
     });
 </script>
-{% endblock %}
+{% endblock %} 

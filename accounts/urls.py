@@ -13,6 +13,7 @@ urlpatterns = [
     # Authentication
     path('login/', login_view, name='login'),
     path('logout/', logout_view, name='logout'),
+    path('logged-out/', views.logged_out_view, name='logged_out'),
     path('register/', register_view, name='register'),
     
     # Profile and Employee Management
