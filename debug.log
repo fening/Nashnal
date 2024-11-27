@@ -1904,3 +1904,7 @@ django.core.exceptions.PermissionDenied
 [INFO] 2024-11-27 17:20:47,065 basehttp 49744 15472 "GET /time-entry/approvals/pending/ HTTP/1.1" 200 37617
 [INFO] 2024-11-27 17:20:53,671 basehttp 49744 48348 "GET /time-entry/49/ HTTP/1.1" 200 60166
 [INFO] 2024-11-27 17:20:54,057 basehttp 49744 48348 - Broken pipe from ('127.0.0.1', 60504)
+[WARNING] 2024-11-27 17:29:19,392 log 49744 49748 Not Found: /null
+[WARNING] 2024-11-27 17:29:19,393 basehttp 49744 49748 "GET /null HTTP/1.1" 404 13094
+[INFO] 2024-11-27 17:30:37,145 autoreload 49744 22292 C:\Users\fenin\OneDrive\Documents\nashnal\nst_timesheet\nst_timesheet\settings.py changed, reloading.
+[INFO] 2024-11-27 17:30:38,252 autoreload 24520 12776 Watching for file changes with StatReloader

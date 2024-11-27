@@ -288,7 +288,8 @@ if DEBUG:
     RECAPTCHA_PROXY = {
     }
 else:
-    RECAPTCHA_PROXY = None
+    RECAPTCHA_PROXY = {
+    }
     
     
 # Add this to control whether reCAPTCHA is enabled
