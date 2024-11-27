@@ -14,6 +14,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.db import transaction
 from django.contrib.auth.models import Group
 from django.db import transaction
+from django.conf import settings
 
 CustomUser = get_user_model()
 
@@ -62,20 +63,35 @@ def register_view(request):
 
 def login_view(request):
     if request.method == 'POST':
-        form = CustomAuthenticationForm(data=request.POST)
-        if form.is_valid():
-            user = form.get_user()
-            if user is not None:
-                login(request, user)
-                next_url = request.GET.get('next')
-                if (next_url):
-                    return redirect(next_url)
-                return redirect('timesheets:dashboard')  # Add namespace
-        else:
-            return render(request, 'accounts/login.html', {'form': form, 'error': 'Invalid credentials'})
+        form = CustomAuthenticationForm(request, data=request.POST)
+        
+        # Skip reCAPTCHA validation in development
+        if settings.DEBUG or getattr(settings, 'RECAPTCHA_ENABLED', False) is False:
+            if form.is_valid():
+                username = form.cleaned_data.get('username')
+                password = form.cleaned_data.get('password')
+                try:
+                    user = authenticate(username=username, password=password)
+                    if user is not None:
+                        login(request, user)
+                        next_url = request.GET.get('next')
+                        if next_url:
+                            return redirect(next_url)
+                        return redirect('timesheets:dashboard')
+                    else:
+                        messages.error(request, 'Invalid username or password.')
+                except Exception as e:
+                    messages.error(request, f'Authentication error: {str(e)}')
+            else:
+                messages.error(request, 'Please correct the errors below.')
     else:
         form = CustomAuthenticationForm()
-    return render(request, 'accounts/login.html', {'form': form})
+    
+    context = {
+        'form': form,
+        'recaptcha_enabled': not settings.DEBUG and getattr(settings, 'RECAPTCHA_ENABLED', False)
+    }
+    return render(request, 'accounts/login.html', context)
 
 @login_required
 def logout_view(request):
@@ -589,7 +605,7 @@ def cancel_invitation(request, invitation_id):
         return JsonResponse({'success': False, 'error': 'Invitation not found'})
     except Exception as e:
         return JsonResponse({'success': False, 'error': str(e)})
-    
+
 from django.contrib.auth.views import (
     PasswordResetView, 
     PasswordResetDoneView,
@@ -615,3 +631,4 @@ class CustomPasswordResetConfirmView(PasswordResetConfirmView):
     
 class CustomPasswordResetCompleteView(PasswordResetCompleteView):
     template_name = 'accounts/password_reset_complete.html'
+

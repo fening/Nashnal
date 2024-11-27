@@ -70,7 +70,8 @@
         </form>
         
         <div class="text-center mt-6">
-            <a href="{% url 'accounts:login' %}" 
+            <a href="#" 
+               onclick="goBack()"
                class="inline-flex items-center text-gray-600 font-medium
                       hover:text-gray-900 transition-colors duration-200">
                 <svg xmlns="http://www.w3.org/2000/svg" 
@@ -83,12 +84,20 @@
                           stroke-width="2" 
                           d="M11 17l-5-5m0 0l5-5m-5 5h12" />
                 </svg>
-                Return to Login
+                Return
             </a>
         </div>
     </div>
 
     <script>
+        function goBack() {
+            if (document.referrer) {
+                window.location.href = document.referrer;
+            } else {
+                window.history.back();
+            }
+        }
+        
         document.getElementById('logoutForm').addEventListener('submit', function() {
             const overlay = document.getElementById('loading-overlay');
             overlay.classList.remove('invisible', 'opacity-0');

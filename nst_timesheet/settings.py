@@ -35,7 +35,13 @@ if ENVIRONMENT == 'development':
 else:
     DEBUG = False
     
-ALLOWED_HOSTS = ['127.0.0.1','localhost', 'nashnal-production.up.railway.app']
+ALLOWED_HOSTS = [
+    '127.0.0.1',
+    'localhost',
+    'nashnal-production.up.railway.app',
+    'www.google.com',
+    'www.gstatic.com',
+]
 
 CSRF_TRUSTED_ORIGINS = ['https://nashnal-production.up.railway.app']
 
@@ -52,14 +58,15 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.sites',
-    # Your app
+    # Third party apps
+    'django_recaptcha',  # Only include once
+    # Your apps
     'timesheets',
     'accounts',
     'rest_framework',
     'rest_framework.authtoken',
     'corsheaders',
     'widget_tweaks',
-
 ]
 
 MIDDLEWARE = [
@@ -88,11 +95,17 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
-                'timesheets.context_processors.notification_context',
+                'timesheets.context_processors.notification_context',  # Add this line
             ],
         },
     },
 ]
+
+# Add this section for notification settings
+NOTIFICATION_SETTINGS = {
+    'CLEAR_AFTER_DAYS': 30,  # Auto-clear notifications after 30 days
+    'MAX_RECENT_NOTIFICATIONS': 5,  # Number of notifications to show in dropdown
+}
 
 # Remove these cache-related settings:
 # - TEMPLATE_CACHE_TIMEOUT
@@ -195,7 +208,92 @@ LOGGING = {
         },
     },
 }
+
+# ...existing logging configuration...
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '[{levelname}] {asctime} {module} {process:d} {thread:d} {message}',
+            'style': '{',
+        },
+        'simple': {
+            'format': '[{levelname}] {asctime} {message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'simple',
+        },
+        'file': {
+            'class': 'logging.FileHandler',
+            'filename': 'debug.log',
+            'formatter': 'verbose',
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console', 'file'],
+            'level': 'INFO',
+            'propagate': True,
+        },
+        'django.request': {
+            'handlers': ['console', 'file'],
+            'level': 'DEBUG',
+            'propagate': False,
+        },
+        'accounts': {  # Add this logger for your accounts app
+            'handlers': ['console', 'file'],
+            'level': 'DEBUG',
+            'propagate': True,
+        },
+        'django_recaptcha': {  # Add this logger for recaptcha
+            'handlers': ['console', 'file'],
+            'level': 'DEBUG',
+            'propagate': True,
+        },
+    },
+}
+
+# Google reCAPTCHA settings
+RECAPTCHA_PUBLIC_KEY = env('RECAPTCHA_PUBLIC_KEY', default='')
+RECAPTCHA_PRIVATE_KEY = env('RECAPTCHA_PRIVATE_KEY', default='')
+RECAPTCHA_REQUIRED_SCORE = 0.85
+
+# Only enable reCAPTCHA if both keys are provided
+RECAPTCHA_ENABLED = bool(RECAPTCHA_PUBLIC_KEY and RECAPTCHA_PRIVATE_KEY)
+
+if DEBUG:
+    print(f"reCAPTCHA Configuration:")
+    print(f"Public Key: {RECAPTCHA_PUBLIC_KEY[:10]}..." if RECAPTCHA_PUBLIC_KEY else "No public key found")
+    print(f"Private Key: {RECAPTCHA_PRIVATE_KEY[:10]}..." if RECAPTCHA_PRIVATE_KEY else "No private key found")
+    print(f"reCAPTCHA Enabled: {RECAPTCHA_ENABLED}")
     
+    # For development only
+    if not RECAPTCHA_ENABLED:
+        SILENCED_SYSTEM_CHECKS = ['captcha.recaptcha_test_key_error']
+        # Use test keys if no keys are provided
+        RECAPTCHA_PUBLIC_KEY=''
+        RECAPTCHA_PRIVATE_KEY=''
+        print("Using reCAPTCHA test keys")
+
+# For development only
+if DEBUG:
+    SILENCED_SYSTEM_CHECKS = ['captcha.recaptcha_test_key_error']
+    # Optional: Set proxy for development
+    RECAPTCHA_PROXY = {
+    }
+else:
+    RECAPTCHA_PROXY = None
+    
+    
+# Add this to control whether reCAPTCHA is enabled
+RECAPTCHA_ENABLED = not DEBUG
+
 # Internationalization
 # https://docs.djangoproject.com/en/5.1/topics/i18n/
 
@@ -266,3 +364,7 @@ SESSION_SAVE_EVERY_REQUEST = True
 SESSION_COOKIE_SECURE = not DEBUG  # Use secure cookies in production
 SESSION_COOKIE_HTTPONLY = True  # Prevent JavaScript access to session cookie
 SESSION_COOKIE_SAMESITE = 'Lax'  # Protects against CSRF
+
+AUTHENTICATION_BACKENDS = [
+    'django.contrib.auth.backends.ModelBackend',
+]

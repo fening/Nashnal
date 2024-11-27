@@ -457,6 +457,10 @@ class ApprovalNotification(models.Model):
         # Default to dashboard if no specific URL is found
         return reverse('timesheets:dashboard')
 
+    class Meta:
+        # Fix the unique constraint to use the correct field name
+        unique_together = ['time_entry_approval', 'notification_type', 'recipient']
+
 from django.db import models
 from django.contrib.auth import get_user_model
 
@@ -493,6 +497,7 @@ class TimeEntryApproval(models.Model):
     
     # Additional Fields
     submitter_comments = models.TextField(blank=True, null=True)
+    comments = models.TextField(blank=True, null=True)
     
     def can_approve(self, user):
         """Check if the user can approve this time entry"""
@@ -501,6 +506,24 @@ class TimeEntryApproval(models.Model):
         elif self.status == self.PENDING_SECOND:
             return hasattr(user, 'role') and user.role == 'Supervisor'
         return False
+    
+    def create_notifications(self, notification_type, reviewer=None, comments=None):
+        # Delete any existing notifications of this type for this approval
+        ApprovalNotification.objects.filter(
+            approval=self,
+            notification_type=notification_type
+        ).delete()
+        
+        # Create new notification
+        if notification_type == 'first_approve':
+            ApprovalNotification.objects.create(
+                approval=self,
+                notification_type=notification_type,
+                recipient=self.time_entry.user,
+                message=f"Your time entry for {self.time_entry.date} has been approved by {reviewer.get_full_name()}",
+                comments=comments
+            )
+        # ...rest of the method remains the same...
     
     def create_notifications(self, action, reviewer=None, comments=None):
         """Create notifications for all relevant parties based on the approval action."""

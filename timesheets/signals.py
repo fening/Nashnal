@@ -6,20 +6,40 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group, Permission
 from django.contrib.contenttypes.models import ContentType
 from .models import TimeEntryApproval, ApprovalNotification, TimeEntry
+from django.db import IntegrityError
 
 User = get_user_model()
+
+def create_notification_if_not_exists(recipient, message, notification_type, time_entry_approval):
+    """Helper function to create notification if it doesn't already exist"""
+    try:
+        notification, created = ApprovalNotification.objects.get_or_create(
+            recipient=recipient,
+            time_entry_approval=time_entry_approval,
+            notification_type=notification_type,
+            defaults={'message': message}
+        )
+        if not created:
+            # Update the message if notification already exists
+            notification.message = message
+            notification.read = False  # Reset read status
+            notification.created_at = timezone.now()  # Update timestamp
+            notification.save()
+        return notification
+    except IntegrityError:
+        # Log error or handle as needed
+        return None
 
 @receiver(post_save, sender=TimeEntryApproval)
 def create_approval_notifications(sender, instance, created, **kwargs):
     """Create notifications when TimeEntryApproval status changes"""
-    # Check for recent notifications (within last minute)
     time_threshold = timezone.now() - timedelta(minutes=1)
     
     if created:
         # Notify superusers of new submission
         superusers = User.objects.filter(is_superuser=True)
         for superuser in superusers:
-            ApprovalNotification.objects.create(
+            create_notification_if_not_exists(
                 recipient=superuser,
                 message=f"New timesheet submitted by {instance.time_entry.user.get_full_name()} for {instance.time_entry.date}",
                 notification_type='submission',
@@ -31,32 +51,27 @@ def create_approval_notifications(sender, instance, created, **kwargs):
             # Notify supervisor
             supervisor = instance.time_entry.user.supervisor
             if supervisor:
-                ApprovalNotification.objects.create(
+                create_notification_if_not_exists(
                     recipient=supervisor,
                     message=f"Timesheet from {instance.time_entry.user.get_full_name()} needs your review",
                     notification_type='review_needed',
                     time_entry_approval=instance
                 )
         elif instance.status in [TimeEntryApproval.APPROVED, TimeEntryApproval.REJECTED]:
-            # Check for recent notifications for this approval
-            recent_notification = ApprovalNotification.objects.filter(
-                time_entry_approval=instance,
-                notification_type__in=['approval', 'rejection'],
-                created_at__gte=time_threshold
-            ).exists()
+            status_text = 'approved' if instance.status == TimeEntryApproval.APPROVED else 'rejected'
+            notification_type = 'approval' if instance.status == TimeEntryApproval.APPROVED else 'rejection'
             
-            if not recent_notification:
-                status_text = 'approved' if instance.status == TimeEntryApproval.APPROVED else 'rejected'
-                message = f"Your timesheet for {instance.time_entry.date} was {status_text}"
-                if instance.status == TimeEntryApproval.REJECTED and instance.comments:
-                    message += f" by {instance.reviewer.get_full_name()} Comments: {instance.comments}"
-                
-                ApprovalNotification.objects.create(
-                    recipient=instance.time_entry.user,
-                    message=message,
-                    notification_type='approval' if instance.status == TimeEntryApproval.APPROVED else 'rejection',
-                    time_entry_approval=instance
-                )
+            message = f"Your timesheet for {instance.time_entry.date} was {status_text}"
+            if instance.status == TimeEntryApproval.REJECTED and getattr(instance, 'comments', ''):
+                reviewer_name = instance.reviewer.get_full_name() if hasattr(instance, 'reviewer') else 'a reviewer'
+                message += f" by {reviewer_name}. Comments: {instance.comments}"
+            
+            create_notification_if_not_exists(
+                recipient=instance.time_entry.user,
+                message=message,
+                notification_type=notification_type,
+                time_entry_approval=instance
+            )
 
 @receiver(post_save, sender=User)
 def setup_supervisor_permissions(sender, instance, created, **kwargs):

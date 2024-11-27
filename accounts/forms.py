@@ -1,9 +1,15 @@
+import logging
+
 from django import forms
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm, PasswordChangeForm
 from django.contrib.auth.models import User 
 from .models import RegistrationInvitation
+from django_recaptcha.fields import ReCaptchaField
+from django_recaptcha.widgets import ReCaptchaV2Checkbox
 
 from django.contrib.auth import get_user_model
+
+logger = logging.getLogger(__name__)
 
 CustomUser = get_user_model()
 
@@ -56,12 +62,52 @@ class CustomUserCreationForm(UserCreationForm):
         return user
 
 
+import logging
+from django import forms
+from django.contrib.auth.forms import AuthenticationForm
+from django_recaptcha.fields import ReCaptchaField
+from django_recaptcha.widgets import ReCaptchaV2Checkbox
+
+logger = logging.getLogger(__name__)
+
 class CustomAuthenticationForm(AuthenticationForm):
-    class Meta:
-        model = CustomUser
-        fields = ['username', 'password']
-        
-        
+    username = forms.CharField(widget=forms.TextInput(attrs={
+        'class': 'w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl',
+        'placeholder': 'Username',
+        'required': True
+    }))
+    
+    password = forms.CharField(widget=forms.PasswordInput(attrs={
+        'class': 'w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl',
+        'placeholder': 'Password',
+        'required': True
+    }))
+    
+    captcha = ReCaptchaField(widget=ReCaptchaV2Checkbox(
+        attrs={
+            'data-theme': 'light',
+            'data-size': 'normal',
+            'data-callback': 'onRecaptchaSuccess',         # Added callback
+            'data-expired-callback': 'onRecaptchaExpired', # Added expired callback
+        }
+    ))
+
+    def clean(self):
+        logger.debug("Starting form validation")
+        try:
+            cleaned_data = super().clean()
+            logger.debug(f"Form data: {self.data}")
+            logger.debug(f"Cleaned data: {cleaned_data}")
+            if 'g-recaptcha-response' in self.data:
+                logger.debug("reCAPTCHA response received")
+            else:
+                logger.warning("No reCAPTCHA response in form data")
+            return cleaned_data
+        except Exception as e:
+            logger.error(f"Error in form validation: {str(e)}")
+            raise
+
+
 class CustomPasswordChangeForm(PasswordChangeForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -128,4 +174,4 @@ class EmployeeForm(forms.ModelForm):
         # Require supervisor for non-supervisor roles
         if role and role != 'Supervisor' and not supervisor:
             self.add_error('supervisor', 'A supervisor must be selected for non-supervisor roles.')
-            
+

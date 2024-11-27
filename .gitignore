@@ -7,3 +7,7 @@ db.sqlite3
 setup_groups.py
 verify_permissions.py
 conflict.py
+dups.py
+scripts.py
+/management
+debug.log

@@ -178,7 +178,6 @@ def time_entry_detail(request, pk):
     return render(request, 'timesheets/time_entry_detail.html', context)
 
 @login_required
-@cache_per_user(timeout=300)
 def time_entry_list(request):
     with handle_connection():
         # Initialize role flags

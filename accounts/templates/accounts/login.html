@@ -7,6 +7,21 @@
     <title>Login - Timesheet App</title>
     <link rel ="icon" href="{% static 'favicon.ico' %}" type="image/x-icon">
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    keyframes: {
+                        spin: {
+                            '0%': { transform: 'rotate(0deg)' },
+                            '100%': { transform: 'rotate(360deg)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
 </head>
 <body class="bg-gradient-to-b from-gray-50 to-gray-100 min-h-screen flex flex-col justify-center items-center py-20">
     <!-- Loading Overlay -->
@@ -73,74 +88,113 @@
                 </g>
             </svg>
         </div>
-        
-        <h3 class="text-2xl mb-8 text-center text-gray-800">Login to Timesheets</h3>
-        <form method="post" novalidate class="space-y-8" onsubmit="showLoading()">
-            {% csrf_token %}
-            {% for field in form %}
-                <div class="space-y-1">
-                    <div class="relative">
-                        <input type="{% if field.name == 'password' %}password{% else %}{{ field.field.widget.input_type }}{% endif %}"
-                               name="{{ field.name }}"
-                               id="{{ field.id_for_label }}"
-                               placeholder="{{ field.label }}"
-                               class="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-base 
-                                      focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent
-                                      hover:bg-white
-                                      transition-all duration-200"
-                               {% if field.field.required %}required{% endif %}>
-                        
-                        {% if field.name == 'password' %}
-                            <button type="button" 
-                                    onclick="togglePasswordVisibility(this)"
-                                    class="absolute inset-y-0 right-0 flex items-center pr-4 text-gray-400 hover:text-gray-600 cursor-pointer transition-colors">
-                                <!-- Show Password Icon (Eye) -->
-                                <svg class="w-5 h-5 show-password" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
-                                </svg>
-                                <!-- Hide Password Icon (Eye Slash) -->
-                                <svg class="w-5 h-5 hide-password hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"/>
-                                </svg>
-                            </button>
-                        {% endif %}
-                    </div>
-                    {% if field.errors %}
-                        <div class="text-red-500 text-xs mt-1">{{ field.errors|join:", " }}</div>
-                    {% endif %}
+            <h3 class="text-2xl mb-8 text-center text-gray-800">Login to Timesheets</h3>
+
+            {% if messages %}
+            <div class="mb-6">
+                {% for message in messages %}
+                <div class="p-4 rounded-xl {% if message.tags == 'error' %}bg-red-100 border-l-4 border-red-500{% endif %}">
+                    {{ message }}
                 </div>
-            {% endfor %}
-            <div class="flex justify-end">
-                <a href="{% url 'accounts:password_reset' %}" class="text-sm text-blue-500 hover:underline">Forgot Password?</a>
+                {% endfor %}
             </div>
-            <button type="submit" 
-            class="w-full inline-flex items-center justify-center px-6 py-3
+            {% endif %}
+
+            <form method="post" class="space-y-6" id="loginForm" onsubmit="return showLoading()">
+                {% csrf_token %}
+                
+                <div class="space-y-4">
+                    {{ form.username }}
+                    {{ form.password }}
+                    <div class="flex justify-center">
+                        {{ form.captcha }}
+                    </div>
+                </div>
+
+                <div class="flex justify-end">
+                    <a href="{% url 'accounts:password_reset' %}" class="text-sm text-blue-500 hover:underline">
+                        Forgot Password?
+                    </a>
+                </div>
+
+                <button type="submit" 
+                        id="loginButton"
+                        class="w-full inline-flex items-center justify-center px-6 py-3
                    bg-gradient-to-r from-gray-800 to-gray-900 
                    text-white rounded-xl font-medium text-lg
                    border border-transparent
                    hover:from-gray-700 hover:to-gray-800
-                   focus:outline-none 
-                   transform transition-all duration-200
-                   hover:scale-[1.02] active:scale-95">
-        <!-- Lock Icon -->
+                   hover:scale-[1.02] active:scale-95
+                               disabled:opacity-50 disabled:cursor-not-allowed
+                               hover:scale-[1.02] active:scale-95
+                               transition-all duration-200">
+                                       <!-- Lock Icon -->
         <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
                   d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
         </svg>
-        Login
-    </button>
-        </form>
-        <p class="text-center mt-8 text-gray-600">
-            Don't have an account? 
-            <a href="" class="text-blue-500 font-semibold hover:underline">Contact your supervisor</a>
-        </p>
-    </div>
-    <!-- Optional: Add additional content or footer here for more height -->
-    <div class="text-center text-gray-500 text-sm mt-8 mb-12">
-        © 2024 NASH Soil Testing. All rights reserved.
-    </div>
-</div>
+                    Login
+                </button>
+            </form>
+            <p class="text-center mt-8 text-gray-600">
+                Don't have an account? 
+                <a href="" class="text-blue-500 font-semibold hover:underline">Contact your supervisor</a>
+            </p>
+        </div>
+        <!-- Optional: Add additional content or footer here for more height -->
+        <div class="text-center text-gray-500 text-sm mt-8 mb-12">
+            © 2024 NASHnal Soil Testing. All rights reserved.
+        </div>
+
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initially disable the login button
+            document.getElementById('loginButton').disabled = true;
+            
+            // Add submit handler to the form
+            document.getElementById('loginForm').addEventListener('submit', function(e) {
+                const button = document.getElementById('loginButton');
+                button.disabled = true;
+                button.innerHTML = 'Logging in...';
+                return showLoading();
+            });
+        });
+
+        function showLoading() {
+            const overlay = document.getElementById('loading-overlay');
+            const form = document.getElementById('loginForm');
+            
+            // Show overlay
+            overlay.classList.remove('invisible');
+            setTimeout(() => {
+                overlay.classList.add('opacity-100');
+            }, 10);
+
+            // Disable form to prevent double submission
+            form.querySelector('button[type="submit"]').disabled = true;
+            
+            return true;
+        }
+
+        // Enable button when reCAPTCHA is solved
+        function onRecaptchaSuccess() {
+            document.getElementById('loginButton').disabled = false;
+        }
+
+        // Disable button if reCAPTCHA expires
+        function onRecaptchaExpired() {
+            document.getElementById('loginButton').disabled = true;
+        }
+
+        // Handle form submission
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            const button = document.getElementById('loginButton');
+            button.disabled = true;
+            button.innerHTML = 'Logging in...';
+        });
+    </script>
+
 </body>
 <script>
     function showLoading() {

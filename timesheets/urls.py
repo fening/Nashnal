@@ -64,3 +64,8 @@ urlpatterns = [
 
 # Add DRF router URLs
 urlpatterns += router.urls
+
+urlpatterns += [
+    # ... existing urls ...
+    path('notifications/clear-visible/', views.clear_visible_notifications, name='clear_visible_notifications'),
+]
