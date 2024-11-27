@@ -10,4 +10,4 @@ conflict.py
 dups.py
 scripts.py
 /management
-debug.log
+nst_timesheet/debug.log
