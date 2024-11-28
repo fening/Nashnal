@@ -162,19 +162,24 @@
         });
 
         function showLoading() {
-            const overlay = document.getElementById('loading-overlay');
-            const form = document.getElementById('loginForm');
-            
-            // Show overlay
-            overlay.classList.remove('invisible');
-            setTimeout(() => {
-                overlay.classList.add('opacity-100');
-            }, 10);
-
-            // Disable form to prevent double submission
-            form.querySelector('button[type="submit"]').disabled = true;
-            
-            return true;
+            try {
+                const overlay = document.getElementById('loading-overlay');
+                const form = document.getElementById('loginForm');
+                
+                // Show overlay
+                overlay.classList.remove('invisible');
+                setTimeout(() => {
+                    overlay.classList.add('opacity-100');
+                }, 10);
+        
+                // Disable form to prevent double submission
+                form.querySelector('button[type="submit"]').disabled = true;
+                
+                return true;
+            } catch (error) {
+                console.error('Error in showLoading:', error);
+                return false;
+            }
         }
 
         // Enable button when reCAPTCHA is solved

@@ -65,33 +65,31 @@ def login_view(request):
     if request.method == 'POST':
         form = CustomAuthenticationForm(request, data=request.POST)
         
-        # Skip reCAPTCHA validation in development
-        if settings.DEBUG or getattr(settings, 'RECAPTCHA_ENABLED', False) is False:
-            if form.is_valid():
-                username = form.cleaned_data.get('username')
-                password = form.cleaned_data.get('password')
-                try:
-                    user = authenticate(username=username, password=password)
-                    if user is not None:
-                        login(request, user)
-                        next_url = request.GET.get('next')
-                        if next_url:
-                            return redirect(next_url)
-                        return redirect('timesheets:dashboard')
-                    else:
-                        messages.error(request, 'Invalid username or password.')
-                except Exception as e:
-                    messages.error(request, f'Authentication error: {str(e)}')
-            else:
-                messages.error(request, 'Please correct the errors below.')
+        if form.is_valid():
+            username = form.cleaned_data.get('username')
+            password = form.cleaned_data.get('password')
+            try:
+                user = authenticate(username=username, password=password)
+                if user is not None:
+                    login(request, user)
+                    next_url = request.GET.get('next')
+                    return redirect(next_url) if next_url else redirect('timesheets:dashboard')
+                else:
+                    messages.error(request, 'Invalid username or password.')
+            except Exception as e:
+                messages.error(request, f'Authentication error: {str(e)}')
+                print(f"Login error: {str(e)}")  # Add this for debugging
+        else:
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, f"{error}")
     else:
         form = CustomAuthenticationForm()
     
-    context = {
+    return render(request, 'accounts/login.html', {
         'form': form,
-        'recaptcha_enabled': not settings.DEBUG and getattr(settings, 'RECAPTCHA_ENABLED', False)
-    }
-    return render(request, 'accounts/login.html', context)
+        'recaptcha_enabled': not settings.DEBUG and settings.RECAPTCHA_ENABLED
+    })
 
 @login_required
 def logout_view(request):
