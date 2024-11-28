@@ -19,15 +19,23 @@ def notification_context(request):
         is_superuser = user.is_superuser
         is_supervisor = hasattr(user, 'role') and user.role == 'Supervisor'
 
-        # Get unread notifications for the user
+        # Get unread notifications with select_related for better performance
         unread_notifications = ApprovalNotification.objects.filter(
             recipient=user,
             read=False
+        ).select_related(
+            'time_entry_approval',
+            'time_entry_approval__time_entry'
         )
 
-        # Get relevant notifications based on user role
-        notifications_query = ApprovalNotification.objects.filter(recipient=user)
-        
+        # Get recent UNREAD notifications with all related data
+        recent_notifications = unread_notifications.select_related(
+            'recipient',
+            'time_entry_approval',
+            'time_entry_approval__time_entry',
+            'time_entry_approval__time_entry__user'
+        ).order_by('-created_at')[:5]
+
         # Get pending approvals based on user role
         if is_superuser:
             pending_approvals = TimeEntryApproval.objects.filter(
@@ -44,14 +52,6 @@ def notification_context(request):
                 status__in=[TimeEntryApproval.PENDING_FIRST, TimeEntryApproval.PENDING_SECOND]
             )
 
-        # Get recent notifications with all related data
-        recent_notifications = notifications_query.select_related(
-            'recipient',
-            'time_entry_approval',
-            'time_entry_approval__time_entry',
-            'time_entry_approval__time_entry__user'
-        ).order_by('-created_at')[:5]
-
         context.update({
             'unread_notifications_count': unread_notifications.count(),
             'pending_approvals_count': pending_approvals.count(),
@@ -66,3 +66,5 @@ def notification_context(request):
         traceback.print_exc()
 
     return context
+
+

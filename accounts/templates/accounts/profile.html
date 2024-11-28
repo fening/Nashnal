@@ -55,7 +55,7 @@ document.getElementById('password-change-form').addEventListener('submit', funct
     var form = this;
     var formData = new FormData(form);
     
-    fetch('{% url "profile" %}', {
+    fetch('{% url "accounts:profile" %}', {  // Changed from 'profile' to 'accounts:profile'
         method: 'POST',
         body: formData,
         headers: {

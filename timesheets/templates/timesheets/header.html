@@ -16,7 +16,15 @@
 
     <div class="flex items-center space-x-4">
         {% if user.is_authenticated %}
-            <!-- Notification Bell - Show for all authenticated users -->
+            <!-- Add debug information (temporarily) -->
+            {% if debug %}
+            <div class="hidden">
+                <p>Unread Count: {{ unread_notifications_count }}</p>
+                <p>Recent Notifications: {{ recent_notifications|length }}</p>
+            </div>
+            {% endif %}
+
+            <!-- Notification Bell -->
             <div class="relative" x-data="{ open: false }" x-cloak>
                 <button @click="open = !open" 
                         id="notification-button"
@@ -41,30 +49,31 @@
                      x-transition:leave-end="opacity-0 transform scale-95"
                      class="absolute right-0 mt-2 w-80 bg-white rounded-md shadow-lg overflow-hidden z-50">
                     <div class="py-2">
-                        <!-- Notification Header -->
-                        <div class="px-4 py-2 bg-gray-50 border-b border-gray-200">
-                            <div class="flex justify-between items-center">
-                                <h3 class="text-sm font-semibold text-gray-700">
-                                    Notifications
-                                    {% if unread_notifications_count > 0 %}
-                                        <span class="ml-1 text-xs text-gray-500">({{ unread_notifications_count }} unread)</span>
-                                    {% endif %}
-                                </h3>
-                                <div class="flex space-x-2">
+                    <!-- Notification Header -->
+                    <div class="px-4 py-2 bg-gray-50 border-b border-gray-200">
+                        <div class="flex justify-between items-center">
+                            <h3 class="text-sm font-semibold text-gray-700">
+                                Notifications
+                                {% if unread_notifications_count > 0 %}
+                                    <span class="ml-1 text-xs text-gray-500">({{ unread_notifications_count }} unread)</span>
+                                {% endif %}
+                            </h3>
+                            <!-- Add this back - Clear button -->
+                            <div class="flex space-x-2">
                                     <!-- Clear Notifications Button -->
                                     <button id="clear-notifications" 
                                             class="text-xs text-red-600 hover:text-red-800 flex items-center" title="Clear notifications">
                                         <i data-lucide="x-circle" class="h-4 w-4 mr-1"></i>
                                     </button>
-                                </div>
                             </div>
                         </div>
+                    </div>
 
-                        <!-- Notification List -->
+                    <!-- Notification List -->
                         <div id="notification-list" class="max-h-96 overflow-y-auto">
-                            {% if recent_notifications %}
-                                {% for notification in recent_notifications %}
-                                    <a href="{% url 'timesheets:notification_link_handler' notification.id %}" 
+                        {% if recent_notifications %}
+                            {% for notification in recent_notifications %}
+                                <a href="{% url 'timesheets:notification_link_handler' notification.id %}" 
                                        class="block px-4 py-3 hover:bg-gray-50 {% if not notification.read %}bg-blue-50{% endif %} border-b border-gray-100 transition-colors duration-150">
                                         <div class="flex items-start">
                                             <!-- Notification Icon -->
@@ -79,18 +88,18 @@
                                             {% endif %}
 
                                             <div class="flex-1">
-                                                <p class="text-sm text-gray-700">{{ notification.message }}</p>
-                                                <p class="text-xs text-gray-500 mt-1">{{ notification.created_at|timesince }} ago</p>
+                                    <p class="text-sm text-gray-700">{{ notification.message }}</p>
+                                    <p class="text-xs text-gray-500 mt-1">{{ notification.created_at|timesince }} ago</p>
                                             </div>
                                         </div>
-                                    </a>
-                                {% endfor %}
-                            {% else %}
+                                </a>
+                            {% endfor %}
+                        {% else %}
                                 <div class="px-4 py-3 text-sm text-gray-500 flex items-center justify-center">
                                     <i data-lucide="inbox" class="h-5 w-5 mr-2 text-gray-400"></i>
                                     No new notifications
-                                </div>
-                            {% endif %}
+                            </div>
+                        {% endif %}
                         </div>
 
                         <!-- Footer -->
@@ -177,22 +186,16 @@
     document.addEventListener('DOMContentLoaded', function() {
         // Initialize Lucide Icons
         lucide.createIcons();
-
-        // Check if notifications have been cleared previously
-        if (localStorage.getItem('notificationsCleared') === 'true') {
-            clearNotificationsFromTray();
-        }
-
+    
         // Clear Notifications Button Event Listener
         var clearNotificationsButton = document.getElementById('clear-notifications');
         if (clearNotificationsButton) {
             clearNotificationsButton.addEventListener('click', function() {
                 clearNotificationsFromTray();
-                // Store the state in localStorage
-                localStorage.setItem('notificationsCleared', 'true');
+                markNotificationsAsRead();
             });
         }
-
+    
         function clearNotificationsFromTray() {
             var notificationList = document.getElementById('notification-list');
             if (notificationList) {
@@ -205,10 +208,10 @@
                 noNotificationsMessage.className = 'px-4 py-3 text-sm text-gray-500 flex items-center justify-center';
                 noNotificationsMessage.innerHTML = '<i data-lucide="inbox" class="h-5 w-5 mr-2 text-gray-400"></i>No new notifications';
                 notificationList.appendChild(noNotificationsMessage);
-
+    
                 // Re-initialize Lucide icons for the new content
                 lucide.createIcons();
-
+    
                 // Hide the notification badge
                 var notificationBadge = document.getElementById('notification-badge');
                 if (notificationBadge) {
@@ -216,5 +219,24 @@
                 }
             }
         }
+    
+        function markNotificationsAsRead() {
+            fetch("{% url 'timesheets:mark_notifications_as_read' %}", {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}', // Include CSRF token
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ action: 'mark_all_read' })
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Notifications marked as read');
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        }
     });
+    
 </script>

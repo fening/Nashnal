@@ -1919,3 +1919,533 @@ django.core.exceptions.PermissionDenied
 [INFO] 2024-11-28 05:25:16,528 basehttp 35276 36936 "POST /accounts/login/?next=/time-entry/approvals/pending/ HTTP/1.1" 302 0
 [INFO] 2024-11-28 05:25:18,280 basehttp 35276 36936 "GET /time-entry/approvals/pending/ HTTP/1.1" 200 37424
 [INFO] 2024-11-28 05:25:23,976 basehttp 35276 44760 "GET /dashboard/ HTTP/1.1" 200 77703
+[INFO] 2024-11-28 05:35:50,680 autoreload 35276 48772 C:\Users\fenin\OneDrive\Documents\nashnal\nst_timesheet\timesheets\views.py changed, reloading.
+[INFO] 2024-11-28 05:35:51,439 autoreload 46488 21648 Watching for file changes with StatReloader
+[INFO] 2024-11-28 05:37:08,169 autoreload 38904 41608 Watching for file changes with StatReloader
+[INFO] 2024-11-28 05:37:45,632 basehttp 38904 28736 "GET /dashboard/ HTTP/1.1" 302 0
+[INFO] 2024-11-28 05:37:45,664 basehttp 38904 28736 "GET /accounts/login/?next=/dashboard/ HTTP/1.1" 200 13059
+[INFO] 2024-11-28 05:37:50,918 basehttp 38904 28736 "GET /accounts/login/?next=/dashboard/ HTTP/1.1" 200 11857
+[INFO] 2024-11-28 05:37:55,120 basehttp 38904 28736 "GET /accounts/login/ HTTP/1.1" 200 11857
+[DEBUG] 2024-11-28 05:38:00,935 forms 38904 28736 Starting form validation
+[DEBUG] 2024-11-28 05:38:02,305 forms 38904 28736 Form data: <QueryDict: {'csrfmiddlewaretoken': ['Ste6bBWbxJcUHyeDD3bcK7ubH64QLZzme6MaGaRjWNQCY7Uwx6D9w6iBR9ZAu0Lw'], 'username': ['Test'], 'password': ['ud6kyNzMUsG483a'], 'g-recaptcha-response': ['03AFcWeA4-ya-KEX93I-Gn-hZzLujeyUYaMzvAt7TaKy2H-WDni172n6BYplAtXgAXWaBnTfNnKjMbpGV8O76sJXNa4BVIRyPI91Oe7gtr_rVGVCAhkjc7q_bmhKEG37NWi_B_l_9iZLX016aicnYHRXM_hq73Oy_1c_3qtTlb7wrZBSabn6grsaiOJrC8P5Y2K_cs-FePR0kJ0ocafzHiEn09nnHYgmderS5uqqJLf4a0wgJIRf_tAmGso074H_uNdvwx81i9oQEdH1pQ_yflyMax4aTap0s8y24VJAULxzPg6a4hn4qichPZMc-39M-_H5YwfjnnfmAmQQZ3h22XS_BOaNooFCuEYbeYnbOVq-LVm-gqXHK5Ff3jRuxMBuwRJlB2LwfaORqh12xn2UwyyVqFaoVt4vGqj2xqjHJOxu14LYXVCmkufZBQFj05qinohk7X1gWL-ajSaHbP2wFSXM-qPMp1Oy7oCC08Sc-i3QtU-n5mN68daPRIsHo1gFi8ILCRXrn4azkdR4A4IDuN-B_KiXVPeVfSN6oDz665CDu3VjkP9m3xPGgmiy6K5Margu0gzpsNFGvGUdrdj_-tY0Bi52_1bYdkTkN57JgRwckdLZJ4pMoKVA3pNaOhT2UfHvMO605G628KyFM-MS3nXVIFlXoVNy_qxSmIi1ukQLWxKJBMoeiI3iessQfCoK-tb-YoGpcHD2qr0M6uFSZkFB46wpKjDxrff9KacOKTPJ9TvK_V3oPBsqknNXY23tE9nVSo6eCMlxI3YVBZNLhbTGFP7T6U1WO63qdzwubn6XP0qflGZCL40Hj_95fKOmwbNiMXyXNSW67W4LcAecssjotOQxxxkTzttEHfwrlYr4y0WeSdMwGV2fW4fPfyeVJ-xIsItJwjDAITGX68kEpADZy6dDSvwvNltxmh2kO-VxfdL7hMSKoC1l8S-n7QQrG3QoMkT3-zqYVeszcEZIrSpG-VPYsAqPtXM6yLMxenOGZ4cdNCDgW5EfU_lvPYACZ8RQTCKFcpzWiaxDOReofEf8Cu3djYOqSbauBtoHR4rJrKtcJ1rYepTV9UIy7R5-Q0TLsWn4V-Lx3BXph5zP5iqc40Xtbhi72jlDR4Ws8Fh097wfSWaa2rZNQ3H0sqCyqCv9QGJxpbwqyt7M7Twd2avWo355gRMQDFsk-94uEWCd0ljBlTu-Z8gDpRdYMAiMRkDCJLd8g43bep50T0f1tvVcWN89vYAU1KpxsgnecrEJAevvzkiEtx7WiaLJIuHD8rtO_DitbDhCuEu01OxijZGRtvQN-OatV_1_GbMkwqk7Eie6Dj_ZWc_F84ULtiphx4IMQVLAIM_L4VHLpnxxHxun-AfULKZLMYO0624ki3psfguOkCk5c9CHWA98ceYQH-rcma6TRMBnM3Ir4qCM6J-073pQVNhJqxHNsmW4ge4HjPoVkMgCqPbOjBOh2t1s96i9_GnBinq_fkbY0GY5xVWiUz8Zisy74sYSMJQ2cs6Kk4vNaMA3Yz3iqYbs9yoqSESIc8WdPshMPfalaSr1fKPHW4VHJCB2HTkbIFhbXIYFQFe8e7XVwMJxg5_BUe-1Cj68AqTIbBWt9IaVz6RSCFMuYB5IwmD24qVIGc-wYMdfhUHpULyzQ9iIzmhCLn-EKd6tyTSPVjcGHnYjAnyXVn84a139H49PSqPnuA50DsKzNiBPZPWO3_XGaFZAmUSFvKcmX_YINbFIUoGnEyfbbbxNSjGQ_LeMKKV7-Xe5bV1RJPZ7o-IwPWerYQbmvbW_1qCfb-N1-hJ7rgfLnJ2fDDh6dDUKtAmVeNk75Uo2Ny-Sud9vZyd329o9vRa0GtnbP3xg9dwqvwDo6WqyeyyOLO9r6BesPW7s_kHIHuQhYOzIZxXluTLPGL1wE64GGamzqOCzKJNUTAusyCo74RGAG85r8n-Pu7_2SfczR0alaKmy1AX9bIMM1vEyg']}>
+[DEBUG] 2024-11-28 05:38:02,309 forms 38904 28736 Cleaned data: {'username': 'Test', 'password': 'ud6kyNzMUsG483a', 'captcha': '03AFcWeA4-ya-KEX93I-Gn-hZzLujeyUYaMzvAt7TaKy2H-WDni172n6BYplAtXgAXWaBnTfNnKjMbpGV8O76sJXNa4BVIRyPI91Oe7gtr_rVGVCAhkjc7q_bmhKEG37NWi_B_l_9iZLX016aicnYHRXM_hq73Oy_1c_3qtTlb7wrZBSabn6grsaiOJrC8P5Y2K_cs-FePR0kJ0ocafzHiEn09nnHYgmderS5uqqJLf4a0wgJIRf_tAmGso074H_uNdvwx81i9oQEdH1pQ_yflyMax4aTap0s8y24VJAULxzPg6a4hn4qichPZMc-39M-_H5YwfjnnfmAmQQZ3h22XS_BOaNooFCuEYbeYnbOVq-LVm-gqXHK5Ff3jRuxMBuwRJlB2LwfaORqh12xn2UwyyVqFaoVt4vGqj2xqjHJOxu14LYXVCmkufZBQFj05qinohk7X1gWL-ajSaHbP2wFSXM-qPMp1Oy7oCC08Sc-i3QtU-n5mN68daPRIsHo1gFi8ILCRXrn4azkdR4A4IDuN-B_KiXVPeVfSN6oDz665CDu3VjkP9m3xPGgmiy6K5Margu0gzpsNFGvGUdrdj_-tY0Bi52_1bYdkTkN57JgRwckdLZJ4pMoKVA3pNaOhT2UfHvMO605G628KyFM-MS3nXVIFlXoVNy_qxSmIi1ukQLWxKJBMoeiI3iessQfCoK-tb-YoGpcHD2qr0M6uFSZkFB46wpKjDxrff9KacOKTPJ9TvK_V3oPBsqknNXY23tE9nVSo6eCMlxI3YVBZNLhbTGFP7T6U1WO63qdzwubn6XP0qflGZCL40Hj_95fKOmwbNiMXyXNSW67W4LcAecssjotOQxxxkTzttEHfwrlYr4y0WeSdMwGV2fW4fPfyeVJ-xIsItJwjDAITGX68kEpADZy6dDSvwvNltxmh2kO-VxfdL7hMSKoC1l8S-n7QQrG3QoMkT3-zqYVeszcEZIrSpG-VPYsAqPtXM6yLMxenOGZ4cdNCDgW5EfU_lvPYACZ8RQTCKFcpzWiaxDOReofEf8Cu3djYOqSbauBtoHR4rJrKtcJ1rYepTV9UIy7R5-Q0TLsWn4V-Lx3BXph5zP5iqc40Xtbhi72jlDR4Ws8Fh097wfSWaa2rZNQ3H0sqCyqCv9QGJxpbwqyt7M7Twd2avWo355gRMQDFsk-94uEWCd0ljBlTu-Z8gDpRdYMAiMRkDCJLd8g43bep50T0f1tvVcWN89vYAU1KpxsgnecrEJAevvzkiEtx7WiaLJIuHD8rtO_DitbDhCuEu01OxijZGRtvQN-OatV_1_GbMkwqk7Eie6Dj_ZWc_F84ULtiphx4IMQVLAIM_L4VHLpnxxHxun-AfULKZLMYO0624ki3psfguOkCk5c9CHWA98ceYQH-rcma6TRMBnM3Ir4qCM6J-073pQVNhJqxHNsmW4ge4HjPoVkMgCqPbOjBOh2t1s96i9_GnBinq_fkbY0GY5xVWiUz8Zisy74sYSMJQ2cs6Kk4vNaMA3Yz3iqYbs9yoqSESIc8WdPshMPfalaSr1fKPHW4VHJCB2HTkbIFhbXIYFQFe8e7XVwMJxg5_BUe-1Cj68AqTIbBWt9IaVz6RSCFMuYB5IwmD24qVIGc-wYMdfhUHpULyzQ9iIzmhCLn-EKd6tyTSPVjcGHnYjAnyXVn84a139H49PSqPnuA50DsKzNiBPZPWO3_XGaFZAmUSFvKcmX_YINbFIUoGnEyfbbbxNSjGQ_LeMKKV7-Xe5bV1RJPZ7o-IwPWerYQbmvbW_1qCfb-N1-hJ7rgfLnJ2fDDh6dDUKtAmVeNk75Uo2Ny-Sud9vZyd329o9vRa0GtnbP3xg9dwqvwDo6WqyeyyOLO9r6BesPW7s_kHIHuQhYOzIZxXluTLPGL1wE64GGamzqOCzKJNUTAusyCo74RGAG85r8n-Pu7_2SfczR0alaKmy1AX9bIMM1vEyg'}
+[DEBUG] 2024-11-28 05:38:02,311 forms 38904 28736 reCAPTCHA response received
+[INFO] 2024-11-28 05:38:03,615 basehttp 38904 28736 "POST /accounts/login/ HTTP/1.1" 302 0
+[INFO] 2024-11-28 05:38:07,105 basehttp 38904 28736 "GET /dashboard/ HTTP/1.1" 200 63717
+[INFO] 2024-11-28 05:38:07,650 basehttp 38904 28736 - Broken pipe from ('127.0.0.1', 62002)
+[INFO] 2024-11-28 05:38:15,410 basehttp 38904 40768 "GET /time-entry/create/ HTTP/1.1" 200 79186
+[INFO] 2024-11-28 05:38:25,373 basehttp 38904 40768 "GET /time-entry/get-job-number/3/ HTTP/1.1" 200 43
+[INFO] 2024-11-28 05:38:25,471 basehttp 38904 38092 "GET /time-entry/get-job-details/3/ HTTP/1.1" 200 57
+[INFO] 2024-11-28 05:38:57,297 basehttp 38904 40768 "GET /time-entry/get-labor-code/19/ HTTP/1.1" 200 35
+[INFO] 2024-11-28 05:39:03,803 basehttp 38904 40768 "POST /time-entry/create/ HTTP/1.1" 302 0
+[INFO] 2024-11-28 05:39:05,753 basehttp 38904 40768 "GET /time-entry/50/ HTTP/1.1" 200 57175
+[INFO] 2024-11-28 05:39:06,127 basehttp 38904 38092 - Broken pipe from ('127.0.0.1', 62017)
+[INFO] 2024-11-28 05:39:24,258 basehttp 38904 40768 "GET /time-entry/approvals/submit/50/ HTTP/1.1" 200 39918
+[INFO] 2024-11-28 05:39:44,070 basehttp 38904 40768 "POST /time-entry/approvals/submit/50/ HTTP/1.1" 302 0
+[INFO] 2024-11-28 05:39:46,132 basehttp 38904 40768 "GET /time-entry/50/ HTTP/1.1" 200 56912
+[INFO] 2024-11-28 05:39:51,173 basehttp 38904 13264 "GET /dashboard/ HTTP/1.1" 200 78585
+[INFO] 2024-11-28 05:40:10,350 basehttp 38904 13264 "GET /time-entry/approvals/pending/ HTTP/1.1" 200 36951
+[INFO] 2024-11-28 05:40:14,074 basehttp 38904 13264 "GET /time-entry/approvals/pending/ HTTP/1.1" 200 36951
+[INFO] 2024-11-28 05:40:24,230 basehttp 38904 32508 "GET /time-entry/approvals/pending/ HTTP/1.1" 302 0
+[INFO] 2024-11-28 05:40:24,239 basehttp 38904 32508 "GET /accounts/login/?next=/time-entry/approvals/pending/ HTTP/1.1" 200 11857
+[DEBUG] 2024-11-28 05:40:27,735 forms 38904 32508 Starting form validation
+[DEBUG] 2024-11-28 05:40:29,811 forms 38904 32508 Form data: <QueryDict: {'csrfmiddlewaretoken': ['BY3ZB4qrslZybdjfF56ZY0R0nIFTQziXdytl5c2AUnmzmn8quSpVSWwvpmWdEpgX'], 'username': ['nidaahmad1'], 'password': ['W7rk-X87vxffwp:'], 'g-recaptcha-response': ['03AFcWeA6XPRZXNwgy7AZBp9pow1S98Jzwst6FWr8INw2un7wj71oHPsHBpkLkiwZEF3dj3m9l4ZwbAJ4knXuRk7NQwxDvmP7P87DSVJlGk50gpAPFwyzcaQyXEY5mzlFyjzrCkiHrnUmq1h1GHabkMgBPCzNlq3cNKUYgZhq_mjyi5ob4F0QmZclBIqPWsGfaKZfVRCk-kQQhrZCDwXFrcaVavQIELCYeoCuvHZsY4IHUc98qFbgMszSz2r_TywL9rLxa0OLS8ZisshV_mB2kRnNHrRNe9zKvJTrK_qqso5r_6Sq0S4FV6yO4X3MzSQS-NTkqoaKYU86hPuH8MP-VzFtqlkGyRijHU7Zdpo0I2LaFD8vjte9bVvMefbwNdgqjJRvUEpzeSZ3myDldNmeoIjxkUP_DXKzACHDdjTwZI7agv0nKOOmv_IePiuKwfNKp1mED0yvXhY9f3o7-egZXn4XlQw5UtBIuOhXQmTn1eT1AvdIx-oYDnDVcp95yU7vruSpKDdTB59sHp63dPneyeXlIOQg5kMiMTiu1CfApCI1Q670f5lFeUwMJkkLxdswxmpEdaTdRqXbobCsyxJGH23-ctY2G2k0KhPNk7tNnEx6rSn64VOAefX-f_nNVh_Bcn40Ki3nV2WTXMkrdQQVA8n-iVu8GVLT3-8buSQ6VHcc-kD30l16F5R8pr508XERReHIKFS6UT7-1F9LTWxt6d44yLXwLTubMDWLRcg6VBpfTX9ifwXLXZ_j2rd2k3WpmJqfYgmLeP4GTAHuH5DZn-FY1Kzi-TqQF8Qc0jEukFJrRMDRt_Lfh63Gts6ZqHJDaOBW4VvtwW5mjFfd504hOqySBVxyCS0jDAfwCiiVr8rxsGko_S2IgXJvgn1jQyV8c0zMshWF8xHZmGZDFT_i09kc8zJJ4GWIoTG2uoitJP7bhuQEFR_6jxPu8IEUnyxMuZnoqOuC0pQGr-mZBHimiSkhaCnVEMu35WgfpGAMZK1-hi2GkJjIZmkuAPheYrRAnX7YoOaYgtpxBUwTzQynjyUi6D2AbqJOLuYSJhK-EudBqKsKAKPltHbmoty2LKFQQxfV3B1_5n9bimxmCHkKbAolycmqqq39W0wEMvr6CNHZUkJAcWpQhfGsGeXHMCCQP9WeW1DsWb8IP71nidDGmi3P5pMC-V6sNvPPVfC4MaPY4X4j9DpSvhBu4n1jnrLyyUqhHA9s2I7wXjXnTp2Rxky_DFgihhm8IpcjImhlIJJZmn9yCWO2rAnIvNA_lhg2u2ySSOvE419eG0eAW7qqQ_pE2lUFl-i9geltKBGP_PcReXVnX4coeSfJShsl7eaBB-q2x8WZKxO0nM2W7Pz24h7i6huCQEAvNdzg72EDv8HP5s_zFzcXjFC_j_tpdZj3OVL96GzSedRRWqkV-gklPj84cSB3WN8sfNQKU9zvTPXYeWeZ7e9oIHWbyaFk-2I4ciO1m1GwYM-Q-WeWx-0RvCuT3eHWho19P_XU4evJJcRkfturJ2XCNkiT9vFkERRDXKcjMajTK_S81Q6gn4_XEYxaSSDA9Dff9_ZwowyCZ4R2_OXp9mQ3aS5OtpY9INQA9u3qU62E-9IrRFYKzkNDpTceNFLA3PVzgoK3-cgffE0SaRGoQ9B2qlweCXxC72ghl3lShIKq1fmgzuB5TCIWI1Wsh7wndOCxQBz34j7pTZk2qF4NgzeDRFE4NxU18-MkVKlOh1qfFadD3vCElgeE6Ljm3cPhcSBSgrzNZC8s2i0ZnpF9GT4MUs8i5VvWtZTKR1uyNFRuh6GTDBwp2KiTGBawn_wpcZUkGr6A7-GLOfg4Ra1YhQxJxFMkyjtN8Tffe4QlvAl1Ohw9C5ndOBN-0daDTl9OX5g-w8ZXUefa0oQeBKXs2G5GAhnbQc9eVMnwu_8D_5qrSV9QnLCo6n3MwNttZdHvLP0LFGdeNXf7TGm1wPIP_7TzGO8QSaW9p5WEsq30NnEq85qcf687COtOqgE3C03hH3DEFaqoc8nx4prl4OIA_ex63Y38']}>
+[DEBUG] 2024-11-28 05:40:29,815 forms 38904 32508 Cleaned data: {'username': 'nidaahmad1', 'password': 'W7rk-X87vxffwp:', 'captcha': '03AFcWeA6XPRZXNwgy7AZBp9pow1S98Jzwst6FWr8INw2un7wj71oHPsHBpkLkiwZEF3dj3m9l4ZwbAJ4knXuRk7NQwxDvmP7P87DSVJlGk50gpAPFwyzcaQyXEY5mzlFyjzrCkiHrnUmq1h1GHabkMgBPCzNlq3cNKUYgZhq_mjyi5ob4F0QmZclBIqPWsGfaKZfVRCk-kQQhrZCDwXFrcaVavQIELCYeoCuvHZsY4IHUc98qFbgMszSz2r_TywL9rLxa0OLS8ZisshV_mB2kRnNHrRNe9zKvJTrK_qqso5r_6Sq0S4FV6yO4X3MzSQS-NTkqoaKYU86hPuH8MP-VzFtqlkGyRijHU7Zdpo0I2LaFD8vjte9bVvMefbwNdgqjJRvUEpzeSZ3myDldNmeoIjxkUP_DXKzACHDdjTwZI7agv0nKOOmv_IePiuKwfNKp1mED0yvXhY9f3o7-egZXn4XlQw5UtBIuOhXQmTn1eT1AvdIx-oYDnDVcp95yU7vruSpKDdTB59sHp63dPneyeXlIOQg5kMiMTiu1CfApCI1Q670f5lFeUwMJkkLxdswxmpEdaTdRqXbobCsyxJGH23-ctY2G2k0KhPNk7tNnEx6rSn64VOAefX-f_nNVh_Bcn40Ki3nV2WTXMkrdQQVA8n-iVu8GVLT3-8buSQ6VHcc-kD30l16F5R8pr508XERReHIKFS6UT7-1F9LTWxt6d44yLXwLTubMDWLRcg6VBpfTX9ifwXLXZ_j2rd2k3WpmJqfYgmLeP4GTAHuH5DZn-FY1Kzi-TqQF8Qc0jEukFJrRMDRt_Lfh63Gts6ZqHJDaOBW4VvtwW5mjFfd504hOqySBVxyCS0jDAfwCiiVr8rxsGko_S2IgXJvgn1jQyV8c0zMshWF8xHZmGZDFT_i09kc8zJJ4GWIoTG2uoitJP7bhuQEFR_6jxPu8IEUnyxMuZnoqOuC0pQGr-mZBHimiSkhaCnVEMu35WgfpGAMZK1-hi2GkJjIZmkuAPheYrRAnX7YoOaYgtpxBUwTzQynjyUi6D2AbqJOLuYSJhK-EudBqKsKAKPltHbmoty2LKFQQxfV3B1_5n9bimxmCHkKbAolycmqqq39W0wEMvr6CNHZUkJAcWpQhfGsGeXHMCCQP9WeW1DsWb8IP71nidDGmi3P5pMC-V6sNvPPVfC4MaPY4X4j9DpSvhBu4n1jnrLyyUqhHA9s2I7wXjXnTp2Rxky_DFgihhm8IpcjImhlIJJZmn9yCWO2rAnIvNA_lhg2u2ySSOvE419eG0eAW7qqQ_pE2lUFl-i9geltKBGP_PcReXVnX4coeSfJShsl7eaBB-q2x8WZKxO0nM2W7Pz24h7i6huCQEAvNdzg72EDv8HP5s_zFzcXjFC_j_tpdZj3OVL96GzSedRRWqkV-gklPj84cSB3WN8sfNQKU9zvTPXYeWeZ7e9oIHWbyaFk-2I4ciO1m1GwYM-Q-WeWx-0RvCuT3eHWho19P_XU4evJJcRkfturJ2XCNkiT9vFkERRDXKcjMajTK_S81Q6gn4_XEYxaSSDA9Dff9_ZwowyCZ4R2_OXp9mQ3aS5OtpY9INQA9u3qU62E-9IrRFYKzkNDpTceNFLA3PVzgoK3-cgffE0SaRGoQ9B2qlweCXxC72ghl3lShIKq1fmgzuB5TCIWI1Wsh7wndOCxQBz34j7pTZk2qF4NgzeDRFE4NxU18-MkVKlOh1qfFadD3vCElgeE6Ljm3cPhcSBSgrzNZC8s2i0ZnpF9GT4MUs8i5VvWtZTKR1uyNFRuh6GTDBwp2KiTGBawn_wpcZUkGr6A7-GLOfg4Ra1YhQxJxFMkyjtN8Tffe4QlvAl1Ohw9C5ndOBN-0daDTl9OX5g-w8ZXUefa0oQeBKXs2G5GAhnbQc9eVMnwu_8D_5qrSV9QnLCo6n3MwNttZdHvLP0LFGdeNXf7TGm1wPIP_7TzGO8QSaW9p5WEsq30NnEq85qcf687COtOqgE3C03hH3DEFaqoc8nx4prl4OIA_ex63Y38'}
+[DEBUG] 2024-11-28 05:40:29,826 forms 38904 32508 reCAPTCHA response received
+[INFO] 2024-11-28 05:40:31,840 basehttp 38904 32508 "POST /accounts/login/?next=/time-entry/approvals/pending/ HTTP/1.1" 302 0
+[INFO] 2024-11-28 05:40:33,379 basehttp 38904 32508 "GET /time-entry/approvals/pending/ HTTP/1.1" 200 46773
+[INFO] 2024-11-28 05:40:37,096 basehttp 38904 32508 "GET /time-entry/approvals/pending/ HTTP/1.1" 200 46784
+[INFO] 2024-11-28 05:46:27,589 autoreload 38904 41608 C:\Users\fenin\OneDrive\Documents\nashnal\nst_timesheet\timesheets\urls.py changed, reloading.
+[INFO] 2024-11-28 05:46:28,321 autoreload 32568 31472 Watching for file changes with StatReloader
+[INFO] 2024-11-28 05:55:18,174 autoreload 32568 31472 C:\Users\fenin\OneDrive\Documents\nashnal\nst_timesheet\timesheets\views.py changed, reloading.
+[INFO] 2024-11-28 05:55:18,926 autoreload 8044 18548 Watching for file changes with StatReloader
+[INFO] 2024-11-28 05:59:23,808 basehttp 8044 39468 "GET /time-entry/approvals/pending/ HTTP/1.1" 200 46882
+[INFO] 2024-11-28 05:59:38,872 basehttp 8044 39468 "GET /time-entry/approvals/pending/ HTTP/1.1" 200 46787
+[INFO] 2024-11-28 06:12:56,631 basehttp 8044 45188 "GET /time-entry/50/ HTTP/1.1" 200 60648
+[INFO] 2024-11-28 06:12:56,972 basehttp 8044 3792 - Broken pipe from ('127.0.0.1', 62533)
+[INFO] 2024-11-28 06:13:34,331 basehttp 8044 45188 "GET /time-entry/50/ HTTP/1.1" 200 60649
+[INFO] 2024-11-28 06:18:08,675 autoreload 8044 18548 C:\Users\fenin\OneDrive\Documents\nashnal\nst_timesheet\timesheets\models.py changed, reloading.
+[INFO] 2024-11-28 06:18:09,401 autoreload 21588 28252 Watching for file changes with StatReloader
+[INFO] 2024-11-28 06:18:22,935 basehttp 21588 43412 "GET /time-entry/50/ HTTP/1.1" 200 52560
+[INFO] 2024-11-28 06:18:23,232 basehttp 21588 43412 - Broken pipe from ('127.0.0.1', 62606)
+[INFO] 2024-11-28 06:18:36,247 basehttp 21588 39156 "GET /notifications/108/handle/ HTTP/1.1" 302 0
+[INFO] 2024-11-28 06:18:38,480 basehttp 21588 39156 "GET /time-entry/49/ HTTP/1.1" 200 55852
+[INFO] 2024-11-28 06:18:38,723 basehttp 21588 24692 - Broken pipe from ('127.0.0.1', 62619)
+[INFO] 2024-11-28 06:21:08,968 basehttp 21588 6764 "GET /time-entry/49/ HTTP/1.1" 200 56397
+[INFO] 2024-11-28 06:21:10,326 basehttp 21588 6764 - Broken pipe from ('127.0.0.1', 62643)
+[INFO] 2024-11-28 06:24:24,264 autoreload 21588 28252 C:\Users\fenin\OneDrive\Documents\nashnal\nst_timesheet\timesheets\urls.py changed, reloading.
+[INFO] 2024-11-28 06:24:25,065 autoreload 5768 39068 Watching for file changes with StatReloader
+[INFO] 2024-11-28 06:28:42,529 basehttp 5768 21964 "GET /time-entry/49/ HTTP/1.1" 200 56427
+[INFO] 2024-11-28 06:28:42,870 basehttp 5768 21964 - Broken pipe from ('127.0.0.1', 56663)
+[INFO] 2024-11-28 06:30:46,436 basehttp 5768 30780 "GET /time-entry/49/ HTTP/1.1" 200 57481
+[INFO] 2024-11-28 06:30:46,651 basehttp 5768 30780 - Broken pipe from ('127.0.0.1', 56678)
+[INFO] 2024-11-28 06:30:55,340 basehttp 5768 39692 "GET /notifications/ HTTP/1.1" 200 47149
+[INFO] 2024-11-28 06:30:55,600 basehttp 5768 39692 - Broken pipe from ('127.0.0.1', 56683)
+[INFO] 2024-11-28 06:33:31,693 basehttp 5768 44904 "GET /notifications/ HTTP/1.1" 200 49391
+[INFO] 2024-11-28 06:33:31,954 basehttp 5768 44904 - Broken pipe from ('127.0.0.1', 56702)
+[INFO] 2024-11-28 06:33:44,045 basehttp 5768 16860 "GET /notifications/ HTTP/1.1" 200 49391
+[INFO] 2024-11-28 06:33:44,242 basehttp 5768 16860 - Broken pipe from ('127.0.0.1', 56717)
+[INFO] 2024-11-28 06:34:14,373 basehttp 5768 50312 "GET /notifications/ HTTP/1.1" 200 49881
+[INFO] 2024-11-28 06:34:14,598 basehttp 5768 50312 - Broken pipe from ('127.0.0.1', 56720)
+[INFO] 2024-11-28 06:34:32,171 basehttp 5768 39780 "GET /time-entry/create/ HTTP/1.1" 200 79185
+[INFO] 2024-11-28 06:34:32,426 basehttp 5768 51804 - Broken pipe from ('127.0.0.1', 56731)
+[INFO] 2024-11-28 06:34:37,577 basehttp 5768 39780 "GET /time-entry/list/ HTTP/1.1" 200 80559
+[INFO] 2024-11-28 06:34:39,055 basehttp 5768 39780 - Broken pipe from ('127.0.0.1', 56724)
+[INFO] 2024-11-28 06:34:55,863 basehttp 5768 44260 "GET /time-entry/list/ HTTP/1.1" 200 80559
+[INFO] 2024-11-28 06:34:56,089 basehttp 5768 44260 - Broken pipe from ('127.0.0.1', 56738)
+[INFO] 2024-11-28 06:35:10,269 basehttp 5768 32608 "GET /time-entry/approvals/pending/ HTTP/1.1" 200 37045
+[INFO] 2024-11-28 06:35:21,075 basehttp 5768 4636 "GET /time-entry/approvals/pending/ HTTP/1.1" 200 46796
+[INFO] 2024-11-28 06:36:26,436 basehttp 5768 4636 "GET /time-entry/approvals/pending/ HTTP/1.1" 200 46796
+[INFO] 2024-11-28 06:37:53,898 basehttp 5768 4636 "GET /time-entry/approvals/pending/ HTTP/1.1" 200 47678
+[INFO] 2024-11-28 06:39:28,417 basehttp 5768 4636 "GET /time-entry/approvals/pending/ HTTP/1.1" 200 47058
+[INFO] 2024-11-28 06:39:42,346 basehttp 5768 4636 "GET /time-entry/approvals/pending/ HTTP/1.1" 200 46783
+[INFO] 2024-11-28 06:41:29,674 basehttp 5768 4636 "GET /time-entry/approvals/pending/ HTTP/1.1" 200 46797
+[INFO] 2024-11-28 06:41:46,967 basehttp 5768 4636 "GET /time-entry/approvals/pending/ HTTP/1.1" 200 46803
+[INFO] 2024-11-28 06:42:52,000 basehttp 5768 4636 "GET /time-entry/approvals/pending/ HTTP/1.1" 200 46807
+[INFO] 2024-11-28 06:43:04,398 basehttp 5768 4636 "GET /notifications/ HTTP/1.1" 200 56502
+[INFO] 2024-11-28 06:43:09,917 basehttp 5768 4636 "POST /notifications/mark-all-read/ HTTP/1.1" 302 0
+[INFO] 2024-11-28 06:43:11,489 basehttp 5768 4636 "GET /notifications/ HTTP/1.1" 200 52945
+[INFO] 2024-11-28 06:46:06,301 basehttp 5768 34268 "GET /time-entry/approvals/pending/ HTTP/1.1" 200 38118
+[INFO] 2024-11-28 06:46:17,237 basehttp 5768 1844 "GET /time-entry/list/ HTTP/1.1" 200 81631
+[INFO] 2024-11-28 06:46:17,573 basehttp 5768 1844 - Broken pipe from ('127.0.0.1', 56964)
+[INFO] 2024-11-28 06:46:48,012 basehttp 5768 28756 "GET /notifications/ HTTP/1.1" 200 50952
+[INFO] 2024-11-28 06:46:48,230 basehttp 5768 28756 - Broken pipe from ('127.0.0.1', 56977)
+[INFO] 2024-11-28 06:47:22,723 basehttp 5768 44540 "GET /notifications/ HTTP/1.1" 200 50652
+[INFO] 2024-11-28 06:47:22,963 basehttp 5768 44540 - Broken pipe from ('127.0.0.1', 56988)
+[INFO] 2024-11-28 06:47:31,014 basehttp 5768 19404 "GET /notifications/ HTTP/1.1" 200 49906
+[INFO] 2024-11-28 06:48:25,943 basehttp 5768 19404 "GET /notifications/ HTTP/1.1" 200 49883
+[INFO] 2024-11-28 06:48:26,204 basehttp 5768 19404 - Broken pipe from ('127.0.0.1', 56991)
+[ERROR] 2024-11-28 06:51:58,194 log 5768 18688 Internal Server Error: /notifications/
+Traceback (most recent call last):
+  File "C:\Users\fenin\OneDrive\Documents\nashnal\env\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\fenin\OneDrive\Documents\nashnal\env\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\fenin\OneDrive\Documents\nashnal\env\Lib\site-packages\django\contrib\auth\decorators.py", line 60, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\fenin\OneDrive\Documents\nashnal\nst_timesheet\timesheets\views.py", line 1725, in all_notifications
+    return render(request, 'timesheets/all_notifications.html', context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\fenin\OneDrive\Documents\nashnal\env\Lib\site-packages\django\shortcuts.py", line 25, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\fenin\OneDrive\Documents\nashnal\env\Lib\site-packages\django\template\loader.py", line 62, in render_to_string
+    return template.render(context, request)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\fenin\OneDrive\Documents\nashnal\env\Lib\site-packages\django\template\backends\django.py", line 107, in render
+    return self.template.render(context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\fenin\OneDrive\Documents\nashnal\env\Lib\site-packages\django\template\base.py", line 171, in render
+    return self._render(context)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\fenin\OneDrive\Documents\nashnal\env\Lib\site-packages\django\template\base.py", line 163, in _render
+    return self.nodelist.render(context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\fenin\OneDrive\Documents\nashnal\env\Lib\site-packages\django\template\base.py", line 1008, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\fenin\OneDrive\Documents\nashnal\env\Lib\site-packages\django\template\base.py", line 969, in render_annotated
+    return self.render(context)
+           ^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\fenin\OneDrive\Documents\nashnal\env\Lib\site-packages\django\template\loader_tags.py", line 159, in render
+    return compiled_parent._render(context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\fenin\OneDrive\Documents\nashnal\env\Lib\site-packages\django\template\base.py", line 163, in _render
+    return self.nodelist.render(context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\fenin\OneDrive\Documents\nashnal\env\Lib\site-packages\django\template\base.py", line 1008, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\fenin\OneDrive\Documents\nashnal\env\Lib\site-packages\django\template\base.py", line 969, in render_annotated
+    return self.render(context)
+           ^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\fenin\OneDrive\Documents\nashnal\env\Lib\site-packages\django\template\loader_tags.py", line 210, in render
+    return template.render(context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\fenin\OneDrive\Documents\nashnal\env\Lib\site-packages\django\template\base.py", line 173, in render
+    return self._render(context)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\fenin\OneDrive\Documents\nashnal\env\Lib\site-packages\django\template\base.py", line 163, in _render
+    return self.nodelist.render(context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\fenin\OneDrive\Documents\nashnal\env\Lib\site-packages\django\template\base.py", line 1008, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\fenin\OneDrive\Documents\nashnal\env\Lib\site-packages\django\template\base.py", line 969, in render_annotated
+    return self.render(context)
+           ^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\fenin\OneDrive\Documents\nashnal\env\Lib\site-packages\django\template\defaulttags.py", line 480, in render
+    url = reverse(view_name, args=args, kwargs=kwargs, current_app=current_app)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\fenin\OneDrive\Documents\nashnal\env\Lib\site-packages\django\urls\base.py", line 88, in reverse
+    return resolver._reverse_with_prefix(view, prefix, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\fenin\OneDrive\Documents\nashnal\env\Lib\site-packages\django\urls\resolvers.py", line 831, in _reverse_with_prefix
+    raise NoReverseMatch(msg)
+django.urls.exceptions.NoReverseMatch: Reverse for 'mark_notifications_as_read' not found. 'mark_notifications_as_read' is not a valid view function or pattern name.
+[ERROR] 2024-11-28 06:51:58,221 basehttp 5768 18688 "GET /notifications/ HTTP/1.1" 500 175399
+[ERROR] 2024-11-28 06:53:47,570 log 5768 18688 Internal Server Error: /notifications/
+Traceback (most recent call last):
+  File "C:\Users\fenin\OneDrive\Documents\nashnal\env\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\fenin\OneDrive\Documents\nashnal\env\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\fenin\OneDrive\Documents\nashnal\env\Lib\site-packages\django\contrib\auth\decorators.py", line 60, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\fenin\OneDrive\Documents\nashnal\nst_timesheet\timesheets\views.py", line 1725, in all_notifications
+    return render(request, 'timesheets/all_notifications.html', context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\fenin\OneDrive\Documents\nashnal\env\Lib\site-packages\django\shortcuts.py", line 25, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\fenin\OneDrive\Documents\nashnal\env\Lib\site-packages\django\template\loader.py", line 62, in render_to_string
+    return template.render(context, request)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\fenin\OneDrive\Documents\nashnal\env\Lib\site-packages\django\template\backends\django.py", line 107, in render
+    return self.template.render(context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\fenin\OneDrive\Documents\nashnal\env\Lib\site-packages\django\template\base.py", line 171, in render
+    return self._render(context)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\fenin\OneDrive\Documents\nashnal\env\Lib\site-packages\django\template\base.py", line 163, in _render
+    return self.nodelist.render(context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\fenin\OneDrive\Documents\nashnal\env\Lib\site-packages\django\template\base.py", line 1008, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\fenin\OneDrive\Documents\nashnal\env\Lib\site-packages\django\template\base.py", line 969, in render_annotated
+    return self.render(context)
+           ^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\fenin\OneDrive\Documents\nashnal\env\Lib\site-packages\django\template\loader_tags.py", line 159, in render
+    return compiled_parent._render(context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\fenin\OneDrive\Documents\nashnal\env\Lib\site-packages\django\template\base.py", line 163, in _render
+    return self.nodelist.render(context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\fenin\OneDrive\Documents\nashnal\env\Lib\site-packages\django\template\base.py", line 1008, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\fenin\OneDrive\Documents\nashnal\env\Lib\site-packages\django\template\base.py", line 969, in render_annotated
+    return self.render(context)
+           ^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\fenin\OneDrive\Documents\nashnal\env\Lib\site-packages\django\template\loader_tags.py", line 210, in render
+    return template.render(context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\fenin\OneDrive\Documents\nashnal\env\Lib\site-packages\django\template\base.py", line 173, in render
+    return self._render(context)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\fenin\OneDrive\Documents\nashnal\env\Lib\site-packages\django\template\base.py", line 163, in _render
+    return self.nodelist.render(context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\fenin\OneDrive\Documents\nashnal\env\Lib\site-packages\django\template\base.py", line 1008, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\fenin\OneDrive\Documents\nashnal\env\Lib\site-packages\django\template\base.py", line 969, in render_annotated
+    return self.render(context)
+           ^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\fenin\OneDrive\Documents\nashnal\env\Lib\site-packages\django\template\defaulttags.py", line 480, in render
+    url = reverse(view_name, args=args, kwargs=kwargs, current_app=current_app)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\fenin\OneDrive\Documents\nashnal\env\Lib\site-packages\django\urls\base.py", line 88, in reverse
+    return resolver._reverse_with_prefix(view, prefix, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\fenin\OneDrive\Documents\nashnal\env\Lib\site-packages\django\urls\resolvers.py", line 831, in _reverse_with_prefix
+    raise NoReverseMatch(msg)
+django.urls.exceptions.NoReverseMatch: Reverse for 'mark_notification_read' with no arguments not found. 1 pattern(s) tried: ['notifications/(?P<notification_id>[0-9]+)/read/\\Z']
+[ERROR] 2024-11-28 06:53:47,576 basehttp 5768 18688 "GET /notifications/ HTTP/1.1" 500 177298
+[INFO] 2024-11-28 06:54:04,557 autoreload 42916 8396 Watching for file changes with StatReloader
+[ERROR] 2024-11-28 06:54:11,920 log 42916 47068 Internal Server Error: /time-entry/list/
+Traceback (most recent call last):
+  File "C:\Users\fenin\OneDrive\Documents\nashnal\env\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\fenin\OneDrive\Documents\nashnal\env\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\fenin\OneDrive\Documents\nashnal\env\Lib\site-packages\django\contrib\auth\decorators.py", line 60, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\fenin\OneDrive\Documents\nashnal\nst_timesheet\timesheets\views.py", line 287, in time_entry_list
+    return render(request, 'timesheets/time_entry_list.html', context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\fenin\OneDrive\Documents\nashnal\env\Lib\site-packages\django\shortcuts.py", line 25, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\fenin\OneDrive\Documents\nashnal\env\Lib\site-packages\django\template\loader.py", line 62, in render_to_string
+    return template.render(context, request)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\fenin\OneDrive\Documents\nashnal\env\Lib\site-packages\django\template\backends\django.py", line 107, in render
+    return self.template.render(context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\fenin\OneDrive\Documents\nashnal\env\Lib\site-packages\django\template\base.py", line 171, in render
+    return self._render(context)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\fenin\OneDrive\Documents\nashnal\env\Lib\site-packages\django\template\base.py", line 163, in _render
+    return self.nodelist.render(context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\fenin\OneDrive\Documents\nashnal\env\Lib\site-packages\django\template\base.py", line 1008, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\fenin\OneDrive\Documents\nashnal\env\Lib\site-packages\django\template\base.py", line 969, in render_annotated
+    return self.render(context)
+           ^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\fenin\OneDrive\Documents\nashnal\env\Lib\site-packages\django\template\loader_tags.py", line 159, in render
+    return compiled_parent._render(context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\fenin\OneDrive\Documents\nashnal\env\Lib\site-packages\django\template\base.py", line 163, in _render
+    return self.nodelist.render(context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\fenin\OneDrive\Documents\nashnal\env\Lib\site-packages\django\template\base.py", line 1008, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\fenin\OneDrive\Documents\nashnal\env\Lib\site-packages\django\template\base.py", line 969, in render_annotated
+    return self.render(context)
+           ^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\fenin\OneDrive\Documents\nashnal\env\Lib\site-packages\django\template\loader_tags.py", line 210, in render
+    return template.render(context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\fenin\OneDrive\Documents\nashnal\env\Lib\site-packages\django\template\base.py", line 173, in render
+    return self._render(context)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\fenin\OneDrive\Documents\nashnal\env\Lib\site-packages\django\template\base.py", line 163, in _render
+    return self.nodelist.render(context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\fenin\OneDrive\Documents\nashnal\env\Lib\site-packages\django\template\base.py", line 1008, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\fenin\OneDrive\Documents\nashnal\env\Lib\site-packages\django\template\base.py", line 969, in render_annotated
+    return self.render(context)
+           ^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\fenin\OneDrive\Documents\nashnal\env\Lib\site-packages\django\template\defaulttags.py", line 480, in render
+    url = reverse(view_name, args=args, kwargs=kwargs, current_app=current_app)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\fenin\OneDrive\Documents\nashnal\env\Lib\site-packages\django\urls\base.py", line 88, in reverse
+    return resolver._reverse_with_prefix(view, prefix, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\fenin\OneDrive\Documents\nashnal\env\Lib\site-packages\django\urls\resolvers.py", line 831, in _reverse_with_prefix
+    raise NoReverseMatch(msg)
+django.urls.exceptions.NoReverseMatch: Reverse for 'mark_notification_read' with no arguments not found. 1 pattern(s) tried: ['notifications/(?P<notification_id>[0-9]+)/read/\\Z']
+[ERROR] 2024-11-28 06:54:11,930 basehttp 42916 47068 "GET /time-entry/list/ HTTP/1.1" 500 194839
+[INFO] 2024-11-28 06:56:00,227 autoreload 42916 8396 C:\Users\fenin\OneDrive\Documents\nashnal\nst_timesheet\timesheets\views.py changed, reloading.
+[INFO] 2024-11-28 06:56:01,022 autoreload 30872 41180 Watching for file changes with StatReloader
+[INFO] 2024-11-28 06:56:23,790 autoreload 30872 41180 C:\Users\fenin\OneDrive\Documents\nashnal\nst_timesheet\timesheets\urls.py changed, reloading.
+[INFO] 2024-11-28 06:56:24,446 autoreload 5728 31100 Watching for file changes with StatReloader
+[INFO] 2024-11-28 06:56:36,368 autoreload 5728 31100 C:\Users\fenin\OneDrive\Documents\nashnal\nst_timesheet\timesheets\urls.py changed, reloading.
+[INFO] 2024-11-28 06:56:37,103 autoreload 48416 12944 Watching for file changes with StatReloader
+[INFO] 2024-11-28 06:57:16,515 basehttp 48416 28068 "GET /time-entry/list/ HTTP/1.1" 200 81038
+[INFO] 2024-11-28 06:57:17,211 basehttp 48416 28068 - Broken pipe from ('127.0.0.1', 57163)
+[INFO] 2024-11-28 06:57:23,355 basehttp 48416 35384 "POST /notifications/mark-as-read/ HTTP/1.1" 200 21
+[INFO] 2024-11-28 06:57:31,654 basehttp 48416 35384 "GET /time-entry/list/ HTTP/1.1" 200 80531
+[INFO] 2024-11-28 06:57:31,907 basehttp 48416 35384 - Broken pipe from ('127.0.0.1', 57173)
+[INFO] 2024-11-28 06:57:39,912 basehttp 48416 45060 "POST /notifications/mark-as-read/ HTTP/1.1" 200 21
+[INFO] 2024-11-28 06:57:44,193 basehttp 48416 45060 "GET /time-entry/list/ HTTP/1.1" 200 80531
+[INFO] 2024-11-28 06:57:44,445 basehttp 48416 45060 - Broken pipe from ('127.0.0.1', 57182)
+[INFO] 2024-11-28 06:58:30,598 basehttp 48416 48540 "GET /time-entry/list/ HTTP/1.1" 200 80531
+[INFO] 2024-11-28 06:58:30,836 basehttp 48416 48540 - Broken pipe from ('127.0.0.1', 57191)
+[INFO] 2024-11-28 06:58:35,998 basehttp 48416 34572 "POST /notifications/mark-as-read/ HTTP/1.1" 200 21
+[INFO] 2024-11-28 06:58:41,383 basehttp 48416 34572 "GET /time-entry/list/ HTTP/1.1" 200 80531
+[INFO] 2024-11-28 06:58:41,607 basehttp 48416 34572 - Broken pipe from ('127.0.0.1', 57197)
+[INFO] 2024-11-28 07:06:16,079 autoreload 48416 12944 C:\Users\fenin\OneDrive\Documents\nashnal\nst_timesheet\timesheets\views.py changed, reloading.
+[INFO] 2024-11-28 07:06:19,529 autoreload 51464 36516 Watching for file changes with StatReloader
+[INFO] 2024-11-28 07:06:40,452 autoreload 51464 36516 C:\Users\fenin\OneDrive\Documents\nashnal\nst_timesheet\timesheets\views.py changed, reloading.
+[INFO] 2024-11-28 07:06:41,222 autoreload 22768 38828 Watching for file changes with StatReloader
+[INFO] 2024-11-28 07:07:45,601 basehttp 22768 39424 "GET /time-entry/list/ HTTP/1.1" 200 80528
+[INFO] 2024-11-28 07:07:46,025 basehttp 22768 39424 - Broken pipe from ('127.0.0.1', 57314)
+[INFO] 2024-11-28 07:07:51,687 basehttp 22768 26292 "POST /notifications/mark-as-read/ HTTP/1.1" 200 21
+[INFO] 2024-11-28 07:07:55,622 basehttp 22768 26292 "GET /time-entry/list/ HTTP/1.1" 200 80528
+[INFO] 2024-11-28 07:08:26,583 autoreload 22768 38828 C:\Users\fenin\OneDrive\Documents\nashnal\nst_timesheet\timesheets\views.py changed, reloading.
+[INFO] 2024-11-28 07:08:27,297 autoreload 49308 20252 Watching for file changes with StatReloader
+[INFO] 2024-11-28 07:09:34,555 basehttp 49308 5540 "GET /time-entry/list/ HTTP/1.1" 200 80529
+[INFO] 2024-11-28 07:09:39,255 basehttp 49308 5540 "POST /notifications/mark-as-read/ HTTP/1.1" 200 21
+[INFO] 2024-11-28 07:09:45,824 basehttp 49308 5540 "GET /time-entry/list/ HTTP/1.1" 200 80529
+[INFO] 2024-11-28 07:09:46,123 basehttp 49308 5540 - Broken pipe from ('127.0.0.1', 57335)
+[INFO] 2024-11-28 07:09:53,448 basehttp 49308 44636 "GET /notifications/108/handle/ HTTP/1.1" 302 0
+[INFO] 2024-11-28 07:09:55,782 basehttp 49308 46760 "GET /time-entry/49/ HTTP/1.1" 200 60183
+[INFO] 2024-11-28 07:09:56,006 basehttp 49308 46760 - Broken pipe from ('127.0.0.1', 57364)
+[INFO] 2024-11-28 07:12:52,226 autoreload 49308 20252 C:\Users\fenin\OneDrive\Documents\nashnal\nst_timesheet\timesheets\context_processors.py changed, reloading.
+[INFO] 2024-11-28 07:12:52,930 autoreload 40112 4184 Watching for file changes with StatReloader
+[INFO] 2024-11-28 07:13:12,361 basehttp 40112 24548 "GET /time-entry/49/ HTTP/1.1" 200 55382
+[INFO] 2024-11-28 07:13:12,704 basehttp 40112 24548 - Broken pipe from ('127.0.0.1', 57524)
+[INFO] 2024-11-28 07:13:28,383 basehttp 40112 36856 "GET /time-entry/approvals/pending/ HTTP/1.1" 200 41943
+[INFO] 2024-11-28 07:13:34,422 basehttp 40112 36856 "GET /time-entry/approvals/review/50/ HTTP/1.1" 200 40881
+[INFO] 2024-11-28 07:13:48,030 basehttp 40112 36856 "POST /time-entry/approvals/review/50/ HTTP/1.1" 200 40896
+[INFO] 2024-11-28 07:14:01,816 basehttp 40112 36856 "POST /time-entry/approvals/review/50/ HTTP/1.1" 200 40896
+[INFO] 2024-11-28 07:14:12,224 basehttp 40112 36856 "POST /time-entry/approvals/review/50/ HTTP/1.1" 200 40896
+[INFO] 2024-11-28 07:14:28,219 basehttp 40112 36856 "POST /time-entry/approvals/review/50/ HTTP/1.1" 200 40896
+[INFO] 2024-11-28 07:14:34,098 basehttp 40112 36856 "GET /time-entry/approvals/pending/ HTTP/1.1" 200 41943
+[INFO] 2024-11-28 07:14:37,499 basehttp 40112 36856 "GET /time-entry/approvals/review/50/ HTTP/1.1" 200 40881
+[INFO] 2024-11-28 07:14:48,640 basehttp 40112 36856 "POST /time-entry/approvals/review/50/ HTTP/1.1" 200 40896
+[INFO] 2024-11-28 07:17:06,171 autoreload 40112 4184 C:\Users\fenin\OneDrive\Documents\nashnal\nst_timesheet\timesheets\models.py changed, reloading.
+[INFO] 2024-11-28 07:17:06,899 autoreload 39824 45000 Watching for file changes with StatReloader
+[INFO] 2024-11-28 07:17:14,952 basehttp 39824 50348 "GET /time-entry/approvals/pending/ HTTP/1.1" 200 41943
+[INFO] 2024-11-28 07:17:18,642 basehttp 39824 50348 "GET /time-entry/approvals/review/50/ HTTP/1.1" 200 40881
+[INFO] 2024-11-28 07:17:31,661 basehttp 39824 50348 "POST /time-entry/approvals/review/50/ HTTP/1.1" 200 40896
+[INFO] 2024-11-28 07:18:21,793 basehttp 39824 50348 "GET /time-entry/approvals/pending/ HTTP/1.1" 200 41943
+[INFO] 2024-11-28 07:18:25,379 basehttp 39824 50348 - Broken pipe from ('127.0.0.1', 57635)
+[INFO] 2024-11-28 07:18:26,288 basehttp 39824 48256 "GET /time-entry/approvals/review/50/ HTTP/1.1" 200 40881
+[INFO] 2024-11-28 07:18:35,803 basehttp 39824 48256 "POST /time-entry/approvals/review/50/ HTTP/1.1" 200 40894
+[WARNING] 2024-11-28 07:20:45,186 log 39824 29304 Not Found: /null
+[WARNING] 2024-11-28 07:20:45,186 basehttp 39824 29304 "GET /null HTTP/1.1" 404 13389
+[INFO] 2024-11-28 07:25:48,480 autoreload 39824 45000 C:\Users\fenin\OneDrive\Documents\nashnal\nst_timesheet\timesheets\views.py changed, reloading.
+[INFO] 2024-11-28 07:25:49,331 autoreload 40752 3164 Watching for file changes with StatReloader
+[INFO] 2024-11-28 07:25:56,119 basehttp 40752 52176 "POST /time-entry/approvals/review/50/ HTTP/1.1" 200 40894
+[INFO] 2024-11-28 07:26:20,099 basehttp 40752 37344 "GET /time-entry/49/ HTTP/1.1" 200 57624
+[INFO] 2024-11-28 07:26:20,468 basehttp 40752 37344 - Broken pipe from ('127.0.0.1', 58819)
+[INFO] 2024-11-28 07:26:31,198 basehttp 40752 46276 "GET /notifications/113/handle/ HTTP/1.1" 302 0
+[INFO] 2024-11-28 07:26:33,265 basehttp 40752 34916 "GET /time-entry/50/ HTTP/1.1" 200 53289
+[INFO] 2024-11-28 07:26:33,490 basehttp 40752 34916 - Broken pipe from ('127.0.0.1', 58826)
+[INFO] 2024-11-28 07:26:42,979 basehttp 40752 46276 "GET /notifications/116/handle/ HTTP/1.1" 302 0
+[INFO] 2024-11-28 07:26:45,123 basehttp 40752 31760 "GET /time-entry/50/ HTTP/1.1" 200 52080
+[INFO] 2024-11-28 07:26:45,346 basehttp 40752 31760 - Broken pipe from ('127.0.0.1', 58831)
+[INFO] 2024-11-28 07:27:10,344 basehttp 40752 52176 "GET /time-entry/approvals/pending/ HTTP/1.1" 200 41943
+[INFO] 2024-11-28 07:27:14,087 basehttp 40752 52176 "GET /time-entry/approvals/review/50/ HTTP/1.1" 200 40881
+[INFO] 2024-11-28 07:27:24,288 basehttp 40752 52176 "POST /time-entry/approvals/review/50/ HTTP/1.1" 200 40888
+[INFO] 2024-11-28 07:32:18,732 autoreload 40752 3164 C:\Users\fenin\OneDrive\Documents\nashnal\nst_timesheet\timesheets\views.py changed, reloading.
+[INFO] 2024-11-28 07:32:19,489 autoreload 48316 34432 Watching for file changes with StatReloader
+[INFO] 2024-11-28 07:32:22,652 basehttp 48316 36220 "GET /time-entry/approvals/pending/ HTTP/1.1" 200 41943
+[INFO] 2024-11-28 07:32:26,451 basehttp 48316 36220 "GET /time-entry/approvals/review/50/ HTTP/1.1" 200 40881
+[INFO] 2024-11-28 07:32:37,505 basehttp 48316 36220 "POST /time-entry/approvals/review/50/ HTTP/1.1" 302 0
+[INFO] 2024-11-28 07:32:38,977 basehttp 48316 36220 "GET /time-entry/approvals/pending/ HTTP/1.1" 200 42173
+[INFO] 2024-11-28 07:32:50,420 basehttp 48316 36220 "GET /time-entry/approvals/pending/ HTTP/1.1" 200 41943
+[INFO] 2024-11-28 07:33:10,010 basehttp 48316 50980 "GET /time-entry/approvals/pending/ HTTP/1.1" 200 37136
+[INFO] 2024-11-28 07:33:21,661 basehttp 48316 50980 "GET /time-entry/approvals/pending/ HTTP/1.1" 200 37136
+[INFO] 2024-11-28 07:33:25,131 basehttp 48316 50980 "GET /time-entry/approvals/pending/ HTTP/1.1" 200 37136
+[INFO] 2024-11-28 07:33:28,440 basehttp 48316 50980 "GET /time-entry/approvals/pending/ HTTP/1.1" 200 37136
+[INFO] 2024-11-28 07:33:32,166 basehttp 48316 50980 "GET /notifications/117/handle/ HTTP/1.1" 302 0
+[INFO] 2024-11-28 07:33:33,341 basehttp 48316 50980 "GET /time-entry/approvals/review/50/ HTTP/1.1" 302 0
+[INFO] 2024-11-28 07:33:34,816 basehttp 48316 50980 "GET /time-entry/approvals/pending/ HTTP/1.1" 200 36354
+[INFO] 2024-11-28 07:33:39,472 basehttp 48316 50980 "GET /time-entry/approvals/pending/ HTTP/1.1" 200 36112
+[INFO] 2024-11-28 07:33:48,737 autoreload 48316 34432 C:\Users\fenin\OneDrive\Documents\nashnal\nst_timesheet\timesheets\views.py changed, reloading.
+[INFO] 2024-11-28 07:33:49,492 autoreload 52108 31628 Watching for file changes with StatReloader
+[INFO] 2024-11-28 07:33:52,990 basehttp 52108 37312 "GET /time-entry/approvals/pending/ HTTP/1.1" 200 36112
+[INFO] 2024-11-28 12:41:04,794 basehttp 52108 41220 "GET /time-entry/approvals/pending/ HTTP/1.1" 200 36112
+[INFO] 2024-11-28 12:41:15,817 basehttp 52108 50328 "GET /time-entry/50/ HTTP/1.1" 200 53298
+[INFO] 2024-11-28 12:41:16,197 basehttp 52108 50328 - Broken pipe from ('127.0.0.1', 59639)
+[INFO] 2024-11-28 12:41:30,238 basehttp 52108 40736 "GET /notifications/116/handle/ HTTP/1.1" 302 0
+[INFO] 2024-11-28 12:41:32,274 basehttp 52108 40736 "GET /time-entry/50/ HTTP/1.1" 200 52080
+[INFO] 2024-11-28 12:41:32,534 basehttp 52108 40736 - Broken pipe from ('127.0.0.1', 59644)
+[INFO] 2024-11-28 12:41:40,291 basehttp 52108 41648 "GET /time-entry/50/ HTTP/1.1" 200 52080
+[INFO] 2024-11-28 12:41:47,679 basehttp 52108 41648 "GET /dashboard/ HTTP/1.1" 200 57542
+[INFO] 2024-11-28 12:41:48,069 basehttp 52108 41648 - Broken pipe from ('127.0.0.1', 59652)
+[INFO] 2024-11-28 12:41:52,840 basehttp 52108 17128 "GET /notifications/ HTTP/1.1" 200 48160
+[INFO] 2024-11-28 12:41:53,194 basehttp 52108 17128 - Broken pipe from ('127.0.0.1', 59666)
+[INFO] 2024-11-28 12:41:57,075 basehttp 52108 29152 "GET /notifications/116/handle/ HTTP/1.1" 302 0
+[INFO] 2024-11-28 12:41:59,178 basehttp 52108 29152 "GET /time-entry/50/ HTTP/1.1" 200 52080
+[INFO] 2024-11-28 12:41:59,625 basehttp 52108 29152 - Broken pipe from ('127.0.0.1', 59669)
+[INFO] 2024-11-28 12:42:39,154 basehttp 52108 41220 "GET /time-entry/approvals/pending/ HTTP/1.1" 200 36112
+[INFO] 2024-11-28 12:42:44,885 basehttp 52108 41220 "GET /time-entry/approvals/history/ HTTP/1.1" 200 64786
+[INFO] 2024-11-28 12:42:54,693 basehttp 52108 41220 "GET /time-entry/50/ HTTP/1.1" 200 56940
+[INFO] 2024-11-28 12:43:06,934 basehttp 52108 41220 "GET /time-entry/list/ HTTP/1.1" 200 84094
+[WARNING] 2024-11-28 12:44:02,733 log 52108 41220 Forbidden (Permission denied): /time-entry/47/edit/
+Traceback (most recent call last):
+  File "C:\Users\fenin\OneDrive\Documents\nashnal\env\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\fenin\OneDrive\Documents\nashnal\env\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\fenin\OneDrive\Documents\nashnal\env\Lib\site-packages\django\contrib\auth\decorators.py", line 60, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\fenin\OneDrive\Documents\nashnal\nst_timesheet\timesheets\decorators.py", line 12, in _wrapped_view
+    raise PermissionDenied
+django.core.exceptions.PermissionDenied
+[WARNING] 2024-11-28 12:44:03,065 basehttp 52108 41220 "GET /time-entry/47/edit/ HTTP/1.1" 403 135
+[WARNING] 2024-11-28 12:44:04,121 log 52108 41220 Not Found: /favicon.ico
+[WARNING] 2024-11-28 12:44:04,121 basehttp 52108 41220 "GET /favicon.ico HTTP/1.1" 404 13410
+[INFO] 2024-11-28 12:48:58,686 autoreload 52108 31628 C:\Users\fenin\OneDrive\Documents\nashnal\nst_timesheet\timesheets\views.py changed, reloading.
+[INFO] 2024-11-28 12:48:59,947 autoreload 4652 5808 Watching for file changes with StatReloader
+[INFO] 2024-11-28 12:49:07,378 basehttp 4652 12928 "GET /time-entry/list/ HTTP/1.1" 200 84094
+[INFO] 2024-11-28 12:49:13,923 basehttp 4652 12928 "GET /time-entry/approvals/pending/ HTTP/1.1" 200 36112
+[INFO] 2024-11-28 12:49:21,321 basehttp 4652 14236 "GET /time-entry/approvals/pending/ HTTP/1.1" 200 41943
+[INFO] 2024-11-28 12:49:24,357 basehttp 4652 14236 "GET /time-entry/approvals/review/50/ HTTP/1.1" 200 40881
+[INFO] 2024-11-28 12:49:37,239 basehttp 4652 14236 "POST /time-entry/approvals/review/50/ HTTP/1.1" 302 0
+[INFO] 2024-11-28 12:49:38,669 basehttp 4652 14236 "GET /time-entry/approvals/pending/ HTTP/1.1" 200 36348
+[INFO] 2024-11-28 12:49:45,415 basehttp 4652 14236 "GET /time-entry/approvals/pending/ HTTP/1.1" 200 36084
+[INFO] 2024-11-28 12:50:00,081 basehttp 4652 12928 "GET /time-entry/approvals/pending/ HTTP/1.1" 200 43000
+[INFO] 2024-11-28 12:50:03,832 basehttp 4652 12928 "GET /time-entry/approvals/review/50/ HTTP/1.1" 200 42959
+[INFO] 2024-11-28 12:50:15,513 basehttp 4652 12928 "POST /time-entry/approvals/review/50/ HTTP/1.1" 302 0
+[INFO] 2024-11-28 12:50:17,003 basehttp 4652 12928 "GET /time-entry/approvals/pending/ HTTP/1.1" 200 37351
+[INFO] 2024-11-28 12:50:27,556 basehttp 4652 22096 "GET /time-entry/50/ HTTP/1.1" 200 57607
+[INFO] 2024-11-28 12:50:28,084 basehttp 4652 22096 - Broken pipe from ('127.0.0.1', 59762)
+[INFO] 2024-11-28 12:50:38,042 basehttp 4652 33640 "POST /notifications/mark-as-read/ HTTP/1.1" 200 21
+[INFO] 2024-11-28 12:50:54,185 basehttp 4652 33640 "GET /time-entry/50/ HTTP/1.1" 200 55371
+[INFO] 2024-11-28 12:50:54,429 basehttp 4652 33640 - Broken pipe from ('127.0.0.1', 59767)
+[ERROR] 2024-11-28 12:51:36,108 log 4652 47912 Internal Server Error: /accounts/profile/
+Traceback (most recent call last):
+  File "C:\Users\fenin\OneDrive\Documents\nashnal\env\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\fenin\OneDrive\Documents\nashnal\env\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\fenin\OneDrive\Documents\nashnal\env\Lib\site-packages\django\contrib\auth\decorators.py", line 60, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\fenin\OneDrive\Documents\nashnal\nst_timesheet\accounts\views.py", line 120, in profile_view
+    return render(request, 'accounts/profile.html', {'form': form})
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\fenin\OneDrive\Documents\nashnal\env\Lib\site-packages\django\shortcuts.py", line 25, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\fenin\OneDrive\Documents\nashnal\env\Lib\site-packages\django\template\loader.py", line 62, in render_to_string
+    return template.render(context, request)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\fenin\OneDrive\Documents\nashnal\env\Lib\site-packages\django\template\backends\django.py", line 107, in render
+    return self.template.render(context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\fenin\OneDrive\Documents\nashnal\env\Lib\site-packages\django\template\base.py", line 171, in render
+    return self._render(context)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\fenin\OneDrive\Documents\nashnal\env\Lib\site-packages\django\template\base.py", line 163, in _render
+    return self.nodelist.render(context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\fenin\OneDrive\Documents\nashnal\env\Lib\site-packages\django\template\base.py", line 1008, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\fenin\OneDrive\Documents\nashnal\env\Lib\site-packages\django\template\base.py", line 969, in render_annotated
+    return self.render(context)
+           ^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\fenin\OneDrive\Documents\nashnal\env\Lib\site-packages\django\template\loader_tags.py", line 159, in render
+    return compiled_parent._render(context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\fenin\OneDrive\Documents\nashnal\env\Lib\site-packages\django\template\base.py", line 163, in _render
+    return self.nodelist.render(context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\fenin\OneDrive\Documents\nashnal\env\Lib\site-packages\django\template\base.py", line 1008, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\fenin\OneDrive\Documents\nashnal\env\Lib\site-packages\django\template\base.py", line 969, in render_annotated
+    return self.render(context)
+           ^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\fenin\OneDrive\Documents\nashnal\env\Lib\site-packages\django\template\loader_tags.py", line 65, in render
+    result = block.nodelist.render(context)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\fenin\OneDrive\Documents\nashnal\env\Lib\site-packages\django\template\base.py", line 1008, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\fenin\OneDrive\Documents\nashnal\env\Lib\site-packages\django\template\base.py", line 969, in render_annotated
+    return self.render(context)
+           ^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\fenin\OneDrive\Documents\nashnal\env\Lib\site-packages\django\template\defaulttags.py", line 480, in render
+    url = reverse(view_name, args=args, kwargs=kwargs, current_app=current_app)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\fenin\OneDrive\Documents\nashnal\env\Lib\site-packages\django\urls\base.py", line 88, in reverse
+    return resolver._reverse_with_prefix(view, prefix, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\fenin\OneDrive\Documents\nashnal\env\Lib\site-packages\django\urls\resolvers.py", line 831, in _reverse_with_prefix
+    raise NoReverseMatch(msg)
+django.urls.exceptions.NoReverseMatch: Reverse for 'profile' not found. 'profile' is not a valid view function or pattern name.
+[ERROR] 2024-11-28 12:51:36,115 basehttp 4652 47912 "GET /accounts/profile/ HTTP/1.1" 500 164353
+[INFO] 2024-11-28 12:53:55,755 autoreload 4652 5808 C:\Users\fenin\OneDrive\Documents\nashnal\nst_timesheet\accounts\urls.py changed, reloading.
+[INFO] 2024-11-28 12:53:56,466 autoreload 32352 51296 Watching for file changes with StatReloader
+[INFO] 2024-11-28 12:54:00,943 basehttp 32352 27768 "GET /accounts/profile/ HTTP/1.1" 200 35797
+[INFO] 2024-11-28 12:54:01,427 basehttp 32352 27768 - Broken pipe from ('127.0.0.1', 59826)
+[INFO] 2024-11-28 12:54:09,716 basehttp 32352 45988 "GET /accounts/profile/ HTTP/1.1" 200 35797
+[INFO] 2024-11-28 12:54:09,987 basehttp 32352 45988 "GET /static/favicon.ico HTTP/1.1" 200 1504

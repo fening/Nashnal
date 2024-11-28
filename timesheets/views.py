@@ -1229,7 +1229,7 @@ def submit_for_approval(request, pk):
     time_entry = get_object_or_404(TimeEntry, pk=pk)
     
     # Check if user owns this time entry
-    if time_entry.user != request.user:
+    if (time_entry.user != request.user):
         raise PermissionDenied
         
     # Check if time entry can be submitted
@@ -1375,11 +1375,25 @@ def review_time_entry(request, pk):
                     approval.status = new_status
                     approval.save()
                     
+                    # Add debug logging
+                    print(f"Creating notification for action: {review_action}")
+                    print(f"Current user: {request.user}")
+                    print(f"Time entry user: {time_entry.user}")
+                    
+                    approval.create_notifications(
+                        'first_approve' if review_action == 'approve' and current_status == TimeEntryApproval.PENDING_FIRST
+                        else 'final_approve' if review_action == 'approve'
+                        else 'reject',
+                        reviewer=request.user,
+                        comments=comments
+                    )
+                    
                     return redirect('timesheets:pending_approvals')
                     
             except Exception as e:
-                messages.error(request, f"Error processing approval: {str(e)}")
-                logger.error(f"Error processing approval: {str(e)}", exc_info=True)
+                print(f"Error in review_time_entry: {str(e)}")
+                import traceback
+                traceback.print_exc()
     else:
         form = TimeEntryReviewForm()
     
@@ -1597,6 +1611,7 @@ def delete_notification(request, notification_id):
 def notification_context(request):
     """Add notification counts to global template context"""
     if request.user.is_authenticated:
+        # Only get unread notifications
         unread_notifications = ApprovalNotification.objects.filter(
             recipient=request.user,
             read=False
@@ -1609,8 +1624,10 @@ def notification_context(request):
                 status='pending'
             ).count()
         
+        # Get only unread notifications for the dropdown
         recent_notifications = ApprovalNotification.objects.filter(
-            recipient=request.user
+            recipient=request.user,
+            read=False  # Only show unread notifications
         ).select_related(
             'recipient',
             'time_entry_approval',
@@ -1620,9 +1637,10 @@ def notification_context(request):
         return {
             'unread_notifications_count': unread_notifications,
             'pending_approvals_count': pending_approvals,
-            'notifications': recent_notifications
+            'recent_notifications': recent_notifications  # Use 'recent_notifications' as the key
         }
     return {}
+
 
 from django.shortcuts import redirect, get_object_or_404
 from .models import ApprovalNotification
@@ -1641,21 +1659,35 @@ def notification_link_handler(request, notification_id):
 @login_required
 def clear_visible_notifications(request):
     if request.method == 'POST':
-        # First, get the IDs of the recent notifications
-        recent_notification_ids = ApprovalNotification.objects.filter(
-            recipient=request.user,
-            created_at__gte=timezone.now() - timezone.timedelta(days=7)
-        ).order_by('-created_at')[:5].values_list('id', flat=True)
-        
-        # Then, update those notifications using the IDs
-        ApprovalNotification.objects.filter(
-            id__in=list(recent_notification_ids)
-        ).update(read=True)
-        
-        messages.success(request, 'Notifications cleared from tray.')
-        return JsonResponse({'status': 'success'})
+        try:
+            # Get IDs of recent notifications (visible in the dropdown)
+            recent_notifications = ApprovalNotification.objects.filter(
+                recipient=request.user
+            ).order_by('-created_at')[:5]
+            
+            # Mark these notifications as read
+            recent_notifications.update(read=True)
+            
+            # Get updated unread count
+            unread_count = ApprovalNotification.objects.filter(
+                recipient=request.user,
+                read=False
+            ).count()
+            
+            return JsonResponse({
+                'status': 'success',
+                'unread_count': unread_count
+            })
+        except Exception as e:
+            return JsonResponse({
+                'status': 'error',
+                'message': str(e)
+            }, status=500)
     
-    return JsonResponse({'status': 'error', 'message': 'Invalid request method'})
+    return JsonResponse({
+        'status': 'error',
+        'message': 'Invalid request method'
+    }, status=400)
 
 
 @login_required
@@ -1702,6 +1734,15 @@ def delete_notification(request, notification_id):
     notification = get_object_or_404(ApprovalNotification, id=notification_id, recipient=request.user)
     notification.delete()
     return redirect(request.META.get('HTTP_REFERER', 'timesheets:all_notifications'))
+
+
+@login_required
+@require_POST
+def mark_notifications_as_read(request):
+    user = request.user
+    # Update all unread notifications to read
+    user.notifications.filter(read=False).update(read=True)
+    return JsonResponse({'status': 'success'})
 
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
@@ -1772,3 +1813,13 @@ def batch_delete(request):
             'status': 'error',
             'message': 'Server error occurred during deletion'
         }, status=500)
+
+from django.utils import timezone
+from django.conf import settings
+import pytz
+
+# Add this function at the top of your views.py
+def get_current_timezone():
+    """Get the current timezone from settings or user preferences"""
+    return pytz.timezone(settings.TIME_ZONE)
+

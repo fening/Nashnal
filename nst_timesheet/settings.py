@@ -80,6 +80,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'accounts.middleware.SessionTimeoutMiddleware',
+    'django.middleware.locale.LocaleMiddleware',  # Add this line if not present
 ]
 
 # Remove CACHES setting entirely
@@ -300,12 +301,12 @@ RECAPTCHA_ENABLED = not DEBUG
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+# Update TIME_ZONE to your local timezone
+# Example for Eastern Time:
+TIME_ZONE = 'America/New_York'  # Replace with your timezone
 
 USE_I18N = True
-
-USE_TZ = True
-
+USE_TZ = True  # Make sure this is True to enable timezone support
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
