@@ -1,0 +1,167 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}NASHnal Soil Testing{% endblock %}</title>
+    <link rel="icon" href="{% static 'favicon.ico' %}" type="image/x-icon">
+    <script>
+        // Improved theme initialization
+        function initTheme() {
+            // Check localStorage first
+            const storedTheme = localStorage.getItem('theme');
+            if (storedTheme) {
+                if (storedTheme === 'dark') {
+                    document.documentElement.classList.add('dark');
+                } else {
+                    document.documentElement.classList.remove('dark');
+                }
+                return;
+            }
+
+            // Fall back to system preference if no stored theme
+            const darkModeMediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+            
+            function updateTheme() {
+                if (darkModeMediaQuery.matches) {
+                    document.documentElement.classList.add('dark');
+                } else {
+                    document.documentElement.classList.remove('dark');
+                }
+            }
+
+            updateTheme();
+            darkModeMediaQuery.addEventListener('change', updateTheme);
+        }
+        
+        initTheme();
+    </script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    keyframes: {
+                        spin: {
+                            '0%': { transform: 'rotate(0deg)' },
+                            '100%': { transform: 'rotate(360deg)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Add CSS variables for theme colors */
+        :root {
+            --bg-primary: #ffffff;
+            --text-primary: #111827;
+            --border-color: #e5e7eb;
+        }
+        
+        .dark {
+            --bg-primary: #1f2937;
+            --text-primary: #f3f4f6;
+            --border-color: #374151;
+        }
+
+        body {
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+        }
+
+        @keyframes slideInDown {
+            from {
+                transform: translateY(-100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideOutUp {
+            from {
+                transform: translateY(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateY(-100%);
+                opacity: 0;
+            }
+        }
+
+        .alert-enter {
+            animation: slideInDown 0.3s ease-out forwards;
+        }
+
+        .alert-exit {
+            animation: slideOutUp 0.3s ease-out forwards;
+        }
+
+        .alert-container {
+            position: fixed;
+            top: 1rem;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 50;
+            width: 100%;
+            max-width: 28rem;
+        }
+    </style>
+    {% block extra_head %}{% endblock %}
+</head>
+<body class="{% block body_class %}bg-gray-50 dark:bg-gray-900{% endblock %}">
+    {% block full_content %}
+    {% if messages %}
+    <div class="alert-container" id="alertContainer">
+        {% for message in messages %}
+        <div class="mx-4 mb-4 p-4 rounded-lg shadow-md flex items-center justify-between alert-enter {% if message.tags == 'success' %}bg-green-50 text-green-800{% elif message.tags == 'error' %}bg-red-50 text-red-800{% else %}bg-yellow-50 text-yellow-800{% endif %}"
+             role="alert">
+            <div class="flex-1 text-center">{{ message }}</div>
+            <button type="button" 
+                    class="ml-4 inline-flex flex-shrink-0 justify-center items-center h-4 w-4 rounded-md text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-400"
+                    onclick="dismissAlert(this.parentElement)">
+                <span class="sr-only">Close</span>
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    
+    <div class="{% block container_class %}min-h-screen flex items-center justify-center container mx-auto px-4 py-8{% endblock %}">
+        {% block content %}{% endblock %}
+    </div>
+    {% endblock %}
+
+    {% block extra_js %}{% endblock %}
+    
+    <script>
+        function dismissAlert(alertElement) {
+            alertElement.classList.remove('alert-enter');
+            alertElement.classList.add('alert-exit');
+            setTimeout(() => {
+                alertElement.remove();
+                if (document.querySelector('#alertContainer').children.length === 0) {
+                    document.querySelector('#alertContainer').remove();
+                }
+            }, 300);
+        }
+
+        // Auto-dismiss alerts after 5 seconds
+        document.querySelectorAll('[role="alert"]').forEach(alert => {
+            setTimeout(() => {
+                if (alert && alert.parentElement) {
+                    dismissAlert(alert);
+                }
+            }, 5000);
+        });
+    </script>
+</body>
+</html>

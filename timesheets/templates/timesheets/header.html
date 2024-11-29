@@ -1,193 +1,188 @@
-<!-- Add this style in the header or your main CSS file -->
 <style>
     [x-cloak] { 
         display: none !important; 
     }
 </style>
 
-<header class="flex items-center justify-between p-4 bg-white border-b">
-    <div class="flex items-center">
-        <button id="sidebarToggle" class="p-1 rounded-md hover:bg-gray-200 mr-4" aria-label="Toggle sidebar">
-            <i data-lucide="menu" class="h-6 w-6 text-black"></i>
-            <span class="sr-only">Toggle sidebar</span>
-        </button>
-        <h1 class="text-xl font-semibold text-black">{{ page_title|default:"Dashboard" }}</h1>
-    </div>
-
-    <div class="flex items-center space-x-4">
-        {% if user.is_authenticated %}
-            <!-- Add debug information (temporarily) -->
-            {% if debug %}
-            <div class="hidden">
-                <p>Unread Count: {{ unread_notifications_count }}</p>
-                <p>Recent Notifications: {{ recent_notifications|length }}</p>
-            </div>
-            {% endif %}
-
-            <!-- Notification Bell -->
-            <div class="relative" x-data="{ open: false }" x-cloak>
-                <button @click="open = !open" 
-                        id="notification-button"
-                        class="relative p-2 text-black hover:text-gray-800 focus:outline-none">
-                    <i data-lucide="bell" class="h-6 w-6"></i>
-                    {% if unread_notifications_count and unread_notifications_count > 0 %}
-                        <span id="notification-badge" class="absolute top-0 right-0 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white transform translate-x-1/2 -translate-y-1/2 bg-red-600 rounded-full">
-                            {{ unread_notifications_count }}
-                        </span>
-                    {% endif %}
-                </button>
-
-                <!-- Notification Dropdown -->
-                <div x-show="open" 
-                     x-cloak
-                     @click.away="open = false"
-                     x-transition:enter="transition ease-out duration-200"
-                     x-transition:enter-start="opacity-0 transform scale-95"
-                     x-transition:enter-end="opacity-100 transform scale-100"
-                     x-transition:leave="transition ease-in duration-100"
-                     x-transition:leave-start="opacity-100 transform scale-100"
-                     x-transition:leave-end="opacity-0 transform scale-95"
-                     class="absolute right-0 mt-2 w-80 bg-white rounded-md shadow-lg overflow-hidden z-50">
-                    <div class="py-2">
-                    <!-- Notification Header -->
-                    <div class="px-4 py-2 bg-gray-50 border-b border-gray-200">
-                        <div class="flex justify-between items-center">
-                            <h3 class="text-sm font-semibold text-gray-700">
-                                Notifications
-                                {% if unread_notifications_count > 0 %}
-                                    <span class="ml-1 text-xs text-gray-500">({{ unread_notifications_count }} unread)</span>
-                                {% endif %}
-                            </h3>
-                            <!-- Add this back - Clear button -->
-                            <div class="flex space-x-2">
-                                    <!-- Clear Notifications Button -->
-                                    <button id="clear-notifications" 
-                                            class="text-xs text-red-600 hover:text-red-800 flex items-center" title="Clear notifications">
-                                        <i data-lucide="x-circle" class="h-4 w-4 mr-1"></i>
-                                    </button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Notification List -->
-                        <div id="notification-list" class="max-h-96 overflow-y-auto">
-                        {% if recent_notifications %}
-                            {% for notification in recent_notifications %}
-                                <a href="{% url 'timesheets:notification_link_handler' notification.id %}" 
-                                       class="block px-4 py-3 hover:bg-gray-50 {% if not notification.read %}bg-blue-50{% endif %} border-b border-gray-100 transition-colors duration-150">
-                                        <div class="flex items-start">
-                                            <!-- Notification Icon -->
-                                            {% if notification.notification_type == 'submission' %}
-                                                <i data-lucide="file-plus" class="h-5 w-5 mr-3 text-blue-500"></i>
-                                            {% elif notification.notification_type == 'approval' %}
-                                                <i data-lucide="check-circle" class="h-5 w-5 mr-3 text-green-500"></i>
-                                            {% elif notification.notification_type == 'rejection' %}
-                                                <i data-lucide="x-circle" class="h-5 w-5 mr-3 text-red-500"></i>
-                                            {% elif notification.notification_type == 'first_approval' %}
-                                                <i data-lucide="check" class="h-5 w-5 mr-3 text-orange-500"></i>
-                                            {% endif %}
-
-                                            <div class="flex-1">
-                                    <p class="text-sm text-gray-700">{{ notification.message }}</p>
-                                    <p class="text-xs text-gray-500 mt-1">{{ notification.created_at|timesince }} ago</p>
-                                            </div>
-                                        </div>
-                                </a>
-                            {% endfor %}
-                        {% else %}
-                                <div class="px-4 py-3 text-sm text-gray-500 flex items-center justify-center">
-                                    <i data-lucide="inbox" class="h-5 w-5 mr-2 text-gray-400"></i>
-                                    No new notifications
-                            </div>
-                        {% endif %}
-                        </div>
-
-                        <!-- Footer -->
-                        <div class="px-4 py-2 bg-gray-50 border-t border-gray-200">
-                            <a href="{% url 'timesheets:all_notifications' %}" 
-                               class="text-sm text-blue-600 hover:text-blue-800 flex items-center justify-center">
-                                <i data-lucide="list" class="h-4 w-4 mr-1"></i>
-                                View all notifications
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Rest of the header content... -->
-        {% endif %}
-
-        <!-- User Profile Menu -->
-        <div class="relative" x-data="{ open: false }" x-cloak>
-            <button @click="open = !open" 
-                    class="flex items-center space-x-3 p-2 rounded-full hover:bg-gray-200 focus:outline-none">
-                <div class="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center">
-                    <span class="text-sm font-medium text-gray-600">
-                        {{ user.first_name|first }}{{ user.last_name|first }}
-                    </span>
-                </div>
-                <i data-lucide="chevron-down" class="h-4 w-4 text-black"></i>
+<header class="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+    <div class="flex items-center justify-between p-4">
+        <div class="flex items-center">
+            <button id="sidebarToggle" class="p-1 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700 mr-4" aria-label="Toggle sidebar">
+                <i data-lucide="menu" class="h-6 w-6 text-black dark:text-white"></i>
+                <span class="sr-only">Toggle sidebar</span>
             </button>
+            <h1 class="text-xl font-semibold text-black dark:text-white">{{ page_title|default:"Dashboard" }}</h1>
+        </div>
 
-            <!-- Profile Dropdown -->
-            <div x-show="open" 
-                 x-cloak
-                 @click.away="open = false"
-                 class="absolute right-0 mt-2 w-auto min-w-[12rem] max-w-[20rem] bg-white rounded-lg shadow-xl z-50 overflow-hidden">
-               <div class="flex flex-col">
-                   <!-- User Info Section -->
-                   <div class="px-4 py-3 border-b border-gray-200 break-words">
-                       <p class="text-sm font-medium text-gray-900 truncate">{{ user.get_full_name }}</p>
-                       <p class="text-xs text-gray-500 truncate">{{ user.email }}</p>
-                   </div>
+        <div class="flex items-center gap-4">
+            <div class="flex items-center space-x-4">
+                {% if user.is_authenticated %}
+                    {% if debug %}
+                    <div class="hidden">
+                        <p>Unread Count: {{ unread_notifications_count }}</p>
+                        <p>Recent Notifications: {{ recent_notifications|length }}</p>
+                    </div>
+                    {% endif %}
 
-                    <!-- Navigation Links -->
-                    <div class="py-1">
-                        <a href="{% url 'accounts:profile' %}" 
-                           class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors duration-150">
-                            <i data-lucide="user" class="h-4 w-4 min-w-[1rem] mr-2"></i>
-                            <span class="truncate">Profile</span>
-                        </a>
+                    <!-- Notification Bell -->
+                    <div class="relative" x-data="{ open: false }" x-cloak>
+                        <button @click="open = !open" 
+                                id="notification-button"
+                                class="relative p-2 text-black dark:text-white hover:text-gray-800 dark:hover:text-gray-300 focus:outline-none">
+                            <i data-lucide="bell" class="h-6 w-6"></i>
+                            {% if unread_notifications_count and unread_notifications_count > 0 %}
+                                <span id="notification-badge" class="absolute top-0 right-0 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white transform translate-x-1/2 -translate-y-1/2 bg-red-600 rounded-full">
+                                    {{ unread_notifications_count }}
+                                </span>
+                            {% endif %}
+                        </button>
 
-                        {% if user.role == 'Supervisor' or user.is_superuser %}
-                            <a href="{% url 'timesheets:team_timesheets' %}" 
-                               class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors duration-150">
-                                <i data-lucide="users" class="h-4 w-4 min-w-[1rem] mr-2"></i>
-                                <span class="truncate">Team Timesheets</span>
-                            </a>
-                        {% endif %}
+                        <!-- Notification Dropdown -->
+                        <div x-show="open" 
+                             x-cloak
+                             @click.away="open = false"
+                             x-transition:enter="transition ease-out duration-200"
+                             x-transition:enter-start="opacity-0 transform scale-95"
+                             x-transition:enter-end="opacity-100 transform scale-100"
+                             x-transition:leave="transition ease-in duration-100"
+                             x-transition:leave-start="opacity-100 transform scale-100"
+                             x-transition:leave-end="opacity-0 transform scale-95"
+                             class="absolute right-0 mt-2 w-80 bg-white dark:bg-gray-800 rounded-md shadow-lg overflow-hidden z-50">
+                            <div class="py-2">
+                                <!-- Notification Header -->
+                                <div class="px-4 py-2 bg-gray-50 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-600">
+                                    <div class="flex justify-between items-center">
+                                        <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-200">
+                                            Notifications
+                                            {% if unread_notifications_count > 0 %}
+                                                <span class="ml-1 text-xs text-gray-500 dark:text-gray-400">({{ unread_notifications_count }} unread)</span>
+                                            {% endif %}
+                                        </h3>
+                                        <div class="flex space-x-2">
+                                            <button id="clear-notifications" 
+                                                    class="text-xs text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300 flex items-center" title="Clear notifications">
+                                                <i data-lucide="x-circle" class="h-4 w-4 mr-1"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
 
-                        <a href="{% url 'timesheets:user_summary_report' %}" 
-                           class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors duration-150">
-                            <i data-lucide="clipboard-list" class="h-4 w-4 min-w-[1rem] mr-2"></i>
-                            <span class="truncate">Summary Report</span>
-                        </a>
+                                <!-- Notification List -->
+                                <div id="notification-list" class="max-h-96 overflow-y-auto">
+                                    {% if recent_notifications %}
+                                        {% for notification in recent_notifications %}
+                                            <a href="{% url 'timesheets:notification_link_handler' notification.id %}" 
+                                                class="block px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 {% if not notification.read %}bg-blue-50 dark:bg-gray-800{% endif %} border-b border-gray-100 dark:border-gray-700 transition-colors duration-150">
+                                                <div class="flex items-start">
+                                                    <!-- Notification Icons -->
+                                                    {% if notification.notification_type == 'submission' %}
+                                                        <i data-lucide="file-plus" class="h-5 w-5 mr-3 text-blue-500"></i>
+                                                    {% elif notification.notification_type == 'approval' %}
+                                                        <i data-lucide="check-circle" class="h-5 w-5 mr-3 text-green-500"></i>
+                                                    {% elif notification.notification_type == 'rejection' %}
+                                                        <i data-lucide="x-circle" class="h-5 w-5 mr-3 text-red-500"></i>
+                                                    {% elif notification.notification_type == 'first_approval' %}
+                                                        <i data-lucide="check" class="h-5 w-5 mr-3 text-orange-500"></i>
+                                                    {% endif %}
+
+                                                    <div class="flex-1">
+                                                        <p class="text-sm text-gray-700 dark:text-gray-200">{{ notification.message }}</p>
+                                                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">{{ notification.created_at|timesince }} ago</p>
+                                                    </div>
+                                                </div>
+                                            </a>
+                                        {% endfor %}
+                                    {% else %}
+                                        <div class="px-4 py-3 text-sm text-gray-500 dark:text-gray-400 flex items-center justify-center">
+                                            <i data-lucide="inbox" class="h-5 w-5 mr-2 text-gray-400 dark:text-gray-500"></i>
+                                            No new notifications
+                                        </div>
+                                    {% endif %}
+                                </div>
+
+                                <!-- Footer -->
+                                <div class="px-4 py-2 bg-gray-50 dark:bg-gray-700 border-t border-gray-200 dark:border-gray-600">
+                                    <a href="{% url 'timesheets:all_notifications' %}" 
+                                       class="text-sm text-blue-200 dark:text-blue-100 hover:text-blue-500 dark:hover:text-blue-200 flex items-center justify-center">
+                                        <i data-lucide="list" class="h-4 w-4 mr-1"></i>
+                                        View all notifications
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
-                    <!-- Logout Section -->
-                    <div class="border-t border-gray-200">
-                        <form method="post" action="{% url 'accounts:logout' %}">
-                            {% csrf_token %}
-                            <button type="submit" 
-                                    class="w-full flex items-center px-4 py-2 text-sm text-red-600 hover:bg-gray-100 transition-colors duration-150">
-                                <i data-lucide="log-out" class="h-4 w-4 min-w-[1rem] mr-2"></i>
-                                <span class="truncate">Logout</span>
-                            </button>
-                        </form>
+                    <!-- User Profile Menu -->
+                    <div class="relative" x-data="{ open: false }" x-cloak>
+                        <button @click="open = !open" 
+                                class="flex items-center space-x-3 p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 focus:outline-none">
+                            <div class="h-8 w-8 rounded-full bg-gray-200 dark:bg-gray-600 flex items-center justify-center">
+                                <span class="text-sm font-medium text-gray-600 dark:text-gray-200">
+                                    {{ user.first_name|first }}{{ user.last_name|first }}
+                                </span>
+                            </div>
+                            <i data-lucide="chevron-down" class="h-4 w-4 text-black dark:text-white"></i>
+                        </button>
+
+                        <!-- Profile Dropdown -->
+                        <div x-show="open" 
+                             x-cloak
+                             @click.away="open = false"
+                             class="absolute right-0 mt-2 w-auto min-w-[12rem] max-w-[20rem] bg-white dark:bg-gray-800 rounded-lg shadow-xl z-50 overflow-hidden">
+                            <div class="flex flex-col">
+                                <!-- User Info Section -->
+                                <div class="px-4 py-3 border-b border-gray-200 dark:border-gray-700 break-words">
+                                    <p class="text-sm font-medium text-gray-900 dark:text-white truncate">{{ user.get_full_name }}</p>
+                                    <p class="text-xs text-gray-500 dark:text-gray-400 truncate">{{ user.email }}</p>
+                                </div>
+
+                                <!-- Navigation Links -->
+                                <div class="py-1">
+                                    <a href="{% url 'accounts:profile' %}" 
+                                       class="flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-150">
+                                        <i data-lucide="user" class="h-4 w-4 min-w-[1rem] mr-2"></i>
+                                        <span class="truncate">Profile</span>
+                                    </a>
+
+                                    {% if user.role == 'Supervisor' or user.is_superuser %}
+                                        <a href="{% url 'timesheets:team_timesheets' %}" 
+                                           class="flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-150">
+                                            <i data-lucide="users" class="h-4 w-4 min-w-[1rem] mr-2"></i>
+                                            <span class="truncate">Team Timesheets</span>
+                                        </a>
+                                    {% endif %}
+
+                                    <a href="{% url 'timesheets:user_summary_report' %}" 
+                                       class="flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-150">
+                                        <i data-lucide="clipboard-list" class="h-4 w-4 min-w-[1rem] mr-2"></i>
+                                        <span class="truncate">Summary Report</span>
+                                    </a>
+                                </div>
+
+                                <!-- Logout Section -->
+                                <div class="border-t border-gray-200 dark:border-gray-700">
+                                    <form method="post" action="{% url 'accounts:logout' %}">
+                                        {% csrf_token %}
+                                        <button type="submit" 
+                                                class="w-full flex items-center px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-150">
+                                            <i data-lucide="log-out" class="h-4 w-4 min-w-[1rem] mr-2"></i>
+                                            <span class="truncate">Logout</span>
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                </div>
+                {% endif %}
             </div>
         </div>
     </div>
 </header>
 
-<!-- Initialize Lucide Icons and Add JavaScript -->
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // Initialize Lucide Icons
         lucide.createIcons();
     
-        // Clear Notifications Button Event Listener
         var clearNotificationsButton = document.getElementById('clear-notifications');
         if (clearNotificationsButton) {
             clearNotificationsButton.addEventListener('click', function() {
@@ -199,20 +194,16 @@
         function clearNotificationsFromTray() {
             var notificationList = document.getElementById('notification-list');
             if (notificationList) {
-                // Remove all child nodes
                 while (notificationList.firstChild) {
                     notificationList.removeChild(notificationList.firstChild);
                 }
-                // Display a "No new notifications" message
                 var noNotificationsMessage = document.createElement('div');
-                noNotificationsMessage.className = 'px-4 py-3 text-sm text-gray-500 flex items-center justify-center';
-                noNotificationsMessage.innerHTML = '<i data-lucide="inbox" class="h-5 w-5 mr-2 text-gray-400"></i>No new notifications';
+                noNotificationsMessage.className = 'px-4 py-3 text-sm text-gray-500 dark:text-gray-400 flex items-center justify-center';
+                noNotificationsMessage.innerHTML = '<i data-lucide="inbox" class="h-5 w-5 mr-2 text-gray-400 dark:text-gray-500"></i>No new notifications';
                 notificationList.appendChild(noNotificationsMessage);
     
-                // Re-initialize Lucide icons for the new content
                 lucide.createIcons();
     
-                // Hide the notification badge
                 var notificationBadge = document.getElementById('notification-badge');
                 if (notificationBadge) {
                     notificationBadge.style.display = 'none';
@@ -224,7 +215,7 @@
             fetch("{% url 'timesheets:mark_notifications_as_read' %}", {
                 method: 'POST',
                 headers: {
-                    'X-CSRFToken': '{{ csrf_token }}', // Include CSRF token
+                    'X-CSRFToken': '{{ csrf_token }}',
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({ action: 'mark_all_read' })
@@ -238,5 +229,4 @@
             });
         }
     });
-    
 </script>

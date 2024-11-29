@@ -6,27 +6,29 @@
     {% if messages %}
     <div class="mb-6">
         {% for message in messages %}
-        <div class="p-4 mb-4 rounded-md {% if message.tags == 'success' %}bg-green-50 text-green-800{% elif message.tags == 'error' %}bg-red-50 text-red-800{% else %}bg-yellow-50 text-yellow-800{% endif %}">
+        <div class="p-4 mb-4 rounded-md {% if message.tags == 'success' %}bg-green-50 dark:bg-green-900 text-green-800 dark:text-green-100{% elif message.tags == 'error' %}bg-red-50 dark:bg-red-900 text-red-800 dark:text-red-100{% else %}bg-yellow-50 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-100{% endif %}">
             {{ message }}
         </div>
         {% endfor %}
     </div>
     {% endif %}
 
-    <div class="bg-white shadow-md rounded-lg overflow-hidden">
-        <div class="px-6 py-4 border-b border-gray-200">
+    <div class="bg-white dark:bg-gray-800 shadow-md dark:shadow-gray-700 rounded-lg overflow-hidden">
+        <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
             <div class="flex justify-between items-center">
-                <h2 class="text-xl font-semibold text-gray-800">Pending Invitations</h2>
+                <h2 class="text-xl font-semibold text-gray-800 dark:text-gray-100">Pending Invitations</h2>
                 <a href="{% url 'accounts:employee_create' %}" 
                 class="inline-flex items-center px-5 py-2.5
                        bg-gradient-to-r from-gray-800 to-gray-900 
+                       dark:from-gray-700 dark:to-gray-600
                        text-white rounded-xl font-medium
                        border border-transparent
                        hover:from-gray-700 hover:to-gray-800
-                       focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2
+                       dark:hover:from-gray-600 dark:hover:to-gray-500
+                       focus:outline-none focus:ring-2 focus:ring-gray-500 dark:focus:ring-gray-400 focus:ring-offset-2 dark:focus:ring-offset-gray-800
                        transform transition-all duration-200
                        hover:scale-[1.02] active:scale-95
-                       shadow-sm">
+                       shadow-sm dark:shadow-gray-700">
                  <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
                            d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/>
@@ -37,42 +39,42 @@
         </div>
 
         <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-gray-200">
-                <thead class="bg-gray-50">
+            <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                <thead class="bg-gray-50 dark:bg-gray-700">
                     <tr>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                             Employee
                         </th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                             Role
                         </th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                             Supervisor
                         </th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                             Sent On
                         </th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                             Expires
                         </th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                             Status
                         </th>
-                        <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                             Actions
                         </th>
                     </tr>
                 </thead>
-                <tbody class="bg-white divide-y divide-gray-200">
+                <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                     {% for invitation in pending_invitations %}
                     <tr>
                         <td class="px-6 py-4 whitespace-nowrap">
                             <div class="flex items-center">
                                 <div>
-                                    <div class="text-sm font-medium text-gray-900">
+                                    <div class="text-sm font-medium text-gray-900 dark:text-gray-100">
                                         {{ invitation.first_name }} {{ invitation.last_name }}
                                     </div>
-                                    <div class="text-sm text-gray-500">
+                                    <div class="text-sm text-gray-500 dark:text-gray-400">
                                         {{ invitation.email }}
                                     </div>
                                 </div>
@@ -80,49 +82,49 @@
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap">
                             <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
-                                {% if invitation.role == 'Supervisor' %}bg-purple-100 text-purple-800
-                                {% else %}bg-gray-100 text-gray-800{% endif %}">
+                                {% if invitation.role == 'Supervisor' %}bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-100
+                                {% else %}bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-100{% endif %}">
                                 {{ invitation.role }}
                             </span>
                         </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
                             {% if invitation.supervisor %}
                                 {{ invitation.supervisor.get_full_name }}
                             {% else %}
                                 -
                             {% endif %}
                         </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
                             {{ invitation.created_at|date:"M d, Y H:i" }}
                         </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
                             {{ invitation.expires_at|date:"M d, Y H:i" }}
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap">
                             {% if invitation.is_expired %}
-                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
+                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-100">
                                     Expired
                                 </span>
                             {% else %}
-                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-100">
                                     Active
                                 </span>
                             {% endif %}
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                             <button onclick="resendInvitation('{{ invitation.id }}')"
-                                    class="text-gray-600 hover:text-gray-900 mr-3">
+                                    class="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 mr-3">
                                 Resend
                             </button>
                             <button onclick="cancelInvitation('{{ invitation.id }}')"
-                                    class="text-red-600 hover:text-red-900">
+                                    class="text-red-600 dark:text-red-400 hover:text-red-900 dark:hover:text-red-200">
                                 Cancel
                             </button>
                         </td>
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="7" class="px-6 py-4 text-center text-gray-500">
+                        <td colspan="7" class="px-6 py-4 text-center text-gray-500 dark:text-gray-400">
                             No pending invitations found
                         </td>
                     </tr>

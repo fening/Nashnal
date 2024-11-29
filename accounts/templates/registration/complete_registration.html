@@ -1,20 +1,17 @@
-{% load static %}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Register</title>
-    <link rel="icon" href="{% static 'favicon.ico' %}" type="image/x-icon">
-    <script src="https://cdn.tailwindcss.com"></script>
-</head>
+{% extends 'accounts/base.html' %}
+
+{% block title %}Complete Registration - NASHnal Soil Testing{% endblock %}
+
+{% block body_class %}flex items-center justify-center min-h-screen bg-white{% endblock %}
+
+{% block content %}
 <div class="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
     <div class="sm:mx-auto sm:w-full sm:max-w-md">
         <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900">
             Complete Your Registration
         </h2>
     </div>
-
+    {% if validlink %}
     <div class="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
         <div class="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
             {% if messages %}
@@ -224,6 +221,15 @@
             </button>
                 </div>
             </form>
+            {% else %}
+            <div class="text-center text-gray-600">
+                <p class="mb-4">
+                    The registration link is invalid or has expired. 
+                    Please contact your supervisor for a new invitation.
+                </p>
+            </div>
+        {% endif %}
         </div>
     </div>
 </div>
+{% endblock %}

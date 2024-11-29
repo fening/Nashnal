@@ -2,7 +2,7 @@
 {% load custom_filters %}
 
 {% block title %}
-    <h1 class="text-xl font-semibold">
+    <h1 class="text-xl font-semibold dark:text-gray-200">
         {% if user.role == 'Supervisor' %}
             Team Time Entry Approval History
         {% else %}
@@ -12,13 +12,13 @@
 {% endblock %}
 
 {% block content %}
-<div class="mx-auto p-6">
+<div class="mx-auto p-6 dark:bg-gray-800">
     <!-- Search and Filter Section -->
     <div class="mb-6">
         <form method="get" class="flex gap-4 items-end max-w-3xl mx-auto p-4">
             <div class="flex-1 relative">
                 <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400 dark:text-gray-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <circle cx="11" cy="11" r="8"></circle>
                         <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
                     </svg>
@@ -28,9 +28,10 @@
                     name="search" 
                     id="search" 
                     value="{{ search_query }}"
-                    class="block w-full pl-10 pr-3 py-2 rounded-md border border-gray-300 
-                           shadow-sm focus:ring-2 focus:ring-gray-500 focus:border-transparent
-                           placeholder:text-gray-400 transition-all duration-200"
+                    class="block w-full pl-10 pr-3 py-2 rounded-md border border-gray-300 dark:border-gray-600 
+                           shadow-sm dark:shadow-lg focus:ring-2 focus:ring-gray-500 focus:border-transparent
+                           placeholder:text-gray-400 dark:placeholder:text-gray-500 transition-all duration-200
+                           dark:bg-gray-700 dark:text-gray-200"
                     placeholder="Search by name, status, or comments..."
                 >
             </div>
@@ -38,14 +39,14 @@
             <button 
             type="submit" 
             class="inline-flex items-center px-5 py-2.5
-                   bg-gradient-to-r from-gray-800 to-gray-900 
-                   text-white rounded-xl font-medium
-                   border border-transparent
-                   hover:from-gray-700 hover:to-gray-800
+                   bg-gradient-to-r from-gray-800 to-gray-900 dark:from-gray-700 dark:to-gray-800
+                   text-white dark:text-gray-200 rounded-xl font-medium
+                   border border-transparent dark:border-gray-600
+                   hover:from-gray-700 hover:to-gray-800 dark:hover:from-gray-600 dark:hover:to-gray-700
                    focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2
                    transform transition-all duration-200
                    hover:scale-[1.02] active:scale-95">
-            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg class="w-4 h-4 mr-2 dark:stroke-gray-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
                       d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
             </svg>
@@ -54,12 +55,12 @@
         
         {% if search_query %}
             <a href="{% url 'timesheets:approval_history' %}" 
-               class="inline-flex items-center px-4 py-2.5 border border-gray-200 rounded-xl
-                      text-gray-600 bg-white font-medium
-                      hover:bg-gray-50
+               class="inline-flex items-center px-4 py-2.5 border border-gray-200 dark:border-gray-600 rounded-xl
+                      text-gray-600 dark:text-gray-300 bg-white dark:bg-gray-700 font-medium
+                      hover:bg-gray-50 dark:hover:bg-gray-600
                       focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2
                       transform transition-all duration-200">
-                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="w-4 h-4 mr-2 dark:stroke-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
                           d="M6 18L18 6M6 6l12 12"/>
                 </svg>
@@ -69,218 +70,219 @@
         </form>
     </div>
 
-    <div class="bg-white overflow-hidden">
+    <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-md dark:shadow-lg rounded-lg">
         {% if approvals %}
             <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-gray-200">
-                    <thead class="bg-gray-50">
+                <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                    <thead class="bg-gray-50 dark:bg-gray-700">
                         <tr>
                             {% if user.is_superuser or user.role == 'Supervisor' %}
-                            <th class="px-2 py-4 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider whitespace-nowrap">
+                            <th class="px-2 py-4 text-center text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider whitespace-nowrap">
                                 <div class="flex items-center justify-center gap-2">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <svg class="w-4 h-4 dark:stroke-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                                     </svg>
                                     <span>Employee</span>
                                 </div>
                             </th>
-                        {% endif %}
-                        <th class="px-2 py-4 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider whitespace-nowrap">
-                            <div class="flex items-center justify-center gap-2">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                </svg>
-                                <span>Date Submitted</span>
-                            </div>
-                        </th>
-                        <th class="px-2 py-4 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider whitespace-nowrap">
-                            <div class="flex items-center justify-center gap-2">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                </svg>
-                                <span>Time Entry Date</span>
-                            </div>
-                        </th>
-                        <th class="px-2 py-4 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider whitespace-nowrap">
-                            <div class="flex items-center justify-center gap-2">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                </svg>
-                                <span>Status</span>
-                            </div>
-                        </th>
-                        <th class="px-2 py-4 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider whitespace-nowrap">
-                            <div class="flex items-center justify-center gap-2">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                                </svg>
-                                <span>First Review</span>
-                            </div>
-                        </th>
-                        <th class="px-2 py-4 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider whitespace-nowrap">
-                            <div class="flex items-center justify-center gap-2">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                                </svg>
-                                <span>Second Review</span>
-                            </div>
-                        </th>
-                        <th class="px-2 py-4 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider whitespace-nowrap">
-                            <div class="flex items-center justify-center gap-2">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
-                                </svg>
-                                <span>Comments</span>
-                            </div>
-                        </th>
-                        <th class="px-2 py-4 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider whitespace-nowrap">
-                            <div class="flex items-center justify-center gap-2">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                </svg>
-                                <span>History</span>
-                            </div>
-                        </th>
-                        <th class="px-2 py-4 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider whitespace-nowrap">
-                            <div class="flex items-center justify-center gap-2">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
-                                </svg>
-                                <span>Actions</span>
-                            </div>
-                        </th>
-                        </tr>
-                    </thead>
-                    <tbody class="bg-white divide-y divide-gray-200">
-                        {% for approval in approvals %}
-                            <tr class="{% if approval.status == 'rejected' %}bg-red-50{% endif %}">
-                                {% if user.is_superuser or user.role == 'Supervisor' %}
+                            {% endif %}
+                            <th class="px-2 py-4 text-center text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider whitespace-nowrap">
+                                <div class="flex items-center justify-center gap-2">
+                                    <svg class="w-4 h-4 dark:stroke-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                    </svg>
+                                    <span>Date Submitted</span>
+                                </div>
+                            </th>
+                            <th class="px-2 py-4 text-center text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider whitespace-nowrap">
+                                <div class="flex items-center justify-center gap-2">
+                                    <svg class="w-4 h-4 dark:stroke-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                    <span>Time Entry Date</span>
+                                </div>
+                            </th>
+                            <th class="px-2 py-4 text-center text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider whitespace-nowrap">
+                                <div class="flex items-center justify-center gap-2">
+                                    <svg class="w-4 h-4 dark:stroke-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                    <span>Status</span>
+                                </div>
+                            </th>
+                            <th class="px-2 py-4 text-center text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider whitespace-nowrap">
+                                <div class="flex items-center justify-center gap-2">
+                                    <svg class="w-4 h-4 dark:stroke-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                                    </svg>
+                                    <span>First Review</span>
+                                </div>
+                            </th>
+                            <th class="px-2 py-4 text-center text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider whitespace-nowrap">
+                                <div class="flex items-center justify-center gap-2">
+                                    <svg class="w-4 h-4 dark:stroke-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                                    </svg>
+                                    <span>Second Review</span>
+                                </div>
+                            </th>
+                            <th class="px-2 py-4 text-center text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider whitespace-nowrap">
+                                <div class="flex items-center justify-center gap-2">
+                                    <svg class="w-4 h-4 dark:stroke-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
+                                    </svg>
+                                    <span>Comments</span>
+                                </div>
+                            </th>
+                            <th class="px-2 py-4 text-center text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider whitespace-nowrap">
+                                <div class="flex items-center justify-center gap-2">
+                                    <svg class="w-4 h-4 dark:stroke-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                    <span>History</span>
+                                </div>
+                            </th>
+                            <th class="px-2 py-4 text-center text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider whitespace-nowrap">
+                                <div class="flex items-center justify-center gap-2">
+                                    <svg class="w-4 h-4 dark:stroke-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                    </svg>
+                                    <span>Actions</span>
+                                </div>
+                            </th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                            {% for approval in approvals %}
+                                <tr class="{% if approval.status == 'rejected' %}bg-red-50 dark:bg-red-900{% endif %}">
+                                    {% if user.is_superuser or user.role == 'Supervisor' %}
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <div class="text-sm font-medium text-gray-900 dark:text-gray-200">
+                                                {{ approval.time_entry.user.get_full_name }}
+                                            </div>
+                                        </td>
+                                    {% endif %}
                                     <td class="px-6 py-4 whitespace-nowrap">
-                                        <div class="text-sm font-medium text-gray-900">
-                                            {{ approval.time_entry.user.get_full_name }}
+                                        <div class="text-sm text-gray-900 dark:text-gray-200">
+                                            {{ approval.submitted_at|date:"M d, Y H:i" }}
                                         </div>
                                     </td>
-                                {% endif %}
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="text-sm text-gray-900">
-                                        {{ approval.submitted_at|date:"M d, Y H:i" }}
-                                    </div>
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="text-sm text-gray-900">
-                                        {{ approval.time_entry.date|date:"M d, Y" }}
-                                    </div>
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
-                                        {% if approval.status == 'approved' %}
-                                            bg-green-100 text-green-800
-                                        {% elif approval.status == 'rejected' %}
-                                            bg-red-100 text-red-800
-                                        {% else %}
-                                            bg-yellow-100 text-yellow-800
-                                        {% endif %}">
-                                        {{ approval.get_status_display }}
-                                    </span>
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="text-sm text-gray-900">
-                                        {% if approval.first_reviewed_by %}
-                                            <div>By: {{ approval.first_reviewed_by.get_full_name }}</div>
-                                            <div class="text-xs text-gray-500">{{ approval.first_reviewed_at|date:"M d, Y H:i" }}</div>
-                                            {% if approval.first_reviewer_comments %}
-                                                <div class="text-xs text-gray-600 italic">
-                                                    "{{ approval.first_reviewer_comments|truncatechars:30 }}"
-                                                </div>
-                                            {% endif %}
-                                        {% else %}
-                                            <span class="text-gray-500">-</span>
-                                        {% endif %}
-                                    </div>
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="text-sm text-gray-900">
-                                        {% if approval.second_reviewed_by %}
-                                            <div>By: {{ approval.second_reviewed_by.get_full_name }}</div>
-                                            <div class="text-xs text-gray-500">{{ approval.second_reviewed_at|date:"M d, Y H:i" }}</div>
-                                            {% if approval.second_reviewer_comments %}
-                                                <div class="text-xs text-gray-600 italic">
-                                                    "{{ approval.second_reviewer_comments|truncatechars:30 }}"
-                                                </div>
-                                            {% endif %}
-                                        {% else %}
-                                            <span class="text-gray-500">-</span>
-                                        {% endif %}
-                                    </div>
-                                </td>
-                                <td class="px-6 py-4">
-                                    <div class="text-sm text-gray-900">
-                                        {% if approval.submitter_comments %}
-                                            <div class="text-xs text-gray-600">
-                                                Submitter: "{{ approval.submitter_comments|truncatechars:50 }}"
-                                            </div>
-                                        {% endif %}
-                                    </div>
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="text-sm text-gray-900">
-                                        {% for history in approval.history.all %}
-                                            <div class="mb-2 p-2 {% if history.status == 'rejected' %}bg-red-50{% endif %}">
-                                                <div class="font-semibold">
-                                                    {{ history.get_status_display }}
-                                                </div>
-                                                <div class="text-xs text-gray-500">
-                                                    By: {{ history.reviewed_by.get_full_name }}
-                                                    at {{ history.reviewed_at|date:"M d, Y H:i" }}
-                                                </div>
-                                                {% if history.comments %}
-                                                    <div class="text-xs text-gray-600 italic mt-1">
-                                                        "{{ history.comments }}"
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="text-sm text-gray-900 dark:text-gray-200">
+                                            {{ approval.time_entry.date|date:"M d, Y" }}
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                            {% if approval.status == 'approved' %}
+                                                bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200
+                                            {% elif approval.status == 'rejected' %}
+                                                bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200
+                                            {% else %}
+                                                bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200
+                                            {% endif %}">
+                                            {{ approval.get_status_display }}
+                                        </span>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="text-sm text-gray-900 dark:text-gray-200">
+                                            {% if approval.first_reviewed_by %}
+                                                <div>By: {{ approval.first_reviewed_by.get_full_name }}</div>
+                                                <div class="text-xs text-gray-500 dark:text-gray-400">{{ approval.first_reviewed_at|date:"M d, Y H:i" }}</div>
+                                                {% if approval.first_reviewer_comments %}
+                                                    <div class="text-xs text-gray-600 dark:text-gray-400 italic">
+                                                        "{{ approval.first_reviewer_comments|truncatechars:30 }}"
                                                     </div>
                                                 {% endif %}
-                                            </div>
-                                        {% endfor %}
-                                    </div>
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                    <a href="{% url 'timesheets:time_entry_detail' approval.time_entry.pk %}" 
-                                       class="inline-flex items-center px-4 py-2 border border-blue-600 rounded-lg
-                                              text-sm font-medium text-blue-600 hover:bg-blue-50 
-                                              transition-colors duration-200">
-                                        View Details
-                                    </a>
-                                </td>
-                            </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
+                                            {% else %}
+                                                <span class="text-gray-500 dark:text-gray-400">-</span>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="text-sm text-gray-900 dark:text-gray-200">
+                                            {% if approval.second_reviewed_by %}
+                                                <div>By: {{ approval.second_reviewed_by.get_full_name }}</div>
+                                                <div class="text-xs text-gray-500 dark:text-gray-400">{{ approval.second_reviewed_at|date:"M d, Y H:i" }}</div>
+                                                {% if approval.second_reviewer_comments %}
+                                                    <div class="text-xs text-gray-600 dark:text-gray-400 italic">
+                                                        "{{ approval.second_reviewer_comments|truncatechars:30 }}"
+                                                    </div>
+                                                {% endif %}
+                                            {% else %}
+                                                <span class="text-gray-500 dark:text-gray-400">-</span>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        <div class="text-sm text-gray-900 dark:text-gray-200">
+                                            {% if approval.submitter_comments %}
+                                                <div class="text-xs text-gray-600 dark:text-gray-400">
+                                                    Submitter: "{{ approval.submitter_comments|truncatechars:50 }}"
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="text-sm text-gray-900 dark:text-gray-200">
+                                            {% for history in approval.history.all %}
+                                                <div class="mb-2 p-2 {% if history.status == 'rejected' %}bg-red-50 dark:bg-red-900{% else %}bg-gray-100 dark:bg-gray-700{% endif %}">
+                                                    <div class="font-semibold dark:text-gray-200">
+                                                        {{ history.get_status_display }}
+                                                    </div>
+                                                    <div class="text-xs text-gray-500 dark:text-gray-400">
+                                                        By: {{ history.reviewed_by.get_full_name }}
+                                                        at {{ history.reviewed_at|date:"M d, Y H:i" }}
+                                                    </div>
+                                                    {% if history.comments %}
+                                                        <div class="text-xs text-gray-600 dark:text-gray-400 italic mt-1">
+                                                            "{{ history.comments }}"
+                                                        </div>
+                                                    {% endif %}
+                                                </div>
+                                            {% endfor %}
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                        <a href="{% url 'timesheets:time_entry_detail' approval.time_entry.pk %}" 
+                                           class="inline-flex items-center px-4 py-2 border border-blue-600 dark:border-blue-400 rounded-lg
+                                                  text-sm font-medium text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900 
+                                                  focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2
+                                                  transition-colors duration-200">
+                                            View Details
+                                        </a>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
 
-            {% if is_paginated %}
-                <div class="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
-                    <div class="flex-1 flex justify-between sm:hidden">
-                        {% if page_obj.has_previous %}
-                            <a href="?page={{ page_obj.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}" 
-                               class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
-                                Previous
-                            </a>
-                        {% endif %}
-                        {% if page_obj.has_next %}
-                            <a href="?page={{ page_obj.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}" 
-                               class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
-                                Next
-                            </a>
-                        {% endif %}
+                {% if is_paginated %}
+                    <div class="bg-white dark:bg-gray-800 px-4 py-3 flex items-center justify-between border-t border-gray-200 dark:border-gray-700 sm:px-6">
+                        <div class="flex-1 flex justify-between sm:hidden">
+                            {% if page_obj.has_previous %}
+                                <a href="?page={{ page_obj.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}" 
+                                   class="relative inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
+                                    Previous
+                                </a>
+                            {% endif %}
+                            {% if page_obj.has_next %}
+                                <a href="?page={{ page_obj.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}" 
+                                   class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
+                                    Next
+                                </a>
+                            {% endif %}
+                        </div>
                     </div>
+                {% endif %}
+            {% else %}
+                <div class="p-6 text-center">
+                    <p class="text-gray-500 dark:text-gray-400 text-lg">
+                        No approval history found.
+                    </p>
                 </div>
             {% endif %}
-        {% else %}
-            <div class="p-6 text-center">
-                <p class="text-gray-500 text-lg">
-                    No approval history found.
-                </p>
-            </div>
-        {% endif %}
+        </div>
     </div>
-</div>
 {% endblock %}

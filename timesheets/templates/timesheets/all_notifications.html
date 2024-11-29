@@ -1,22 +1,22 @@
 {% extends 'timesheets/base.html' %}
 
 {% block title %}
-    <h1 class="text-xl font-semibold">Notifications</h1>
+    <h1 class="text-xl font-semibold dark:text-white">Notifications</h1>
 {% endblock %}
 
 {% block content %}
 <div class="max-w-7xl mx-auto p-6">
-    <div class="bg-white rounded-lg shadow overflow-hidden">
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg dark:shadow-lg overflow-hidden">
         <!-- Header -->
-        <div class="px-6 py-4 bg-gray-50 border-b border-gray-200">
+        <div class="px-6 py-4 bg-gray-50 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-600">
             <div class="flex justify-between items-center">
-                <h2 class="text-lg font-semibold text-gray-800">All Notifications</h2>
+                <h2 class="text-lg font-semibold text-gray-800 dark:text-white">All Notifications</h2>
                 <div class="flex space-x-4">
                     {% if unread_notifications_count > 0 %}
                         <form method="POST" action="{% url 'timesheets:mark_all_notifications_read' %}">
                             {% csrf_token %}
                             <button type="submit" 
-                                   class="inline-flex items-center px-3 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
+                                   class="inline-flex items-center px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
                                 <i data-lucide="check-circle" class="h-4 w-4 mr-2"></i>
                                 Mark all as read
                             </button>
@@ -27,9 +27,9 @@
         </div>
 
         <!-- Notifications List -->
-        <div class="divide-y divide-gray-200">
+        <div class="divide-y divide-gray-200 dark:divide-gray-700">
             {% for notification in notifications %}
-                <div class="p-6 {% if not notification.read %}bg-blue-50{% endif %} hover:bg-gray-50 transition duration-150 ease-in-out">
+                <div class="p-6 {% if not notification.read %}bg-blue-50 dark:bg-blue-900/30{% endif %} hover:bg-gray-50 dark:hover:bg-gray-700 transition duration-150 ease-in-out">
                     <div class="flex justify-between items-start">
                         <a href="{% url 'timesheets:notification_link_handler' notification.id %}" 
                            class="flex-1 group">
@@ -48,13 +48,13 @@
                                 {% endif %}
 
                                 <div>
-                                    <p class="text-sm font-medium text-gray-900 group-hover:text-blue-600">
+                                    <p class="text-sm font-medium text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400">
                                         {{ notification.message }}
                                     </p>
-                                    <p class="mt-1 text-xs text-gray-500">
+                                    <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
                                         {{ notification.created_at|timesince }} ago
                                         {% if notification.read %}
-                                            <span class="inline-flex items-center ml-2">
+                                            <span class="inline-flex items-center ml-2 dark:text-gray-400">
                                                 <i data-lucide="check" class="h-3 w-3 mr-1"></i> Read
                                             </span>
                                         {% endif %}
@@ -70,7 +70,7 @@
                                       class="inline">
                                     {% csrf_token %}
                                     <button type="submit" 
-                                            class="text-sm text-blue-600 hover:text-blue-800">
+                                            class="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300">
                                         <i data-lucide="check-circle" class="h-4 w-4"></i>
                                         <span class="sr-only">Mark as read</span>
                                     </button>
@@ -80,7 +80,7 @@
                                   class="inline">
                                 {% csrf_token %}
                                 <button type="submit" 
-                                        class="text-sm text-red-600 hover:text-red-800">
+                                        class="text-sm text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300">
                                     <i data-lucide="trash-2" class="h-4 w-4"></i>
                                     <span class="sr-only">Delete</span>
                                 </button>
@@ -89,8 +89,8 @@
                     </div>
                 </div>
             {% empty %}
-                <div class="p-6 text-center text-gray-500">
-                    <i data-lucide="inbox" class="h-8 w-8 mx-auto mb-4 text-gray-400"></i>
+                <div class="p-6 text-center text-gray-500 dark:text-gray-400">
+                    <i data-lucide="inbox" class="h-8 w-8 mx-auto mb-4 text-gray-400 dark:text-gray-500"></i>
                     <p>No notifications found</p>
                 </div>
             {% endfor %}
@@ -98,13 +98,13 @@
 
         <!-- Pagination -->
         {% if notifications.has_other_pages %}
-            <div class="px-6 py-4 bg-gray-50 border-t border-gray-200">
+            <div class="px-6 py-4 bg-gray-50 dark:bg-gray-700 border-t border-gray-200 dark:border-gray-600">
                 <nav class="flex justify-center" aria-label="Pagination">
                     <ul class="inline-flex items-center -space-x-px">
                         {% if notifications.has_previous %}
                             <li>
                                 <a href="?page={{ notifications.previous_page_number }}" 
-                                   class="px-3 py-2 border border-gray-300 rounded-l-md text-sm hover:bg-gray-50">
+                                   class="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-l-md text-sm dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-600">
                                     Previous
                                 </a>
                             </li>
@@ -113,11 +113,11 @@
                         {% for i in notifications.paginator.page_range %}
                             <li>
                                 <a href="?page={{ i }}" 
-                                   class="px-3 py-2 border border-gray-300 text-sm 
+                                   class="px-3 py-2 border border-gray-300 dark:border-gray-600 text-sm dark:text-gray-200
                                           {% if notifications.number == i %}
-                                              bg-blue-50 text-blue-600 font-semibold
+                                              bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 font-semibold
                                           {% else %}
-                                              hover:bg-gray-50
+                                              hover:bg-gray-50 dark:hover:bg-gray-600
                                           {% endif %}">
                                     {{ i }}
                                 </a>
@@ -127,7 +127,7 @@
                         {% if notifications.has_next %}
                             <li>
                                 <a href="?page={{ notifications.next_page_number }}" 
-                                   class="px-3 py-2 border border-gray-300 rounded-r-md text-sm hover:bg-gray-50">
+                                   class="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-r-md text-sm dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-600">
                                     Next
                                 </a>
                             </li>

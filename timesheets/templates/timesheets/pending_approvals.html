@@ -2,7 +2,7 @@
 {% load custom_filters %}
 
 {% block title %}
-    <h1 class="text-xl font-semibold">
+    <h1 class="text-xl font-semibold text-gray-900 dark:text-white">
         {% if user.is_superuser %}
             First Stage Approval Queue
         {% else %}
@@ -16,86 +16,86 @@
     {% if messages %}
         <div class="mb-4">
             {% for message in messages %}
-                <div class="p-4 rounded-md {% if message.tags == 'error' %}bg-red-50 text-red-800{% else %}bg-green-50 text-green-800{% endif %}">
+                <div class="p-4 rounded-md {% if message.tags == 'error' %}bg-red-50 dark:bg-red-900 text-red-800 dark:text-red-100{% else %}bg-green-50 dark:bg-green-900 text-green-800 dark:text-green-100{% endif %}">
                     {{ message }}
                 </div>
             {% endfor %}
         </div>
     {% endif %}
 
-    <div class="bg-white shadow-md rounded-lg overflow-hidden">
+    <div class="bg-white dark:bg-gray-800 shadow-md dark:shadow-gray-700 rounded-lg overflow-hidden">
         {% if pending_approvals %}
             <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-gray-200">
-                    <thead class="bg-gray-50">
+                <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                    <thead class="bg-gray-50 dark:bg-gray-700">
                         <tr>
-                            <th class="px-6 py-3 text-left text-xs text-center font-medium text-gray-500 uppercase tracking-wider">
+                            <th class="px-6 py-3 text-left text-xs text-center font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                                 Employee
                             </th>
-                            <th class="px-6 py-3 text-left text-xs text-center font-medium text-gray-500 uppercase tracking-wider">
+                            <th class="px-6 py-3 text-left text-xs text-center font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                                 Date
                             </th>
-                            <th class="px-6 py-3 text-left text-xs text-center font-medium text-gray-500 uppercase tracking-wider">
+                            <th class="px-6 py-3 text-left text-xs text-center font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                                 Hours
                             </th>
-                            <th class="px-6 py-3 text-left text-xs text-center font-medium text-gray-500 uppercase tracking-wider">
+                            <th class="px-6 py-3 text-left text-xs text-center font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                                 Status
                             </th>
-                            <th class="px-6 py-3 text-left text-xs text-center font-medium text-gray-500 uppercase tracking-wider">
+                            <th class="px-6 py-3 text-left text-xs text-center font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                                 Submitted
                             </th>
-                            <th class="px-6 py-3 text-left text-xs text-center font-medium text-gray-500 uppercase tracking-wider">
+                            <th class="px-6 py-3 text-left text-xs text-center font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                                 Actions
                             </th>
                         </tr>
                     </thead>
-                    <tbody class="bg-white divide-y divide-gray-200">
+                    <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                         {% for approval in pending_approvals %}
                             <tr>
                                 <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="text-sm font-medium text-gray-900">
+                                    <div class="text-sm font-medium text-gray-900 dark:text-white">
                                         {{ approval.time_entry.user.get_full_name }}
                                     </div>
-                                    <div class="text-sm text-gray-500">
+                                    <div class="text-sm text-gray-500 dark:text-gray-400">
                                         {{ approval.time_entry.user.email }}
                                     </div>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="text-sm text-gray-900">
+                                    <div class="text-sm text-gray-900 dark:text-white">
                                         {{ approval.time_entry.date|date:"M d, Y" }}
                                     </div>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="text-sm text-gray-900">
+                                    <div class="text-sm text-gray-900 dark:text-white">
                                         {{ approval.time_entry.hours_to_be_paid }}
                                     </div>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full
                                         {% if approval.status == 'pending_first' %}
-                                            bg-blue-100 text-blue-800
+                                            bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-100
                                         {% else %}
-                                            bg-purple-100 text-purple-800
+                                            bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-100
                                         {% endif %}">
                                         {{ approval.get_status_display }}
                                     </span>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="text-sm text-gray-900">
+                                    <div class="text-sm text-gray-900 dark:text-white">
                                         {{ approval.submitted_at|date:"M d, Y H:i" }}
                                     </div>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                     <div class="flex justify-end space-x-4">
                                         <a href="{% url 'timesheets:review_time_entry' approval.time_entry.pk %}" 
-                                           class="inline-flex items-center px-3 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100 rounded-md transition duration-150">
+                                           class="inline-flex items-center px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition duration-150">
                                             <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
                                             </svg>
                                             Review
                                         </a>
                                         <a href="{% url 'timesheets:time_entry_detail' approval.time_entry.pk %}"
-                                           class="inline-flex items-center px-3 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100 rounded-md transition duration-150">
+                                           class="inline-flex items-center px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition duration-150">
                                             <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
@@ -106,7 +106,7 @@
                                         {% if approval.time_entry.attachment %}
                                         <div class="mt-2">
                                             <a href="{{ approval.time_entry.attachment.url }}" 
-                                               class="inline-flex items-center px-3 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100 rounded-md transition duration-150">
+                                               class="inline-flex items-center px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition duration-150">
                                                 <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
                                                           d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/>
@@ -123,7 +123,7 @@
                 </table>
             </div>
         {% else %}
-            <div class="p-6 text-center text-gray-500">
+            <div class="p-6 text-center text-gray-500 dark:text-gray-400">
                 No pending approvals found.
             </div>
         {% endif %}

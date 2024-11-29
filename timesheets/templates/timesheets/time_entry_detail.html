@@ -26,6 +26,7 @@ Timesheet Entries - Detailed View
                     height: 297mm !important; /* A4 height */
                     overflow: visible !important;
                     font-size: 0.9em; /* Reduce font size slightly */
+                    color: black !important; /* Ensure text is black */
                 }
                 
                 /* Reset main content positioning */
@@ -43,6 +44,8 @@ Timesheet Entries - Detailed View
         page-break-inside: avoid;
         width: 100% !important; /* Ensure the table width fits within the content width */
         font-size: 1em; /* Increase font size */
+        background-color: white !important; /* Ensure table background is white */
+        color: black !important; /* Ensure text is black */
     }
     /* Reduce padding in table cells */
     th, td {
@@ -58,10 +61,11 @@ Timesheet Entries - Detailed View
             background: white !important;
             margin: 0 !important;
             padding: 0 !important;
+            color: black !important;
         }
         
-        .bg-white {
-            background: white !important;
+        .bg-white, .bg-gray-50, .bg-gray-200, .bg-gray-700, .bg-gray-800, .bg-gray-900 {
+            background-color: white !important;
             box-shadow: none !important;
         }
         
@@ -70,6 +74,8 @@ Timesheet Entries - Detailed View
             margin: 0 !important;
             padding: 0.5cm !important; /* Reduced padding */
             width: 98% !important; /* Slightly narrower width to prevent overflow */
+            background-color: white !important;
+            color: black !important;
         }
         
     /* Adjust table layout */
@@ -77,6 +83,8 @@ Timesheet Entries - Detailed View
         page-break-inside: avoid;
         width: 100% !important;
         font-size: 1em; /* Increase font size */
+        background-color: white !important;
+        color: black !important;
     }
         
         /* Force background colors in printing */
@@ -84,6 +92,26 @@ Timesheet Entries - Detailed View
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
         }
+
+        /* Override dark mode styles */
+        .dark\:bg-gray-800, .dark\:bg-gray-700, .dark\:text-gray-300, 
+        .dark\:text-gray-700, .dark\:border-gray-700, .dark\:shadow-gray-700 {
+            background: white !important;
+            color: black !important;
+            border-color: #374151 !important; /* Light border color */
+            box-shadow: none !important;
+        }
+
+        /* Ensure buttons use light mode styles */
+        .bg-gray-800, .bg-gray-700, .text-gray-300, .text-gray-700,
+        .border-gray-700, .shadow-gray-700 {
+            background: white !important;
+            color: black !important;
+            border-color: #374151 !important;
+            box-shadow: none !important;
+        }
+
+        /* Reset any other dark mode specific styles */
     }
 
     /* Hide print-only elements when viewing on screen */
@@ -101,259 +129,343 @@ Timesheet Entries - Detailed View
         details > summary::-webkit-details-marker {
             display: none;
         }
+
+    /* Add dark mode styles */
+    @media (prefers-color-scheme: dark) {
+        .bg-white {
+            background-color: #1f2937 !important;
+            color: #e5e7eb !important;
+        }
+        
+        .text-gray-600, .text-gray-700, .text-gray-800 {
+            color: #e5e7eb !important;
+        }
+
+        .border, .border-gray-200 {
+            border-color: #374151 !important;
+        }
+
+        table {
+            background-color: #1f2937 !important;
+        }
+
+        thead {
+            background: linear-gradient(to right, #111827, #1f2937) !important;
+        }
+
+        tbody tr:hover {
+            background-color: #374151 !important;
+        }
+
+        .bg-gray-50 {
+            background-color: #283548 !important;
+        }
+
+        .shadow-lg, .shadow-xl, .shadow-2xl {
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5) !important;
+        }
+
+        /* Button styles for dark mode */
+        .from-gray-50.to-gray-100 {
+            background: linear-gradient(to right, #374151, #4b5563) !important;
+            color: #e5e7eb !important;
+        }
+
+        .from-gray-800.to-gray-900 {
+            background: linear-gradient(to right, #1f2937, #111827) !important;
+        }
+
+        /* Status badges */
+        .bg-green-50 { background-color: #065f46 !important; }
+        .bg-red-50 { background-color: #991b1b !important; }
+        .bg-yellow-50 { background-color: #92400e !important; }
+        
+        .bg-green-100 { background-color: #059669 !important; }
+        .bg-red-100 { background-color: #dc2626 !important; }
+        .bg-yellow-100 { background-color: #d97706 !important; }
+
+        /* Text colors for status badges */
+        .text-green-800, .text-red-800, .text-yellow-800 {
+            color: #fff !important;
+        }
+
+        /* Form elements */
+        input, textarea, select {
+            background-color: #374151 !important;
+            color: #e5e7eb !important;
+            border-color: #4b5563 !important;
+        }
+
+        /* Print preview fixes */
+        @media print {
+            body {
+                background: white !important;
+                color: black !important;
+            }
+            
+            .bg-white {
+                background-color: white !important;
+                color: black !important;
+            }
+            
+            .text-gray-600, .text-gray-700, .text-gray-800 {
+                color: black !important;
+            }
+        }
+    }
 </style>
 <!-- Main content wrapper -->
-<div class="timesheet-content bg-white rounded-lg overflow-hidden">
+<div class="timesheet-content bg-white dark:bg-gray-800 rounded-lg overflow-hidden">
     <div class="p-6 space-y-8">
         <!-- Header info -->
-        <div class="flex justify-end items-center border-b pb-4">
-            <p class="text-lg text-gray-600">
+        <div class="flex justify-end items-center border-b border-gray-200 dark:border-gray-700 pb-4">
+            <p class="text-lg text-gray-600 dark:text-gray-300">
                 <span class="font-semibold">Date:</span> {{ time_entry.date }} | 
                 <span class="font-semibold">Name:</span> {{ time_entry.user.first_name }} {{ time_entry.user.last_name }}
             </p>
         </div>
         <!-- Main table -->
-            <div class="overflow-x-auto rounded-lg shadow-lg">
-                <table class="min-w-full bg-white rounded-lg shadow-lg overflow-hidden">
-                    <thead class="bg-gradient-to-r from-gray-800 to-gray-700 text-white">
+            <div class="overflow-x-auto rounded-lg shadow-lg dark:shadow-lg">
+                <table class="min-w-full bg-white dark:bg-gray-700 rounded-lg shadow-lg overflow-hidden">
+                    <thead class="bg-gradient-to-r from-gray-800 to-gray-700 text-white dark:text-gray-300">
                         <tr>
-                            <th scope="col" class="px-2 py-3 text-center text-sm font-semibold uppercase tracking-wider" colspan="2">
+                            <th scope="col" class="px-2 py-3 text-center text-sm font-semibold uppercase tracking-wider dark:text-gray-300" colspan="2">
                                 Client/Job
                             </th>
-                            <th scope="col" class="px-2 py-3 text-center text-sm font-semibold uppercase tracking-wider">
+                            <th scope="col" class="px-2 py-3 text-center text-sm font-semibold uppercase tracking-wider dark:text-gray-300">
                                 NST Job #
                             </th>
-                            <th scope="col" class="px-2 py-3 text-center text-sm font-semibold uppercase tracking-wider" colspan="2">
+                            <th scope="col" class="px-2 py-3 text-center text-sm font-semibold uppercase tracking-wider dark:text-gray-300" colspan="2">
                                 Time
                             </th>
-                            <th scope="col" class="px-2 py-3 text-center text-sm font-semibold uppercase tracking-wider" colspan="2">
+                            <th scope="col" class="px-2 py-3 text-center text-sm font-semibold uppercase tracking-wider dark:text-gray-300" colspan="2">
                                 Mileage
                             </th>
-                            <th scope="col" class="px-2 py-3 text-center text-sm font-semibold uppercase tracking-wider" colspan="2">
+                            <th scope="col" class="px-2 py-3 text-center text-sm font-semibold uppercase tracking-wider dark:text-gray-300" colspan="2">
                                 Services Performed
                             </th>
                         </tr>
                         <tr>
-                            <th scope="col" class="px-2 py-2 text-center text-xs font-semibold uppercase tracking-wider" colspan="2">
+                            <th scope="col" class="px-2 py-2 text-center text-xs font-semibold uppercase tracking-wider dark:text-gray-300" colspan="2">
                                 <!-- Empty for spacing -->
                             </th>
-                            <th scope="col" class="px-2 py-2 text-center text-xs font-semibold uppercase tracking-wider">
+                            <th scope="col" class="px-2 py-2 text-center text-xs font-semibold uppercase tracking-wider dark:text-gray-300">
                                 <!-- Empty for spacing -->
                             </th>
-                            <th scope="col" class="px-2 py-2 text-center text-xs font-semibold tracking-wider">
+                            <th scope="col" class="px-2 py-2 text-center text-xs font-semibold tracking-wider dark:text-gray-300">
                                 Arrive
                             </th>
-                            <th scope="col" class="px-2 py-2 text-center text-xs font-semibold tracking-wider">
+                            <th scope="col" class="px-2 py-2 text-center text-xs font-semibold tracking-wider dark:text-gray-300">
                                 Leave
                             </th>
-                            <th scope="col" class="px-2 py-2 text-center text-xs font-semibold tracking-wider">
+                            <th scope="col" class="px-2 py-2 text-center text-xs font-semibold tracking-wider dark:text-gray-300">
                                 Arrive
                             </th>
-                            <th scope="col" class="px-2 py-2 text-center text-xs font-semibold tracking-wider">
+                            <th scope="col" class="px-2 py-2 text-center text-xs font-semibold tracking-wider dark:text-gray-300">
                                 Leave
                             </th>
-                            <th scope="col" class="px-2 py-2 text-center text-xs font-semibold tracking-wider">
+                            <th scope="col" class="px-2 py-2 text-center text-xs font-semibold tracking-wider dark:text-gray-300">
                                 Labor Code
                             </th>
-                            <th scope="col" class="px-2 py-2 text-center text-xs font-semibold tracking-wider">
+                            <th scope="col" class="px-2 py-2 text-center text-xs font-semibold tracking-wider dark:text-gray-300">
                                 Description
                             </th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-gray-200">
+                    <tbody class="divide-y divide-gray-200 dark:divide-gray-600">
                         <!-- Start Location Row -->
-                        <tr class="bg-gray-50">
-                            <td class="px-6 py-3 whitespace-nowrap text-sm font-semibold text-gray-800">
+                        <tr class="bg-gray-50 dark:bg-gray-900">
+                            <td class="px-6 py-3 whitespace-nowrap text-sm font-semibold text-gray-800 dark:text-gray-200">
                                 Start Location:
                             </td>
-                            <td class="px-2 py-3 whitespace-nowrap text-sm text-gray-700 text-center">
+                            <td class="px-2 py-3 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300 text-center">
                                 {{ time_entry.start_location }}
                             </td>
-                            <td class="px-2 py-3 whitespace-nowrap text-sm text-gray-700">
+                            <td class="px-2 py-3 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">
                                 <!-- Empty for spacing -->
                             </td>
-                            <td class="px-2 py-3 whitespace-nowrap text-sm text-gray-700">
+                            <td class="px-2 py-3 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">
                                 <!-- Empty -->
                             </td>
-                            <td class="px-2 py-3 whitespace-nowrap text-sm text-gray-700 text-center">
+                            <td class="px-2 py-3 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300 text-center">
                                 {{ time_entry.initial_leave_time|date:"H:i" }}
                             </td>
-                            <td class="px-2 py-3 whitespace-nowrap text-sm text-gray-700">
+                            <td class="px-2 py-3 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">
                                 <!-- Empty -->
                             </td>
-                            <td class="px-2 py-3 whitespace-nowrap text-sm text-gray-700 text-center">
+                            <td class="px-2 py-3 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300 text-center">
                                 {{ time_entry.initial_mileage }}
                             </td>
-                            <td class="px-2 py-3 whitespace-nowrap text-sm text-gray-700" colspan="2">
+                            <td class="px-2 py-3 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300" colspan="2">
                                 <!-- Empty -->
                             </td>
                         </tr>
             
                         <!-- Job Entries -->
                         {% for job in time_entry.jobs.all %}
-                        <tr class="hover:bg-gray-100">
-                            <td class="px-2 py-3 whitespace-nowrap text-sm text-gray-700 text-center" colspan="2">
+                        <tr class="hover:bg-gray-100 dark:hover:bg-gray-800">
+                            <td class="px-2 py-3 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300 text-center" colspan="2">
                                 {{ job.job_description }}
                             </td>
-                            <td class="px-2 py-3 whitespace-nowrap text-sm text-gray-700 text-center">
+                            <td class="px-2 py-3 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300 text-center">
                                 {{ job.job_number }}
                             </td>
-                            <td class="px-2 py-3 whitespace-nowrap text-sm text-gray-700 text-center">
+                            <td class="px-2 py-3 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300 text-center">
                                 {{ job.activity_arrive_time|date:"H:i" }}
                             </td>
-                            <td class="px-2 py-3 whitespace-nowrap text-sm text-gray-700 text-center">
+                            <td class="px-2 py-3 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300 text-center">
                                 {{ job.activity_leave_time|date:"H:i" }}
                             </td>
-                            <td class="px-2 py-3 whitespace-nowrap text-sm text-gray-700 text-center">
+                            <td class="px-2 py-3 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300 text-center">
                                 {{ job.activity_start_mileage }}
                             </td>
-                            <td class="px-2 py-3 whitespace-nowrap text-sm text-gray-700 text-center">
+                            <td class="px-2 py-3 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300 text-center">
                                 {{ job.activity_end_mileage }}
                             </td>
-                            <td class="px-2 py-3 whitespace-nowrap text-sm text-gray-700 text-center">
+                            <td class="px-2 py-3 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300 text-center">
                                 {{ job.labor_code }}
                             </td>
-                            <td class="px-2 py-3 whitespace-nowrap text-sm text-gray-700 text-center">
+                            <td class="px-2 py-3 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300 text-center">
                                 {{ job.labor_code_description }}
                             </td>
                         </tr>
                         {% endfor %}
             
                         <!-- End Location Row -->
-                        <tr class="bg-gray-50">
-                            <td class="px-6 py-3 whitespace-nowrap text-sm font-semibold text-gray-800">
+                        <tr class="bg-gray-50 dark:bg-gray-900">
+                            <td class="px-6 py-3 whitespace-nowrap text-sm font-semibold text-gray-800 dark:text-gray-200">
                                 End Location:
                             </td>
-                            <td class="px-2 py-3 whitespace-nowrap text-sm text-gray-700 text-center">
+                            <td class="px-2 py-3 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300 text-center">
                                 {{ time_entry.end_location }}
                             </td>
-                            <td class="px-2 py-3 whitespace-nowrap text-sm text-gray-700">
+                            <td class="px-2 py-3 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">
                                 <!-- Empty for spacing -->
                             </td>
-                            <td class="px-2 py-3 whitespace-nowrap text-sm text-gray-700 text-center">
+                            <td class="px-2 py-3 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300 text-center">
                                 {{ time_entry.final_arrive_time|date:"H:i" }}
                             </td>
-                            <td class="px-2 py-3 whitespace-nowrap text-sm text-gray-700">
+                            <td class="px-2 py-3 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">
                                 <!-- Empty -->
                             </td>
-                            <td class="px-2 py-3 whitespace-nowrap text-sm text-gray-700 text-center">
+                            <td class="px-2 py-3 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300 text-center">
                                 {{ time_entry.final_mileage }}
                             </td>
-                            <td class="px-2 py-3 whitespace-nowrap text-sm text-gray-700" colspan="3">
+                            <td class="px-2 py-3 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300" colspan="3">
                                 <!-- Empty -->
                             </td>
                         </tr>
                     </tbody>
-                    <tfoot class="bg-gray-200">
+                    <tfoot class="bg-gray-200 dark:bg-gray-800">
                         <!-- Summary Row -->
                         <tr>
-                            <td class="px-2 py-3 whitespace-nowrap text-base font-semibold text-gray-800 text-center">
+                            <td class="px-2 py-3 whitespace-nowrap text-base font-semibold text-gray-800 dark:text-gray-300 text-center">
                                 {{ time_entry.hours_on_site }}
                             </td>
-                            <td class="px-2 py-3 whitespace-nowrap text-base font-semibold text-gray-800 text-center">
+                            <td class="px-2 py-3 whitespace-nowrap text-base font-semibold text-gray-800 dark:text-gray-300 text-center">
                                 {{ time_entry.hours_for_the_day }}
                             </td>
-                            <td class="px-2 py-3 whitespace-nowrap text-base font-semibold text-gray-800 text-center">
+                            <td class="px-2 py-3 whitespace-nowrap text-base font-semibold text-gray-800 dark:text-gray-300 text-center">
                                 {{ time_entry.travel_time_subtract }}
                             </td>
-                            <td class="px-2 py-3 whitespace-nowrap text-base font-semibold text-gray-800 text-center">
+                            <td class="px-2 py-3 whitespace-nowrap text-base font-semibold text-gray-800 dark:text-gray-300 text-center">
                                 {{ time_entry.hours_to_be_paid }}
                             </td>
-                            <td class="px-2 py-3 whitespace-nowrap text-base font-semibold text-gray-800" colspan="2">
+                            <td class="px-2 py-3 whitespace-nowrap text-base font-semibold text-gray-800 dark:text-gray-300" colspan="2">
                                 <!-- Empty for spacing -->
                             </td>
-                            <td class="px-2 py-3 whitespace-nowrap text-base font-semibold text-gray-800 text-center">
+                            <td class="px-2 py-3 whitespace-nowrap text-base font-semibold text-gray-800 dark:text-gray-300 text-center">
                                 {{ time_entry.total_miles }}
                             </td>
-                            <td class="px-2 py-3 whitespace-nowrap text-base font-semibold text-gray-800 text-center">
+                            <td class="px-2 py-3 whitespace-nowrap text-base font-semibold text-gray-800 dark:text-gray-300 text-center">
                                 {{ time_entry.travel_miles_subtract }}
                             </td>
-                            <td class="px-2 py-3 whitespace-nowrap text-base font-semibold text-gray-800 text-center">
+                            <td class="px-2 py-3 whitespace-nowrap text-base font-semibold text-gray-800 dark:text-gray-300 text-center">
                                 {{ time_entry.miles_to_be_paid }}
                             </td>
                         </tr>
                         <!-- Labels Row -->
                         <tr>
-                            <td class="px-2 py-3 whitespace-nowrap text-sm font-semibold text-gray-700 text-center">
+                            <td class="px-2 py-3 whitespace-nowrap text-sm font-semibold text-gray-700 dark:text-gray-300 text-center">
                                 Hours on Site:
                             </td>
-                            <td class="px-4 py-3 whitespace-nowrap text-sm font-semibold text-gray-700 text-center">
+                            <td class="px-4 py-3 whitespace-nowrap text-sm font-semibold text-gray-700 dark:text-gray-300 text-center">
                                 Hours for the Day:
                             </td>
-                            <td class="px-2 py-3 whitespace-nowrap text-sm font-semibold text-gray-700 text-center">
+                            <td class="px-2 py-3 whitespace-nowrap text-sm font-semibold text-gray-700 dark:text-gray-300 text-center">
                                 Travel Time (subtract):
                             </td>
-                            <td class="px-2 py-3 whitespace-nowrap text-sm font-semibold text-gray-700 text-center">
+                            <td class="px-2 py-3 whitespace-nowrap text-sm font-semibold text-gray-700 dark:text-gray-300 text-center">
                                 Hours to be Paid:
                             </td>
-                            <td class="px-2 py-3 whitespace-nowrap text-sm font-semibold text-gray-700" colspan="2">
+                            <td class="px-2 py-3 whitespace-nowrap text-sm font-semibold text-gray-700 dark:text-gray-300" colspan="2">
                                 Employee's Signature
                             </td>
-                            <td class="px-2 py-3 whitespace-nowrap text-sm font-semibold text-gray-700 text-center">
+                            <td class="px-2 py-3 whitespace-nowrap text-sm font-semibold text-gray-700 dark:text-gray-300 text-center">
                                 Total Miles:
                             </td>
-                            <td class="px-2 py-3 whitespace-nowrap text-sm font-semibold text-gray-700 text-center">
+                            <td class="px-2 py-3 whitespace-nowrap text-sm font-semibold text-gray-700 dark:text-gray-300 text-center">
                                 Travel Miles (subtract):
                             </td>
-                            <td class="px-2 py-3 whitespace-nowrap text-sm font-semibold text-gray-700 text-center">
+                            <td class="px-2 py-3 whitespace-nowrap text-sm font-semibold text-gray-700 dark:text-gray-300 text-center">
                                 Miles to be Paid
                             </td>
                         </tr>
                     </tfoot>
                 </table>
             </div>
-            <div class="mt-4 screen-only">
-                    <p class="text-sm font-semibold text-gray-700 mb-1">Technician's Workspace</p>
-                    <div class="h-20 border-2 border-gray-300 rounded-md p-2 overflow-auto bg-white mb-1">{{ time_entry.comments }}</div>
+            <div class="mt-4 screen-only dark:text-gray-300">
+                    <p class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Technician's Workspace</p>
+                    <div class="h-20 border-2 border-gray-300 dark:bg-gray-700 dark:text-white rounded-md p-2 overflow-auto bg-white mb-1">{{ time_entry.comments }}</div>
                 </div>
         <div class="workspace-section space-y-1">
-            <div class="border-t pt-6 print-only">
+            <div class="border-t border-gray-200 dark:border-gray-700 pt-6 print-only">
                 <div class="text-center">
-                    <p class="text-sm font-medium text-gray-700 dashes mb-0">------------------------</p>
-                    <p class="text-sm font-semibold text-gray-700 leading-none">Supervisor's Initials</p>
-                    <div class="border-b-2 border-gray-300 mt-1"></div>
+                    <p class="text-sm font-medium text-gray-700 dark:text-gray-300 dashes mb-0">------------------------</p>
+                    <p class="text-sm font-semibold text-gray-700 dark:text-gray-300 leading-none">Supervisor's Initials</p>
+                    <div class="border-b-2 border-gray-300 dark:border-gray-600 mt-1"></div>
                 </div>
             </div>
             <div class="grid grid-cols-1 md:grid-cols-7 gap-4 mt-0">
                 <div class="md:col-span-4 print-only">
-                    <p class="text-sm font-semibold text-gray-700 mb-2">Technician's Workspace</p>
+                    <p class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Technician's Workspace</p>
                     <div class="h-20 border-2 border-gray-300 rounded-md p-2 overflow-auto  bg-white">{{ time_entry.comments }}</div>
                 </div>
                 <div class="md:col-span-3 print-only">
-                    <p class="text-sm font-semibold text-gray-700 mb-2">Accounting Workspace - Do Not Write Here</p>
+                    <p class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Accounting Workspace - Do Not Write Here</p>
                     <div class="h-20 border-2 border-gray-300 rounded-md bg-white"></div>
                 </div>
             </div>
             <div class="grid grid-cols-1 md:grid-cols-7 gap-4">
                 <div class="md:col-span-3 print-only">
-                    <p class="text-sm font-semibold text-gray-700 mb-2">Supervisor's Workspace</p>
+                    <p class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Supervisor's Workspace</p>
                     <div class="h-20 border-2 border-gray-300 rounded-md bg-white"></div>
                 </div>
                 <div class="md:col-span-2 print-only">
-                    <p class="text-sm font-semibold text-gray-700 mb-2">Accounting Manager's Initials</p>
+                    <p class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Accounting Manager's Initials</p>
                     <div class="h-20 border-2 border-gray-300 rounded-md  bg-white"></div>
                 </div>
                 <div class="md:col-span-2 print-only">
-                    <p class="text-sm font-semibold text-gray-700 mb-2">Controller's Initials</p>
+                    <p class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Controller's Initials</p>
                     <div class="h-20 border-2 border-gray-300 rounded-md  bg-white"></div>
                 </div>
             </div>
         </div>
         {% if time_entry.attachment %}
-<div class="mt-1 bg-white rounded-lg shadow p-4 screen-only">
-    <h3 class="text-lg font-semibold text-gray-800 mb-4">Attached Document</h3>
+<div class="mt-1 bg-white dark:bg-gray-800 rounded-lg shadow p-4 screen-only">
+    <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-300 mb-4">Attached Document</h3>
     <div class="flex items-center justify-between">
         <div class="flex items-center space-x-3">
-            <svg class="w-6 h-6 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg class="w-6 h-6 text-gray-500 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
                       d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/>
             </svg>
-            <span class="text-gray-600">{{ time_entry.get_attachment_filename }}</span>
+            <span class="text-gray-600 dark:text-gray-300">{{ time_entry.get_attachment_filename }}</span>
         </div>
         <a href="{{ time_entry.attachment.url }}" 
-           class="inline-flex items-center px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors duration-200"
+           class="inline-flex items-center px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors duration-200"
            target="_blank">
-            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg class="w-5 h-5 mr-2 text-gray-700 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
                       d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
             </svg>
@@ -366,11 +478,11 @@ Timesheet Entries - Detailed View
 
 
 <!-- Approval Details -->
-<div class="mt-6 bg-white shadow-sm rounded-lg p-4 border {% if time_entry.approval_status == 'approved' %}border-green-200 bg-green-50{% elif time_entry.approval_status == 'rejected' %}border-red-200 bg-red-50{% elif time_entry.approval_status == 'pending' %}border-yellow-200 bg-yellow-50{% else %}border-gray-200{% endif %} screen-only">
+<div class="mt-6 bg-white dark:bg-gray-800 shadow-sm rounded-lg p-4 border {% if time_entry.approval_status == 'approved' %}border-green-200 bg-green-50{% elif time_entry.approval_status == 'rejected' %}border-red-200 bg-red-50{% elif time_entry.approval_status == 'pending' %}border-yellow-200 bg-yellow-50{% else %}border-gray-200{% endif %} screen-only">
     <div class="flex items-center justify-between">
         <div class="flex items-center space-x-3">
-            <h3 class="text-lg font-semibold text-gray-800">Approval Details</h3>
-            <span class="text-sm font-medium">Status:</span>
+            <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-300">Approval Details</h3>
+            <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Status:</span>
             {% if time_entry.approval_status %}
                 <span class="px-3 py-1 rounded-full text-sm font-medium
                     {% if time_entry.approval_status == 'approved' %}
@@ -390,7 +502,7 @@ Timesheet Entries - Detailed View
         </div>
         
         {% if time_entry.approval %}
-            <div class="text-sm text-gray-600">
+            <div class="text-sm text-gray-600 dark:text-gray-300">
                 {% if time_entry.approval.reviewed_at %}
                     <span class="font-medium">Reviewed by:</span> {{ time_entry.approval.reviewed_by.get_full_name }}
                     <span class="font-medium ml-4">on</span> {{ time_entry.approval.reviewed_at|date:"M d, Y H:i" }}
@@ -405,15 +517,15 @@ Timesheet Entries - Detailed View
         {% if time_entry.approval.submitter_comments or time_entry.approval.reviewer_comments %}
             <div class="mt-4 space-y-3">
                 {% if time_entry.approval.submitter_comments %}
-                    <div class="bg-white rounded-md p-3 border border-gray-200">
-                        <p class="text-sm font-medium text-gray-700">Submission Comments:</p>
-                        <p class="text-sm text-gray-600">{{ time_entry.approval.submitter_comments }}</p>
+                    <div class="bg-white dark:bg-gray-800 rounded-md p-3 border border-gray-200 dark:border-gray-700">
+                        <p class="text-sm font-medium text-gray-700 dark:text-gray-300">Submission Comments:</p>
+                        <p class="text-sm text-gray-600 dark:text-gray-300">{{ time_entry.approval.submitter_comments }}</p>
                     </div>
                 {% endif %}
                 {% if time_entry.approval.reviewer_comments %}
-                    <div class="bg-white rounded-md p-3 border border-gray-200">
-                        <p class="text-sm font-medium text-gray-700">Reviewer Comments:</p>
-                        <p class="text-sm text-gray-600">{{ time_entry.approval.reviewer_comments }}</p>
+                    <div class="bg-white dark:bg-gray-800 rounded-md p-3 border border-gray-200 dark:border-gray-700">
+                        <p class="text-sm font-medium text-gray-700 dark:text-gray-300">Reviewer Comments:</p>
+                        <p class="text-sm text-gray-600 dark:text-gray-300">{{ time_entry.approval.reviewer_comments }}</p>
                     </div>
                 {% endif %}
             </div>
@@ -425,20 +537,20 @@ Timesheet Entries - Detailed View
 
 {% if time_entry.approval and time_entry.approval.history.all %}
     <div class="mt-6 screen-only">
-        <details class="group bg-white shadow-xl rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-2xl">
-            <summary class="px-6 py-4 border-b border-gray-100 cursor-pointer hover:bg-gray-50/50 transition-all">
+        <details class="group bg-white dark:bg-gray-800 shadow-xl rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-2xl">
+            <summary class="px-6 py-4 border-b border-gray-100 dark:border-gray-700 cursor-pointer hover:bg-gray-50/50 dark:hover:bg-gray-700/50 transition-all">
                 <div class="flex items-center justify-between">
                     <div class="flex items-center space-x-2">
-                        <h3 class="text-lg font-semibold text-gray-800">Approval History</h3>
+                        <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-300">Approval History</h3>
                     </div>
-                    <svg class="w-5 h-5 text-gray-600 transform transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg class="w-5 h-5 text-gray-600 dark:text-gray-300 transform transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                     </svg>
                 </div>
             </summary>
             <div class="space-y-4 p-6">
                 {% for history in time_entry.approval.history.all %}
-                    <div class="p-4 {% if history.status == 'rejected' %}bg-red-50{% elif history.status == 'approved' %}bg-green-50{% else %}bg-gray-50{% endif %} rounded-lg border">
+                    <div class="p-4 {% if history.status == 'rejected' %}bg-red-50{% elif history.status == 'approved' %}bg-green-50{% else %}bg-gray-50{% endif %} dark:bg-gray-800 rounded-lg border">
                         <div class="flex justify-between items-start">
                             <div>
                                 <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
@@ -454,24 +566,24 @@ Timesheet Entries - Detailed View
                                     {{ history.get_status_display }}
                                 </span>
                                 {% if history.is_first_review %}
-                                    <span class="ml-2 text-xs text-gray-500">(First Review)</span>
+                                    <span class="ml-2 text-xs text-gray-500 dark:text-gray-300">(First Review)</span>
                                 {% elif history.is_second_review %}
-                                    <span class="ml-2 text-xs text-gray-500">(Final Review)</span>
+                                    <span class="ml-2 text-xs text-gray-500 dark:text-gray-300">(Final Review)</span>
                                 {% endif %}
                             </div>
-                            <div class="text-sm text-gray-500">
+                            <div class="text-sm text-gray-500 dark:text-gray-300">
                                 {{ history.reviewed_at|date:"M d, Y H:i" }}
                             </div>
                         </div>
                         <div class="mt-2">
-                            <p class="text-sm text-gray-600">
+                            <p class="text-sm text-gray-600 dark:text-gray-300">
                                 <span class="font-medium">Reviewed by:</span> 
                                 {{ history.reviewed_by.get_full_name }}
                             </p>
                             {% if history.comments %}
                                 <div class="mt-2 text-sm">
-                                    <p class="font-medium text-gray-700">Comments:</p>
-                                    <p class="text-gray-600 mt-1">{{ history.comments }}</p>
+                                    <p class="font-medium text-gray-700 dark:text-gray-300">Comments:</p>
+                                    <p class="text-gray-600 dark:text-gray-300 mt-1">{{ history.comments }}</p>
                                 </div>
                             {% endif %}
                         </div>
@@ -485,15 +597,14 @@ Timesheet Entries - Detailed View
 <div class="mt-8 flex flex-wrap gap-4 screen-only">
     <!-- Print Button with SVG Icon -->
     <button onclick="window.print()" 
-            class="inline-flex items-center px-6 py-2.5 bg-gradient-to-r from-gray-800 to-gray-900 
-                   text-white rounded-xl font-medium
+            class="inline-flex items-center px-6 py-2.5 bg-gradient-to-r from-gray-800 to-gray-900 dark:from-gray-700 dark:to-gray-800 text-white dark:text-gray-300 rounded-xl font-medium
                    border border-transparent
                    hover:from-gray-700 hover:to-gray-800
                    focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2
                    transform transition-all duration-200
                    hover:scale-[1.02] active:scale-95
                    no-print">
-        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+        <svg class="w-5 h-5 mr-2 text-white dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
                   d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
         </svg>
@@ -503,14 +614,14 @@ Timesheet Entries - Detailed View
     {% if request.user.is_superuser or request.user.role == 'Supervisor' %}
         <!-- Overwrite Button for Supervisors/Admins -->
         <a href="{% url 'timesheets:time_entry_edit' time_entry.pk %}" 
-           class="inline-flex items-center px-6 py-2.5 bg-gradient-to-r from-red-600 to-red-700 
-                  text-white rounded-xl font-medium
+           class="inline-flex items-center px-6 py-2.5 bg-gradient-to-r from-red-600 to-red-700 dark:from-red-500 dark:to-red-600 
+                  text-white dark:text-gray-300 rounded-xl font-medium
                   border border-transparent
                   hover:from-red-500 hover:to-red-600
                   focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2
                   transform transition-all duration-200
                   hover:scale-[1.02] active:scale-95">
-            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg class="w-5 h-5 mr-2 text-white dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
                       d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
             </svg>
@@ -520,14 +631,14 @@ Timesheet Entries - Detailed View
         <!-- Submit for Approval Button (Only for regular users) -->
         {% if time_entry.can_submit_for_approval %}
             <a href="{% url 'timesheets:submit_for_approval' time_entry.pk %}" 
-               class="inline-flex items-center px-6 py-2.5 bg-gradient-to-r from-gray-800 to-gray-900 
-                      text-white rounded-xl font-medium
+               class="inline-flex items-center px-6 py-2.5 bg-gradient-to-r from-gray-800 to-gray-900 dark:from-gray-700 dark:to-gray-800 
+                      text-white dark:text-gray-300 rounded-xl font-medium
                       border border-transparent
                       hover:from-gray-700 hover:to-gray-800
                       focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2
                       transform transition-all duration-200
                       hover:scale-[1.02] active:scale-95">
-                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="w-5 h-5 mr-2 text-white dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
                           d="M12 4v16m8-8H4"/>
                 </svg>
@@ -538,16 +649,16 @@ Timesheet Entries - Detailed View
         <!-- Edit Button (Only for regular users) -->
         {% if not time_entry.is_approved %}
             <a href="{% url 'timesheets:time_entry_edit' time_entry.pk %}" 
-               class="inline-flex items-center px-6 py-2.5 bg-gradient-to-r from-gray-800 to-gray-900 
-                      text-white rounded-xl font-medium
+               class="inline-flex items-center px-6 py-2.5 bg-gradient-to-r from-gray-800 to-gray-900 dark:from-gray-700 dark:to-gray-800 
+                      text-white dark:text-gray-300 rounded-xl font-medium
                       border border-transparent
                       hover:from-gray-700 hover:to-gray-800
                       focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2
                       transform transition-all duration-200
                       hover:scale-[1.02] active:scale-95">
-                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="w-5 h-5 mr-2 text-white dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                          d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-5-5l4 4m0 0l-4 4m4-4H3"/>
+                          d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-5-5l4 4m0 0l-4-4m4-4H3"/>
                 </svg>
                 Edit
             </a>
@@ -557,14 +668,14 @@ Timesheet Entries - Detailed View
     <!-- Review Button (For supervisors/admins) -->
     {% if perms.timesheets.can_approve_timesheet and time_entry.is_pending_approval %}
         <a href="{% url 'timesheets:review_time_entry' time_entry.pk %}" 
-           class="inline-flex items-center px-6 py-2.5 bg-gradient-to-r from-gray-800 to-gray-900 
-                  text-white rounded-xl font-medium
+           class="inline-flex items-center px-6 py-2.5 bg-gradient-to-r from-gray-800 to-gray-900 dark:from-gray-700 dark:to-gray-800 
+                  text-white dark:text-gray-300 rounded-xl font-medium
                   border border-transparent
                   hover:from-gray-700 hover:to-gray-800
                   focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2
                   transform transition-all duration-200
                   hover:scale-[1.02] active:scale-95">
-            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg class="w-5 h-5 mr-2 text-white dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
                       d="M5 13l4 4L19 7"/>
             </svg>
@@ -574,15 +685,15 @@ Timesheet Entries - Detailed View
     
     <!-- Back to List Button -->
     <a href="{% url 'timesheets:time_entry_list' %}" 
-       class="inline-flex items-center px-6 py-2.5 bg-gradient-to-r from-gray-50 to-gray-100 
-              text-gray-800 rounded-xl font-medium
+       class="inline-flex items-center px-6 py-2.5 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-700 dark:to-gray-800 
+              text-gray-800 dark:text-gray-300 rounded-xl font-medium
               border border-transparent
-              hover:from-gray-100 hover:to-gray-150
+              hover:from-gray-100 hover:to-gray-150 dark:hover:from-gray-600 dark:hover:to-gray-700
               focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2
               transform transition-all duration-200
               hover:scale-[1.02] active:scale-95">
         <!-- Optional SVG Icon -->
-        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+        <svg class="w-5 h-5 mr-2 text-gray-800 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
                   d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
         </svg>

@@ -6,21 +6,92 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block page_title %}{% endblock %} NASHnal - Timesheet App</title>
     <link rel ="icon" href="{% static 'favicon.ico' %}" type="image/x-icon">
+    <script>
+        // Add this before other scripts
+        function initTheme() {
+            const theme = localStorage.getItem('theme') || 'system';
+            if (theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+        }
+        initTheme();
+    </script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    // ... existing theme config ...
+                }
+            }
+        }
+    </script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             lucide.createIcons();
         });
     </script>
     <style>
+        /* Add CSS variables for theme colors */
+        :root {
+            --bg-primary: #ffffff;
+            --text-primary: #111827;
+            --border-color: #e5e7eb;
+            --loading-bg: #ffffff;
+            --loading-text: #111827;
+            --loading-text-secondary: #6B7280;
+        }
+        
+        .dark {
+            --bg-primary: #1f2937;
+            --text-primary: #f3f4f6;
+            --border-color: #374151;
+            --loading-bg: #374151;
+            --loading-text: #f3f4f6;
+            --loading-text-secondary: #9CA3AF;
+        }
+
+        /* Add this to your existing styles */
+        body {
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+        }
+        
+        /* Update loading overlay styles */
+        #loading-overlay .bg-white,
+        #exit-loading-overlay .bg-white {
+            background-color: var(--loading-bg);
+        }
+
+        #loading-overlay .text-gray-800,
+        #exit-loading-overlay .text-gray-800 {
+            color: var(--loading-text);
+        }
+
+        #loading-overlay .text-gray-500,
+        #exit-loading-overlay .text-gray-500 {
+            color: var(--loading-text-secondary);
+        }
+
+        /* Update hover styles for both light and dark modes */
         .group:hover .group-hover\:text-gray-600 {
             color: #4B5563;
         }
-        
-        /* Remove old loading screen styles */
+
+        .dark .group:hover .group-hover\:text-gray-600 {
+            color: #D1D5DB;
+        }
+
+        /* Ensure main content background respects theme */
+        main.bg-white {
+            background-color: var(--bg-primary);
+        }
     </style>
 </head>
 <body>
@@ -204,6 +275,39 @@
         // Event listeners
         sidebarToggle.addEventListener('click', toggleSidebar);
         closeSidebar.addEventListener('click', toggleSidebar);
+        
+        // Add Alpine.js component for theme toggle
+        document.addEventListener('alpine:init', () => {
+            Alpine.data('themeToggle', () => ({
+                open: false,
+                currentTheme: localStorage.getItem('theme') || 'system',
+                
+                init() {
+                    this.updateTheme();
+                    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+                        if (this.currentTheme === 'system') {
+                            this.updateTheme();
+                        }
+                    });
+                },
+
+                setTheme(theme) {
+                    this.currentTheme = theme;
+                    localStorage.setItem('theme', theme);
+                    this.updateTheme();
+                    this.open = false;
+                },
+
+                updateTheme() {
+                    if (this.currentTheme === 'dark' || 
+                        (this.currentTheme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                        document.documentElement.classList.add('dark');
+                    } else {
+                        document.documentElement.classList.remove('dark');
+                    }
+                }
+            }));
+        });
     </script>
 </body>
 </html>
