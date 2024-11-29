@@ -351,9 +351,27 @@ def time_entry_create(request):
         return render(request, 'timesheets/time_entry_form.html', context)
     
 @login_required
-@regular_user_required
 def time_entry_edit(request, pk):
+    """Handle time entry editing, with special overwrite mode for supervisors/superusers"""
     time_entry = get_object_or_404(TimeEntry, pk=pk)
+    
+    # Check if user has permission to edit
+    is_owner = time_entry.user == request.user
+    is_supervisor = hasattr(request.user, 'role') and request.user.role == 'Supervisor'
+    is_superuser = request.user.is_superuser
+    
+    # Determine if we're in overwrite mode
+    is_overwrite_mode = (is_supervisor or is_superuser) and not is_owner
+    
+    # Check permissions
+    if not (is_owner or is_supervisor or is_superuser):
+        messages.error(request, "You don't have permission to edit this time entry.")
+        return redirect('timesheets:time_entry_list')
+    
+    # If regular user tries to edit approved entry
+    if is_owner and not (is_supervisor or is_superuser) and time_entry.is_approved:
+        messages.error(request, "You cannot edit an approved time entry.")
+        return redirect('timesheets:time_entry_detail', pk=pk)
 
     JobFormSet = inlineformset_factory(
         TimeEntry,
@@ -366,36 +384,49 @@ def time_entry_edit(request, pk):
     )
 
     if request.method == 'POST':
-        form = TimeEntryForm(request.POST, request.FILES, instance=time_entry)  # Add request.FILES here
+        form = TimeEntryForm(request.POST, request.FILES, instance=time_entry)
         formset = JobFormSet(request.POST, instance=time_entry, prefix='jobs')
-
-        print("POST data:", request.POST)
-        print(f"Form is valid: {form.is_valid()}")
-        print(f"Formset is valid: {formset.is_valid()}")
-        
-        logger.debug(f"POST data: {request.POST}")
-        logger.debug(f"Form is valid: {form.is_valid()}")
-        logger.debug(f"Formset is valid: {formset.is_valid()}")
 
         if form.is_valid() and formset.is_valid():
             try:
                 with transaction.atomic():
-                    time_entry = form.save()
+                    # Save the time entry
+                    time_entry = form.save(commit=False)
+                    
+                    # Handle file upload
+                    if 'attachment' in request.FILES:
+                        time_entry.attachment = request.FILES['attachment']
+                        time_entry.attachment_name = request.FILES['attachment'].name
+                    
+                    time_entry.save()
+
+                    # Save formset
                     instances = formset.save(commit=False)
                     for instance in instances:
                         instance.time_entry = time_entry
                         instance.save()
                     formset.save_m2m()
                     
-                    # Delete the removed instances
+                    # Delete removed instances
                     for obj in formset.deleted_objects:
                         obj.delete()
 
-                    if time_entry.jobs.count() == 0:
+                    # Only check for minimum jobs if not in overwrite mode
+                    if not is_overwrite_mode and time_entry.jobs.count() == 0:
                         raise ValueError("At least one job must be present.")
+                    
+                    # Log the edit
+                    if is_overwrite_mode:
+                        logger.info(f"Time entry {pk} overwritten by {request.user} (supervisor/admin)")
+                    else:
+                        logger.info(f"Time entry {pk} edited by {request.user}")
 
-                messages.success(request, "Time entry updated successfully.")
+                messages.success(request, 
+                    "Time entry overwritten successfully." if is_overwrite_mode 
+                    else "Time entry updated successfully."
+                )
                 return redirect('timesheets:time_entry_detail', pk=time_entry.pk)
+                
             except ValueError as e:
                 messages.error(request, str(e))
             except Exception as e:
@@ -407,16 +438,18 @@ def time_entry_edit(request, pk):
             messages.error(request, "Please correct the errors below.")
     else:
         form = TimeEntryForm(instance=time_entry)
-        formset = JobFormSet(instance=time_entry, prefix='jobs')  
+        formset = JobFormSet(instance=time_entry, prefix='jobs')
 
     context = {
-        'view_title': 'Edit Time Entry',
+        'view_title': 'Overwrite Time Entry' if is_overwrite_mode else 'Edit Time Entry',
         'form': form,
         'job_formset': formset,
-        'edit': True
+        'edit': True,
+        'is_overwrite_mode': is_overwrite_mode,
+        'time_entry': time_entry
     }
+    
     return render(request, 'timesheets/time_entry_form.html', context)
-
 
 @login_required
 @regular_user_required

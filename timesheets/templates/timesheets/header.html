@@ -103,7 +103,7 @@
                                 <!-- Footer -->
                                 <div class="px-4 py-2 bg-gray-50 dark:bg-gray-700 border-t border-gray-200 dark:border-gray-600">
                                     <a href="{% url 'timesheets:all_notifications' %}" 
-                                       class="text-sm text-blue-200 dark:text-blue-100 hover:text-blue-500 dark:hover:text-blue-200 flex items-center justify-center">
+                                       class="text-sm text-blue-600 dark:text-blue-100 hover:text-blue-500 dark:hover:text-blue-200 flex items-center justify-center">
                                         <i data-lucide="list" class="h-4 w-4 mr-1"></i>
                                         View all notifications
                                     </a>
@@ -111,6 +111,12 @@
                             </div>
                         </div>
                     </div>
+
+                    <!-- Theme Toggle -->
+                    <button onclick="cycleTheme()" 
+                            class="p-2 text-black dark:text-white hover:text-gray-800 dark:hover:text-gray-300 focus:outline-none">
+                        <i id="theme-icon" data-lucide="sun" class="h-6 w-6"></i>
+                    </button>
 
                     <!-- User Profile Menu -->
                     <div class="relative" x-data="{ open: false }" x-cloak>
@@ -183,6 +189,19 @@
     document.addEventListener('DOMContentLoaded', function() {
         lucide.createIcons();
     
+        // Initialize theme from localStorage
+        const currentTheme = localStorage.getItem('theme') || 'system';
+        applyTheme(currentTheme);
+        
+        // Add system theme change listener
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+            if (localStorage.getItem('theme') === 'system') {
+                applyTheme('system');
+            }
+        });
+        
+        // ...rest of your existing DOMContentLoaded code...
+
         var clearNotificationsButton = document.getElementById('clear-notifications');
         if (clearNotificationsButton) {
             clearNotificationsButton.addEventListener('click', function() {
@@ -228,5 +247,49 @@
                 console.error('Error:', error);
             });
         }
+
+        // Initialize theme icon
+        updateThemeIcon(currentTheme);
     });
+
+    function cycleTheme() {
+        const currentTheme = localStorage.getItem('theme') || 'system';
+        const nextTheme = {
+            'light': 'dark',
+            'dark': 'system',
+            'system': 'light'
+        }[currentTheme];
+        
+        setTheme(nextTheme);
+        updateThemeIcon(nextTheme);
+    }
+
+    function updateThemeIcon(theme) {
+        const icon = document.getElementById('theme-icon');
+        if (!icon) return;
+
+        // Remove existing icon
+        icon.setAttribute('data-lucide', {
+            'light': 'sun',
+            'dark': 'moon',
+            'system': 'sun-moon'
+        }[theme]);
+
+        // Recreate the icon
+        lucide.createIcons();
+    }
+
+    function setTheme(theme) {
+        localStorage.setItem('theme', theme);
+        applyTheme(theme);
+        updateThemeIcon(theme);
+    }
+
+    function applyTheme(theme) {
+        if (theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
+    }
 </script>
