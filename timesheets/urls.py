@@ -65,12 +65,8 @@ urlpatterns = [
     # Add these new URL patterns
     path('rates/', views.manage_rates, name='manage_rates'),
     path('rates/history/', views.rate_history, name='rate_history'),
-] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    path('notifications/clear-visible/', views.clear_visible_notifications, name='clear_visible_notifications'),
+] 
 
 # Add DRF router URLs
 urlpatterns += router.urls
-
-urlpatterns += [
-    # ... existing urls ...
-    path('notifications/clear-visible/', views.clear_visible_notifications, name='clear_visible_notifications'),
-]

@@ -318,20 +318,29 @@ STATIC_ROOT =os.path.join(BASE_DIR, 'staticfiles')
 
 STATIC_URL = '/static/'
 
-# Media Files (uploaded from users)
-MEDIA_URL = "media/"
-MEDIA_ROOT = os.path.join(BASE_DIR, MEDIA_URL)
+# Get Railway volume mount path if available
+RAILWAY_VOLUME_MOUNT = os.getenv('RAILWAY_VOLUME_MOUNT_PATH', None)
 
+if ENVIRONMENT == 'production' and RAILWAY_VOLUME_MOUNT:
+    # Use the Railway volume mount path for media
+    MEDIA_ROOT = os.path.join(RAILWAY_VOLUME_MOUNT, 'media')
+else:
+    # Development settings
+    MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+MEDIA_URL = '/media/'
+
+# Update storage settings
 STORAGES = {
     "default": {
         "BACKEND": "django.core.files.storage.FileSystemStorage",
         "OPTIONS": {
-            "location": os.path.join(BASE_DIR, 'media'),
+            "location": MEDIA_ROOT,
             "base_url": MEDIA_URL,
         },
     },
     "staticfiles": {
-        "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
     },
 }
 

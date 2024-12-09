@@ -18,6 +18,9 @@ from django.contrib import admin
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from timesheets.views import TimeEntryViewSet
+from django.conf.urls.static import static
+from django.views.static import serve
+from django.conf import settings
 
 router = DefaultRouter()
 router.register(r'timeentries', TimeEntryViewSet)
@@ -28,3 +31,15 @@ urlpatterns = [
     path('accounts/', include('accounts.urls', namespace='accounts')),
     path('', include('timesheets.urls', namespace='timesheets')),
 ]
+
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+else:
+    # Serve media files in production
+    urlpatterns += [
+        path('media/<path:path>', serve, {
+            'document_root': settings.MEDIA_ROOT,
+            'show_indexes': False,
+        }, name='media'),
+    ]
