@@ -7,6 +7,7 @@ class CustomUser(AbstractUser):
     OFFICE_SUPPORT = 'Office Support'
     OPERATIONS_SUPPORT = 'Operations Support'
     SUPERVISOR = 'Supervisor'
+    OTHER = 'Other'
     
     ROLE_CHOICES = [
         (FIELD_TECHNICIAN, 'Field Technician'),
@@ -14,9 +15,12 @@ class CustomUser(AbstractUser):
         (OFFICE_SUPPORT, 'Office Support'),
         (OPERATIONS_SUPPORT, 'Operations Support'),
         (SUPERVISOR, 'Supervisor'),
+        (OTHER, 'Other'),
     ]
 
     role = models.CharField(max_length=50, choices=ROLE_CHOICES, default=FIELD_TECHNICIAN)
+    custom_role_title = models.CharField(max_length=50, blank=True, null=True, 
+                                       help_text="Custom role title when 'Other' is selected")
     supervisor = models.ForeignKey('self', 
         on_delete=models.SET_NULL, 
         null=True, 
@@ -79,6 +83,14 @@ class CustomUser(AbstractUser):
             return self.supervisor.supervisor
         return None
 
+    @property
+    def can_view_mileage(self):
+        """Check if user can view mileage information"""
+        return (self.is_superuser or 
+                self.role in [self.FIELD_TECHNICIAN, self.SUPERVISOR, 
+                             self.OPERATIONS_SUPPORT] or
+                self.has_perm('timesheets.can_view_mileage'))
+
     class Meta:
         permissions = [
             ("can_view_all_employees", "Can view all employees"),
@@ -125,5 +137,4 @@ class RegistrationInvitation(models.Model):
 
     def __str__(self):
         return f"Invitation for {self.email} ({self.token})"
-    
-    
+

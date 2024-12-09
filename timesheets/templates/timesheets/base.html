@@ -95,6 +95,9 @@
     </style>
 </head>
 <body>
+    <!-- Alert Container -->
+    <div id="alertContainer" class="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 w-full max-w-sm"></div>
+
     <!-- Loading Overlays Container -->
     <div class="fixed inset-0 pointer-events-none z-50">
         <!-- Initial Loading Overlay -->
@@ -307,6 +310,63 @@
                     }
                 }
             }));
+        });
+
+        // Global alert function that can be used across all templates
+        function showAlert(message, type = 'success', duration = 3000) {
+            const alertContainer = document.getElementById('alertContainer');
+            
+            // Clear any existing alerts
+            alertContainer.innerHTML = '';
+            
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `mb-4 p-4 rounded-lg shadow-lg transition-all duration-300 ease-in-out transform translate-y-[-1rem] opacity-0
+                ${type === 'success' 
+                    ? 'bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-200 border border-green-200 dark:border-green-800' 
+                    : 'bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-200 border border-red-200 dark:border-red-800'}`;
+            
+            alertDiv.innerHTML = `
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center">
+                        ${type === 'success' 
+                            ? '<svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>' 
+                            : '<svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>'}
+                        <span class="font-medium">${message}</span>
+                    </div>
+                    <button onclick="this.parentElement.parentElement.remove()" class="ml-4 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-400 focus:outline-none">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                    </button>
+                </div>
+            `;
+            
+            alertContainer.appendChild(alertDiv);
+            
+            // Trigger animation
+            setTimeout(() => {
+                alertDiv.classList.remove('translate-y-[-1rem]', 'opacity-0');
+            }, 10);
+            
+            // Remove alert after duration
+            setTimeout(() => {
+                alertDiv.classList.add('translate-y-[-1rem]', 'opacity-0');
+                setTimeout(() => alertDiv.remove(), 300);
+            }, duration);
+        }
+
+        // Handle Django messages on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            const messages = document.querySelectorAll('.django-message');
+            messages.forEach((message, index) => {
+                const messageText = message.textContent;
+                const messageType = message.dataset.type || 'success';
+                // Stagger the display of multiple messages
+                setTimeout(() => {
+                    showAlert(messageText, messageType, 3000);
+                    message.remove();
+                }, index * 500);
+            });
         });
     </script>
 </body>

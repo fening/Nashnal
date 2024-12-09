@@ -154,6 +154,7 @@ def employee_list_view(request):
     lab_technicians = employees.filter(role='Lab Technician').count()
     office_support = employees.filter(role='Office Support').count()
     operations_support = employees.filter(role='Operations Support').count()
+    other_count = employees.filter(role='Other').count()
     supervisors = employees.filter(role='Supervisor').count()
 
     # Group employees by role for better organization
@@ -163,12 +164,14 @@ def employee_list_view(request):
         lab_technicians_list = employees.filter(role='Lab Technician')
         office_support_list = employees.filter(role='Office Support')
         operations_support_list = employees.filter(role='Operations Support')
+        other_list = employees.filter(role='Other')
         
         # Combine lists with supervisors first
         employees = list(supervisors_list) + \
                    list(field_technicians_list) + \
                    list(lab_technicians_list) + \
                    list(office_support_list) + \
+                   list(other_list) + \
                    list(operations_support_list)
 
     context = {
@@ -181,6 +184,7 @@ def employee_list_view(request):
             'lab_technicians': lab_technicians,
             'office_support': office_support,
             'operations_support': operations_support,
+            'other': other_count,
             'supervisors': supervisors
         },
         'is_supervisor': request.user.role == 'Supervisor' if hasattr(request.user, 'role') else False,

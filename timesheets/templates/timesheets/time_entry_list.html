@@ -5,6 +5,11 @@
 {% endblock %}
 
 {% block content %}
+{% if messages %}
+    {% for message in messages %}
+        <div class="django-message hidden" data-type="{{ message.tags }}">{{ message }}</div>
+    {% endfor %}
+{% endif %}
 <style>
     /* Remove the default triangle marker from details/summary */
     details > summary {
@@ -193,16 +198,18 @@
                                 </div>
                             </div>
                         </th>
-                        <th class="px-2 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                            <div class="flex items-center justify-center space-x-1 cursor-pointer group"
-                                 onclick="window.location.href='?sort_by={% if sort_by == '-total_miles' %}-{% endif %}total_miles{% if search_query %}&search={{ search_query }}{% endif %}'">
-                                <span>Miles</span>
-                                <div class="flex flex-col">
-                                    <i data-lucide="chevron-up" class="h-3 w-3 {% if sort_by == '-total_miles' %}text-blue-600{% else %}text-gray-400 group-hover:text-gray-600{% endif %}"></i>
-                                    <i data-lucide="chevron-down" class="h-3 w-3 -mt-1 {% if sort_by == 'total_miles' %}text-blue-600{% else %}text-gray-400 group-hover:text-gray-600{% endif %}"></i>
-                                </div>
-                            </div>
-                        </th>
+                        {% if can_view_mileage %}
+<th scope="col" class="px-2 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+    <div class="flex items-center justify-center space-x-1 cursor-pointer group"
+         onclick="window.location.href='?sort_by={% if sort_by == '-total_miles' %}-{% endif %}total_miles{% if search_query %}&search={{ search_query }}{% endif %}'">
+        <span>Miles</span>
+        <div class="flex flex-col">
+            <i data-lucide="chevron-up" class="h-3 w-3 {% if sort_by == '-total_miles' %}text-blue-600{% else %}text-gray-400 group-hover:text-gray-600{% endif %}"></i>
+            <i data-lucide="chevron-down" class="h-3 w-3 -mt-1 {% if sort_by == 'total_miles' %}text-blue-600{% else %}text-gray-400 group-hover:text-gray-600{% endif %}"></i>
+        </div>
+    </div>
+</th>
+{% endif %}
                         <th class="px-2 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                             <div class="flex items-center justify-center space-x-1 cursor-pointer group"
                                  onclick="window.location.href='?sort_by={% if sort_by == '-approval__status' %}-{% endif %}approval__status{% if search_query %}&search={{ search_query }}{% endif %}'">
@@ -252,7 +259,9 @@
                                 </td>
                                 {% if forloop.first %}
                                     <td class="px-8 py-5 whitespace-nowrap text-sm text-gray-900 dark:text-white" rowspan="{{ jobs_count }}">{{ entry.hours_for_the_day }}</td>
-                                    <td class="px-8 py-5 whitespace-nowrap text-sm text-gray-900 dark:text-white" rowspan="{{ jobs_count }}">{{ entry.total_miles }}</td>
+                                    {% if can_view_mileage %}
+    <td class="px-8 py-5 whitespace-nowrap text-sm text-gray-900 dark:text-white" rowspan="{{ jobs_count }}">{{ entry.total_miles }}</td>
+{% endif %}
                                     <td class="px-8 py-5 whitespace-nowrap" rowspan="{{ jobs_count }}">
                                         {% if entry.approval %}
                                             <span class="px-3 py-1.5 inline-flex text-xs leading-5 font-semibold rounded-full 

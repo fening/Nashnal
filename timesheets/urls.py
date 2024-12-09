@@ -61,6 +61,10 @@ urlpatterns = [
     path('notifications/clear-all/', views.clear_all_notifications, name='clear_all_notifications'),
     path('notifications/<int:notification_id>/delete/', views.delete_notification, name='delete_notification'),
     path('notifications/<int:notification_id>/handle/', views.notification_link_handler, name='notification_link_handler'),
+
+    # Add these new URL patterns
+    path('rates/', views.manage_rates, name='manage_rates'),
+    path('rates/history/', views.rate_history, name='rate_history'),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 # Add DRF router URLs

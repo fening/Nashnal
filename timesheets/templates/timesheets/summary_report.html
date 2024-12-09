@@ -56,6 +56,23 @@
             left: 0 !important;
             top: 0 !important;
         }
+
+        /* Remove shadows and rounded corners when printing */
+        .shadow-xl,
+        .shadow-lg,
+        .rounded-2xl,
+        .rounded-xl,
+        .rounded-lg {
+            box-shadow: none !important;
+            border-radius: 0 !important;
+        }
+
+        /* Ensure borders are visible */
+        .border,
+        .border-t-2,
+        .divide-y > * {
+            border-color: #000 !important;
+        }
     }
     @media screen {
         .print-only {
@@ -221,19 +238,20 @@
                 {% for date in date_range %}
                 <td class="px-6 py-5 whitespace-nowrap text-center">
                     <div class="text-sm text-gray-900 dark:text-gray-100">
-                        {% with hours=data.hours|get_item:date|default:0 %}
-                            {% if hours == 0 %}
+                        {% with hours_data=data.hours|get_item:date %}
+                            {% if hours_data.duration == 0 %}
                                 --
                             {% else %}
-                                {{ hours|floatformat:2 }}
-                            {% endif %}
+                                <div class="space-y-1">
+                                    <div class="font-medium">{{ hours_data.duration|floatformat:2 }}</div>
+                                {% endif %}
                         {% endwith %}
                     </div>
                 </td>
                 {% endfor %}
                 <td class="px-8 py-5 whitespace-nowrap text-center">
                     <div class="text-sm font-medium text-gray-900 dark:text-gray-100">
-                        {{ data.total|floatformat:2 }}
+                        {{ data.total_duration|floatformat:2 }}
                     </div>
                 </td>
             </tr>
@@ -309,91 +327,8 @@
     </table>
 </div>
 
-<!-- Labor Code Section - Hidden by default, visible when printing -->
-<div class="hidden print-only mx-auto p-4">
-    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg dark:shadow-lg overflow-hidden">
-        <table class="min-w-full">
-            <thead>
-                <tr class="bg-gradient-to-r from-gray-500 to-gray-600 dark:from-gray-700 dark:to-gray-800">
-                    <th colspan="2" class="px-6 py-4 text-center text-white text-lg font-semibold">
-                        Time Sheet Summary
-                    </th>
-                </tr>
-            </thead>
-            <tbody class="divide-y divide-gray-100 dark:divide-gray-700">
-                <!-- Regular Hours Row -->
-                <tr class="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
-                    <td colspan="1" class="px-6 py-4">
-                        <div class="flex items-center space-x-3">
-                            <div class="h-8 w-8 rounded-lg bg-blue-100 dark:bg-blue-900 flex items-center justify-center">
-                                <svg class="h-4 w-4 text-blue-600 dark:text-blue-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                </svg>
-                            </div>
-                            <span class="text-gray-700 dark:text-gray-300 font-medium">Total Regular Hours</span>
-                        </div>
-                    </td>
-                    <td colspan="1" class="px-6 py-4 text-right">
-                        <span class="text-gray-900 dark:text-gray-100 font-semibold">{{ total_regular_hours }}</span>
-                    </td>
-                </tr>
-                
-                <!-- Overtime Hours Row -->
-                <tr class="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
-                    <td colspan="1" class="px-6 py-4">
-                        <div class="flex items-center space-x-3">
-                            <div class="h-8 w-8 rounded-lg bg-orange-100 dark:bg-orange-900 flex items-center justify-center">
-                                <svg class="h-4 w-4 text-orange-600 dark:text-orange-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                </svg>
-                            </div>
-                            <span class="text-gray-700 dark:text-gray-300 font-medium">Total Overtime Hours</span>
-                        </div>
-                    </td>
-                    <td colspan="1" class="px-6 py-4 text-right">
-                        <span class="text-gray-900 dark:text-gray-100 font-semibold">{{ total_overtime_hours }}</span>
-                    </td>
-                </tr>
-                
-                <!-- Double Time Hours Row -->
-                <tr class="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
-                    <td colspan="1" class="px-6 py-4">
-                        <div class="flex items-center space-x-3">
-                            <div class="h-8 w-8 rounded-lg bg-purple-100 dark:bg-purple-900 flex items-center justify-center">
-                                <svg class="h-4 w-4 text-purple-600 dark:text-purple-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                </svg>
-                            </div>
-                            <span class="text-gray-700 dark:text-gray-300 font-medium">Double Time Hours</span>
-                        </div>
-                    </td>
-                    <td colspan="1" class="px-6 py-4 text-right">
-                        <span class="text-gray-900 dark:text-gray-100 font-semibold">{{ total_double_time_hours }}</span>
-                    </td>
-                </tr>
-                
-                <!-- Grand Total Row -->
-                <tr class="bg-gray-800 dark:bg-gray-900 text-white font-medium">
-                    <td colspan="1" class="px-6 py-4">
-                        <div class="flex items-center space-x-3">
-                            <div class="h-8 w-8 rounded-lg bg-green-100 dark:bg-green-900 flex items-center justify-center">
-                                <svg class="h-4 w-4 text-green-600 dark:text-green-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
-                                </svg>
-                            </div>
-                            <span class="text-gray-900 dark:text-gray-100 font-semibold">Grand Total Hours</span>
-                        </div>
-                    </td>
-                    <td colspan="1" class="px-6 py-4 text-right">
-                        <span class="text-gray-900 dark:text-gray-100 font-bold">{{ grand_total_hours }}</span>
-                    </td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
-</div>
     
-    <div class="p-4 screen-only">
+    <div class="p-4">
         <!-- Summary Grid -->
         <div class="summary-grid grid grid-cols-1 md:grid-cols-7 gap-4">
             <!-- Regular Hours -->
@@ -439,37 +374,38 @@
                     </div>
                 </div>
             </div>
-            <!-- Total Miles -->
-            <div class="summary-card rounded-lg border border-gray-200 dark:border-gray-700 shadow-lg dark:shadow-lg p-4 bg-white dark:bg-gray-800">
-                <div class="flex flex-col">
-                    <div class="text-sm font-medium text-gray-500 dark:text-gray-300 mb-1">Total Miles to be Paid</div>
-                    <div class="flex items-baseline">
-                        <span class="text-2xl font-semibold text-green-600 dark:text-green-300">{{ total_miles_to_be_paid|floatformat:2 }}</span>
-                        <span class="ml-1 text-sm text-gray-500 dark:text-gray-300">miles</span>
-                    </div>
-                </div>
+            {% if can_view_mileage and selected_user_can_view_mileage %}
+    <!-- Total Miles -->
+    <div class="summary-card rounded-lg border border-gray-200 dark:border-gray-700 shadow-lg dark:shadow-lg p-4 bg-white dark:bg-gray-800">
+        <div class="flex flex-col">
+            <div class="text-sm font-medium text-gray-500 dark:text-gray-300 mb-1">Miles to be Paid</div>
+            <div class="flex items-baseline">
+                <span class="text-2xl font-semibold text-green-600 dark:text-green-300">{{ total_miles_to_be_paid|floatformat:2 }}</span>
+                <span class="ml-1 text-sm text-gray-500 dark:text-gray-300">miles</span>
             </div>
+        </div>
+    </div>
 
-            <!-- Vehicle Allowance -->
-            <div class="summary-card rounded-lg border border-gray-200 dark:border-gray-700 shadow-lg dark:shadow-lg p-4 bg-white dark:bg-gray-800">
-                <div class="flex flex-col">
-                    <div class="text-sm font-medium text-gray-500 dark:text-gray-300 mb-1">Vehicle Allowance</div>
-                    <div class="flex items-baseline">
-                        <span class="text-2xl font-semibold text-green-600 dark:text-green-300">${{ vehicle_allowance|floatformat:2 }}</span>
-                    </div>
-                </div>
+    <!-- Vehicle Allowance Card -->
+    <div class="summary-card rounded-lg border border-gray-200 dark:border-gray-700 shadow-lg dark:shadow-lg p-4 bg-white dark:bg-gray-800">
+        <div class="flex flex-col">
+            <div class="text-sm font-medium text-gray-500 dark:text-gray-300 mb-1">Vehicle Allowance</div>
+            <div class="flex items-baseline">
+                <span class="text-2xl font-semibold text-green-600 dark:text-green-300">${{ total_vehicle_allowance|floatformat:2 }}</span>
             </div>
+        </div>
+    </div>
 
-            <!-- Rate Info -->
-            <div class="summary-card rounded-lg border border-gray-200 dark:border-gray-700 shadow-lg dark:shadow-lg p-4 bg-white dark:bg-gray-800">
-                <div class="flex flex-col">
-                    <div class="text-sm font-medium text-gray-500 dark:text-gray-300 mb-1">Mileage Rate</div>
-                    <div class="flex items-baseline">
-                        <span class="text-2xl font-semibold text-gray-600 dark:text-gray-300">$0.55</span>
-                        <span class="ml-1 text-sm text-gray-500 dark:text-gray-300">per mile</span>
-                    </div>
-                </div>
+    <!-- Mileage Allowance Card -->
+    <div class="summary-card rounded-lg border border-gray-200 dark:border-gray-700 shadow-lg dark:shadow-lg p-4 bg-white dark:bg-gray-800">
+        <div class="flex flex-col">
+            <div class="text-sm font-medium text-gray-500 dark:text-gray-300 mb-1">Mileage Allowance</div>
+            <div class="flex items-baseline">
+                <span class="text-2xl font-semibold text-gray-600 dark:text-gray-300">${{ total_mileage_allowance|floatformat:2 }}</span>
             </div>
+        </div>
+    </div>
+{% endif %}
         </div>
 
 
@@ -525,7 +461,7 @@
                            no-print">
                 <svg class="w-5 h-5 mr-2 text-white dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                          d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
+                          d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
                 </svg>
                 Print Report
             </button>

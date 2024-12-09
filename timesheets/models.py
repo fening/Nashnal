@@ -9,6 +9,7 @@ from django.utils.functional import cached_property
 from django.urls import reverse
 from django.core.validators import FileExtensionValidator
 import os
+from decimal import Decimal, ROUND_HALF_UP
 
 class JobDetails(models.Model):
     job_number = models.CharField(max_length=50, unique=True, editable=False)
@@ -81,7 +82,7 @@ class TimeEntry(models.Model):
     travel_time_subtract = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
     hours_to_be_paid = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
     
-    company_vehicle_used = models.BooleanField(choices=VEHICLE_CHOICES,default=False, verbose_name="Vehicle Used")
+    company_vehicle_used = models.BooleanField(choices=VEHICLE_CHOICES,default=True, verbose_name="Vehicle Used")
     comments = models.TextField(blank=True, null=True, help_text="Any additional notes or comments for this time entry.")
     
     # Add these new fields
@@ -369,7 +370,8 @@ class Job(models.Model):
     activity_arrive_time = models.TimeField()
     activity_leave_time = models.TimeField()
     activity_end_mileage = models.DecimalField(max_digits=7, decimal_places=2, null=True, blank=True)
-    labor_code =  models.ForeignKey(LaborCode, on_delete=models.CASCADE)
+    labor_code = models.ForeignKey(LaborCode, on_delete=models.CASCADE)
+    # duration field is not needed since it can be calculated
     
     class Meta:
         indexes = [
@@ -399,6 +401,17 @@ class Job(models.Model):
         if self.activity_start_mileage is not None and self.activity_end_mileage is not None:
             return self.activity_end_mileage - self.activity_start_mileage
         return None
+
+    def calculate_duration(self):
+        """Calculate the duration of the activity in hours"""
+        if self.activity_arrive_time and self.activity_leave_time:
+            arrive = datetime.combine(datetime.min, self.activity_arrive_time)
+            leave = datetime.combine(datetime.min, self.activity_leave_time)
+            duration = leave - arrive
+            # Convert to Decimal with proper rounding
+            hours = Decimal(str(duration.total_seconds())) / Decimal('3600')
+            return hours.quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+        return Decimal('0.00')
 
     def save(self, *args, **kwargs):
         if self.job_number and not self.job_description:
@@ -637,3 +650,40 @@ class TimeEntryApprovalHistory(models.Model):
 
     def __str__(self):
         return f"{self.time_entry_approval.time_entry} - {self.status} at {self.reviewed_at}"
+
+from django.conf import settings
+
+class RateSettings(models.Model):
+    mileage_rate = models.DecimalField(
+        max_digits=5, 
+        decimal_places=2,
+        default=0.55,
+        help_text="Rate per mile in dollars"
+    )
+    vehicle_allowance = models.DecimalField(
+        max_digits=6, 
+        decimal_places=2,
+        default=0.00,
+        help_text="Daily vehicle allowance in dollars"
+    )
+    effective_date = models.DateField(
+        help_text="Date these rates become effective"
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='rate_settings_created'
+    )
+
+    class Meta:
+        ordering = ['-effective_date']
+        get_latest_by = 'effective_date'
+
+    @classmethod
+    def get_current_rates(cls):
+        """Get the most recent rates"""
+        return cls.objects.order_by('-created_at').first()

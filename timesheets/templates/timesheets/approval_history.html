@@ -12,6 +12,11 @@
 {% endblock %}
 
 {% block content %}
+{% if messages %}
+    {% for message in messages %}
+        <div class="django-message hidden" data-type="{{ message.tags }}">{{ message }}</div>
+    {% endfor %}
+{% endif %}
 <div class="mx-auto p-6 dark:bg-gray-800">
     <!-- Search and Filter Section -->
     <div class="mb-6">
@@ -110,20 +115,12 @@
                                     <span>Status</span>
                                 </div>
                             </th>
-                            <th class="px-2 py-4 text-center text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider whitespace-nowrap">
+                            <th class="px-2 py-4 text-center text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider whitespace-nowrap" colspan="2">
                                 <div class="flex items-center justify-center gap-2">
                                     <svg class="w-4 h-4 dark:stroke-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                                     </svg>
-                                    <span>First Review</span>
-                                </div>
-                            </th>
-                            <th class="px-2 py-4 text-center text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider whitespace-nowrap">
-                                <div class="flex items-center justify-center gap-2">
-                                    <svg class="w-4 h-4 dark:stroke-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                                    </svg>
-                                    <span>Second Review</span>
+                                    <span>Review</span>
                                 </div>
                             </th>
                             <th class="px-2 py-4 text-center text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider whitespace-nowrap">
@@ -187,12 +184,16 @@
                                     <td class="px-6 py-4 whitespace-nowrap">
                                         <div class="text-sm text-gray-900 dark:text-gray-200">
                                             {% if approval.first_reviewed_by %}
-                                                <div>By: {{ approval.first_reviewed_by.get_full_name }}</div>
-                                                <div class="text-xs text-gray-500 dark:text-gray-400">{{ approval.first_reviewed_at|date:"M d, Y H:i" }}</div>
-                                                {% if approval.first_reviewer_comments %}
-                                                    <div class="text-xs text-gray-600 dark:text-gray-400 italic">
-                                                        "{{ approval.first_reviewer_comments|truncatechars:30 }}"
-                                                    </div>
+                                                {% if user.is_superuser or user.role == 'Supervisor' or approval.status == 'rejected' %}
+                                                    <div>By: {{ approval.first_reviewed_by.get_full_name }}</div>
+                                                    <div class="text-xs text-gray-500 dark:text-gray-400">{{ approval.first_reviewed_at|date:"M d, Y H:i" }}</div>
+                                                    {% if approval.first_reviewer_comments %}
+                                                        <div class="text-xs text-gray-600 dark:text-gray-400 italic">
+                                                            "{{ approval.first_reviewer_comments|truncatechars:30 }}"
+                                                        </div>
+                                                    {% endif %}
+                                                {% else %}
+                                                    <span class="text-gray-500 dark:text-gray-400"></span>
                                                 {% endif %}
                                             {% else %}
                                                 <span class="text-gray-500 dark:text-gray-400">-</span>
@@ -226,20 +227,22 @@
                                     <td class="px-6 py-4 whitespace-nowrap">
                                         <div class="text-sm text-gray-900 dark:text-gray-200">
                                             {% for history in approval.history.all %}
-                                                <div class="mb-2 p-2 {% if history.status == 'rejected' %}bg-red-50 dark:bg-red-900{% else %}bg-gray-100 dark:bg-gray-700{% endif %}">
-                                                    <div class="font-semibold dark:text-gray-200">
-                                                        {{ history.get_status_display }}
-                                                    </div>
-                                                    <div class="text-xs text-gray-500 dark:text-gray-400">
-                                                        By: {{ history.reviewed_by.get_full_name }}
-                                                        at {{ history.reviewed_at|date:"M d, Y H:i" }}
-                                                    </div>
-                                                    {% if history.comments %}
-                                                        <div class="text-xs text-gray-600 dark:text-gray-400 italic mt-1">
-                                                            "{{ history.comments }}"
+                                                {% if user.is_superuser or user.role == 'Supervisor' or history.is_second_review or history.status == 'rejected' %}
+                                                    <div class="mb-2 p-2 {% if history.status == 'rejected' %}bg-red-50 dark:bg-red-900{% else %}bg-gray-100 dark:bg-gray-700{% endif %}">
+                                                        <div class="font-semibold dark:text-gray-200">
+                                                            {{ history.get_status_display }}
                                                         </div>
-                                                    {% endif %}
-                                                </div>
+                                                        <div class="text-xs text-gray-500 dark:text-gray-400">
+                                                            By: {{ history.reviewed_by.get_full_name }}
+                                                            at {{ history.reviewed_at|date:"M d, Y H:i" }}
+                                                        </div>
+                                                        {% if history.comments %}
+                                                            <div class="text-xs text-gray-600 dark:text-gray-400 italic mt-1">
+                                                                "{{ history.comments }}"
+                                                            </div>
+                                                        {% endif %}
+                                                    </div>
+                                                {% endif %}
                                             {% endfor %}
                                         </div>
                                     </td>

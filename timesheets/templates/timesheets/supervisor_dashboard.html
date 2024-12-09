@@ -6,6 +6,11 @@
 {% endblock %}
 
 {% block content %}
+{% if messages %}
+    {% for message in messages %}
+        <div class="django-message hidden" data-type="{{ message.tags }}">{{ message }}</div>
+    {% endfor %}
+{% endif %}
 <div class="max-w-7xl mx-auto p-6">
     <!-- Stats Cards -->
     <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">

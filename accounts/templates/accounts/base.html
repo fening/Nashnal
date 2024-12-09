@@ -116,24 +116,8 @@
 </head>
 <body class="{% block body_class %}bg-gray-50 dark:bg-gray-900{% endblock %}">
     {% block full_content %}
-    {% if messages %}
-    <div class="alert-container" id="alertContainer">
-        {% for message in messages %}
-        <div class="mx-4 mb-4 p-4 rounded-lg shadow-md flex items-center justify-between alert-enter {% if message.tags == 'success' %}bg-green-50 text-green-800{% elif message.tags == 'error' %}bg-red-50 text-red-800{% else %}bg-yellow-50 text-yellow-800{% endif %}"
-             role="alert">
-            <div class="flex-1 text-center">{{ message }}</div>
-            <button type="button" 
-                    class="ml-4 inline-flex flex-shrink-0 justify-center items-center h-4 w-4 rounded-md text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-400"
-                    onclick="dismissAlert(this.parentElement)">
-                <span class="sr-only">Close</span>
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                </svg>
-            </button>
-        </div>
-        {% endfor %}
-    </div>
-    {% endif %}
+    <!-- Alert Container -->
+    <div id="alertContainer" class="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 w-full max-w-sm"></div>
     
     <div class="{% block container_class %}min-h-screen flex items-center justify-center container mx-auto px-4 py-8{% endblock %}">
         {% block content %}{% endblock %}
@@ -143,25 +127,51 @@
     {% block extra_js %}{% endblock %}
     
     <script>
-        function dismissAlert(alertElement) {
-            alertElement.classList.remove('alert-enter');
-            alertElement.classList.add('alert-exit');
-            setTimeout(() => {
-                alertElement.remove();
-                if (document.querySelector('#alertContainer').children.length === 0) {
-                    document.querySelector('#alertContainer').remove();
-                }
-            }, 300);
+        // Function to show an alert
+        function showAlert(message, type = 'info') {
+            const alertContainer = document.getElementById('alertContainer');
+            const alert = document.createElement('div');
+            
+            // Set alert classes based on type
+            const baseClasses = 'mb-4 p-4 rounded-lg shadow-md flex items-center justify-between transition-all duration-300 transform translate-y-0 opacity-100';
+            const typeClasses = {
+                success: 'bg-green-50 dark:bg-green-900/50 text-green-800 dark:text-green-100',
+                error: 'bg-red-50 dark:bg-red-900/50 text-red-800 dark:text-red-100',
+                warning: 'bg-yellow-50 dark:bg-yellow-900/50 text-yellow-800 dark:text-yellow-100',
+                info: 'bg-blue-50 dark:bg-blue-900/50 text-blue-800 dark:text-blue-100'
+            };
+            
+            alert.className = `${baseClasses} ${typeClasses[type]}`;
+            alert.innerHTML = `
+                <div class="flex-1 text-center">${message}</div>
+                <button type="button" 
+                        class="ml-4 inline-flex flex-shrink-0 justify-center items-center h-4 w-4 rounded-md text-current opacity-50 hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-current"
+                        onclick="dismissAlert(this.parentElement)">
+                    <span class="sr-only">Close</span>
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            `;
+            
+            alertContainer.appendChild(alert);
+            
+            // Auto-dismiss after 5 seconds
+            setTimeout(() => dismissAlert(alert), 5000);
         }
 
-        // Auto-dismiss alerts after 5 seconds
-        document.querySelectorAll('[role="alert"]').forEach(alert => {
-            setTimeout(() => {
-                if (alert && alert.parentElement) {
-                    dismissAlert(alert);
-                }
-            }, 5000);
-        });
+        function dismissAlert(alertElement) {
+            alertElement.style.transform = 'translateY(-100%)';
+            alertElement.style.opacity = '0';
+            setTimeout(() => alertElement.remove(), 300);
+        }
+
+        // Show Django messages as alerts
+        {% if messages %}
+            {% for message in messages %}
+                showAlert('{{ message|escapejs }}', '{{ message.tags }}');
+            {% endfor %}
+        {% endif %}
     </script>
 </body>
 </html>

@@ -1,10 +1,10 @@
 {% extends 'timesheets/base.html' %}
 {% load static %}
+{% load custom_filters %}
 
 {% block title %}
 <h1 class="text-xl font-semibold dark:text-white">Time Entries Form - Time Sheet App</h1>
 {% endblock %}
-{% load custom_filters %}
 {% block content %}
 
 <!-- Add alert container at the top of the content -->
@@ -47,7 +47,12 @@
       }
   }
 </style>
-<div class="container mx-auto px-4 py-8 dark:bg-gray-800">
+{% if messages %}
+    {% for message in messages %}
+        <div class="django-message hidden" data-type="{{ message.tags }}">{{ message }}</div>
+    {% endfor %}
+{% endif %}
+<div class="container mx-auto px-4 dark:bg-gray-800">
     <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg dark:shadow-xl">
       <form method="post" enctype="multipart/form-data" class="space-y-6">
         {% csrf_token %}
@@ -70,9 +75,11 @@
                             <th scope="col" class="px-2 py-3 text-center text-sm font-semibold uppercase tracking-wider" colspan="2">
                                 Time
                             </th>
+                            {% if can_view_mileage %}
                             <th scope="col" class="px-2 py-3 text-center text-sm font-semibold uppercase tracking-wider" colspan="2">
                                 Mileage
                             </th>
+                            {% endif %}
                             <th scope="col" class="px-2 py-3 text-center text-sm font-semibold uppercase tracking-wider" colspan="2">
                                 Services Performed
                             </th>
@@ -93,12 +100,14 @@
                             <th scope="col" class="px-2 py-2 text-center text-xs font-semibold tracking-wider">
                                 Leave
                             </th>
+                            {% if can_view_mileage %}
                             <th scope="col" class="px-2 py-2 text-center text-xs font-semibold tracking-wider">
                                 Arrive
                             </th>
                             <th scope="col" class="px-2 py-2 text-center text-xs font-semibold tracking-wider">
                                 Leave
                             </th>
+                            {% endif %}
                             <th scope="col" class="px-2 py-2 text-center text-xs font-semibold tracking-wider" colspan="2">
                                Labor Code Description
                             </th>
@@ -113,7 +122,11 @@
                 <td class="px-2 py-4 whitespace-nowrap text-base text-gray-500" ></td>
                 <td class="px-2 py-4 whitespace-nowrap text-base text-center text-gray-900 dark:text-gray-100">{{ form.initial_leave_time|add_class:"block w-full text-base rounded-md border border-gray-500 dark:border-gray-700 focus:outline-none shadow-sm px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 text-center" }}</td>
                 <td class="px-2 py-4 whitespace-nowrap text-base text-gray-500" ></td>
-                <td class="px-2 py-4 whitespace-nowrap text-base text-center text-gray-900 dark:text-gray-100">{{ form.initial_mileage|add_class:"block w-24 text-base rounded-md border border-gray-500 dark:border-gray-700 shadow-sm focus:outline-none px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 text-center" }}</td>
+                {% if can_view_mileage %}
+                <td class="px-2 py-4 whitespace-nowrap text-sm text-center text-gray-900 dark:text-gray-100 flex justify-center">
+                    {{ form.initial_mileage|add_class:"block w-24 text-base rounded-md border border-gray-500 dark:border-gray-700 shadow-sm focus:outline-none px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 text-center" }}
+                </td>
+                {% endif %}
                 <td class="px-2 py-4 whitespace-nowrap text-base text-gray-500" colspan="3"></td>
                 <td></td>
               </tr>
@@ -140,18 +153,26 @@
             </td>
                 <td class="px-2 py-4 whitespace-nowrap text-base text-gray-900 dark:text-gray-100">{{ job_form.activity_arrive_time|add_class:"block w-full text-base rounded-md border border-gray-500 dark:border-gray-700 shadow-sm focus:outline-none px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 text-center" }}</td>
                 <td class="px-2 py-4 whitespace-nowrap text-base text-gray-900 dark:text-gray-100">{{ job_form.activity_leave_time|add_class:"block w-full text-base rounded-md border border-gray-500 dark:border-gray-700 shadow-sm focus:outline-none px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 text-center" }}</td>
-                <td class="px-2 py-4 whitespace-nowrap text-base text-gray-900 dark:text-gray-100">{{ job_form.activity_start_mileage|add_class:"block w-24 text-base rounded-md border border-gray-500 dark:border-gray-700 shadow-sm focus:outline-none px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 text-center" }}</td>
-                <td class="px-2 py-4 whitespace-nowrap text-base text-gray-900 dark:text-gray-100">{{ job_form.activity_end_mileage|add_class:"block w-24 text-base rounded-md border border-gray-500 dark:border-gray-700 shadow-sm focus:outline-none px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 text-center" }}</td>
-                <td class="px-2 py-4 whitespace-nowrap text-base text-center text-gray-500 dark:text-gray-400" colspan="3">
-                  {{ job_form.labor_code_description|add_class:"block w-60 text-base rounded-md border border-gray-500 dark:border-gray-700 shadow-sm focus:outline-none px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"}}
+                {% if can_view_mileage %}
+                <td class="px-2 py-4 whitespace-nowrap text-sm text-center text-gray-900 dark:text-gray-100 flex justify-center">
+                    {{ job_form.activity_start_mileage|add_class:"block w-24 text-base rounded-md border border-gray-500 dark:border-gray-700 shadow-sm focus:outline-none px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 text-center" }}
+                </td>
+                <td class="px-2 py-4 whitespace-nowrap text-sm text-center text-gray-900 dark:text-gray-100">
+                    {{ job_form.activity_end_mileage|add_class:"block w-24 text-base rounded-md border border-gray-500 dark:border-gray-700 shadow-sm focus:outline-none px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 text-center mx-auto" }}
+                </td>
+                {% endif %}
+                <td class="px-2 py-4 whitespace-nowrap text-base text-center text-gray-500 dark:text-gray-400 mx-auto" colspan="3">
+                  <div class="flex justify-center">
+                    {{ job_form.labor_code_description|add_class:"block w-60 text-base rounded-md border border-gray-500 dark:border-gray-700 shadow-sm focus:outline-none px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"}}
+                  </div>
                 </td>
               <!-- Remove Job Icon -->
               <td class="p-4 whitespace-nowrap text-base font-medium">
                 <div class="flex justify-center items-center h-full">
                   <a href="javascript:void(0);" class="remove-job flex items-center space-x-1 text-red-600 dark:text-red-400 hover:text-red-900 dark:hover:text-red-600 p-2 rounded-full hover:bg-red-100 dark:hover:bg-red-700 transition-colors duration-200" title="Remove Job">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="w-5 h-5 dark:text-red-400">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                    </svg>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
                   </a>
                 </div>
               </td>
@@ -178,7 +199,11 @@
                 <td class="px-2 py-4 whitespace-nowrap text-base text-gray-500" ></td>
                 <td class="px-2 py-4 whitespace-nowrap text-base text-gray-900 dark:text-gray-100">{{ form.final_arrive_time|add_class:"block w-full text-base rounded-md border border-gray-500 dark:border-gray-700 shadow-sm focus:outline-none px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 text-center" }}</td>
                 <td class="px-2 py-4 whitespace-nowrap text-base text-gray-500" ></td>
-                <td class="px-2 py-4 whitespace-nowrap text-base text-gray-900 dark:text-gray-100">{{ form.final_mileage|add_class:"block w-24 text-base rounded-md border border-gray-500 dark:border-gray-700 shadow-sm focus:outline-none px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 text-center" }}</td>
+                {% if can_view_mileage %}
+                <td class="px-2 py-4 whitespace-nowrap text-sm text-center text-gray-900 dark:text-gray-100 flex justify-center">
+                    {{ form.final_mileage|add_class:"block w-24 text-base rounded-md border border-gray-500 dark:border-gray-700 shadow-sm focus:outline-none px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 text-center" }}
+                </td>
+                {% endif %}
                 <td class="px-2 py-4 whitespace-nowrap text-base text-gray-500" colspan="3"></td>
                 <td></td>
               </tr>
@@ -186,6 +211,7 @@
           </table>
         </div>
 
+        {% if can_view_mileage %}
         <div class="mt-6">
           <label class="block text-base font-semibold text-gray-700 dark:text-gray-300">{{ form.company_vehicle_used.label }}:</label>
             <div class="mt-2 space-x-4">
@@ -197,6 +223,7 @@
             {% endfor %}
             </div>
         </div>
+        {% endif %}
   
         <div class="mt-6">
           <label class="block text-base font-semibold text-gray-700 dark:text-gray-300" for="{{ form.comments.id_for_label }}">Comments:</label>
@@ -264,7 +291,6 @@
     </div>
   </div>
 
-
   <script type="text/javascript">
     document.addEventListener('DOMContentLoaded', function () {
       // Core DOM elements
@@ -321,7 +347,7 @@
             <div class="flex items-center">
                 <div class="flex-shrink-0">
                     <svg class="h-5 w-5 text-red-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 101.414 1.414L10 11.414l1.293 1.293a1 1 001.414-1.414L11.414 10l1.293-1.293a1 1 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 000 16zM8.707 7.293a1 1 000-1.414 1.414L8.586 10l-1.293 1.293a1 101.414 1.414L10 11.414l1.293 1.293a1 1 001.414-1.414L11.414 10l1.293-1.293a1 1 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
                     </svg>
                 </div>
                 <div class="ml-3">
@@ -330,7 +356,7 @@
                 <div class="ml-auto pl-3">
                     <button type="button" class="close-alert">
                         <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                            <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 011.414 1.414L11.414 10l4.293 4.293a1 1 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 01-1.414-1.414L8.586 10 4.293 5.707a1 1 010-1.414z" clip-rule="evenodd"/>
+                            <path fill-rule="evenodd" d="M4.293 4.293a1 1 011.414 0L10 8.586l4.293-4.293a1 1 011.414 1.414L11.414 10l4.293 4.293a1 1 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 01-1.414-1.414L8.586 10 4.293 5.707a1 1 010-1.414z" clip-rule="evenodd"/>
                         </svg>
                     </button>
                 </div>
@@ -489,6 +515,9 @@
         }
 
         let isValid = true;
+        
+        // Get mileage permission
+        const canViewMileage = {{ can_view_mileage|yesno:'true,false' }};
     
         // Check job forms
         const jobForms = formsetContainer.querySelectorAll('.job-form:not([style*="display: none"])');
@@ -498,30 +527,31 @@
             const jobDescription = form.querySelector('[name$="-job_description"]').value;
             const arriveTime = form.querySelector('[name$="-activity_arrive_time"]').value;
             const leaveTime = form.querySelector('[name$="-activity_leave_time"]').value;
-            const startMileage = form.querySelector('[name$="-activity_start_mileage"]').value;
-            const endMileage = form.querySelector('[name$="-activity_end_mileage"]').value;
+            
+            // Only validate mileage fields if user has permission
+            const mileageFieldsValid = !canViewMileage || (
+                form.querySelector('[name$="-activity_start_mileage"]').value &&
+                form.querySelector('[name$="-activity_end_mileage"]').value
+            );
     
-            console.log(`Job form ${index} fields:`, {
-                jobDescription,
-                arriveTime,
-                leaveTime,
-                startMileage,
-                endMileage
-            });
-    
-            if (!jobDescription || !arriveTime || !leaveTime || !startMileage || !endMileage) {
+            if (!jobDescription || !arriveTime || !leaveTime || !mileageFieldsValid) {
                 console.log(`Job form ${index} validation failed: missing required fields`);
-                if (showAlert) {  // Only show alert if showAlert is true
-                    showError('Please fill in all fields for each job');
+                if (showAlert) {
+                    showError('Please fill in all required fields for each job');
                 }
                 isValid = false;
             }
         });
     
-        // Only check mileage and time validations if basic validation passes
+        // Only check mileage validations if user has permission
+        if (isValid && canViewMileage) {
+            console.log('Basic validation passed, checking mileage');
+            isValid = validateMileage(showAlert);
+        }
+        
         if (isValid) {
-            console.log('Basic validation passed, checking mileage and times');
-            isValid = validateMileage(showAlert) && validateTimes(showAlert);  // Pass showAlert parameter
+            console.log('Checking times');
+            isValid = validateTimes(showAlert);
         }
     
         console.log('Final validation result:', isValid);

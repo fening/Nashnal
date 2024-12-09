@@ -128,12 +128,19 @@ class EmployeeForm(forms.ModelForm):
         required=False,
         help_text="Send registration invitation email to the employee"
     )
+    custom_role_title = forms.CharField(
+        label='Title',
+        max_length=50, 
+        required=False,
+        help_text="Required when 'Other' is selected as role"
+    )
 
     class Meta:
         model = CustomUser
         fields = [
-            'email', 'first_name', 'last_name', 'role',
-            'supervisor', 'distance_office', 'time_office'
+            'email', 'first_name', 'last_name', 'role','custom_role_title',
+            'supervisor', 'distance_office', 'time_office',
+            
         ]
         widgets = {
             'role': forms.Select(attrs={'class': 'form-control'}),
@@ -144,8 +151,14 @@ class EmployeeForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # Filter supervisors for the supervisor field
-        self.fields['supervisor'].queryset = CustomUser.objects.filter(role='Supervisor')
+        # Update supervisor queryset to include active supervisors
+        self.fields['supervisor'].queryset = CustomUser.objects.filter(
+            role='Supervisor',
+            is_active=True
+        ).order_by('first_name', 'last_name')
+        
+        # Make supervisor field not required by default
+        self.fields['supervisor'].required = False
         
         # Make some fields required
         self.fields['first_name'].required = True
@@ -158,8 +171,9 @@ class EmployeeForm(forms.ModelForm):
 
     def clean_email(self):
         email = self.cleaned_data.get('email')
-        # Check if email already exists
-        if CustomUser.objects.filter(email=email).exists():
+        # Exclude the current instance when checking for existing emails
+        qs = CustomUser.objects.filter(email=email).exclude(pk=self.instance.pk)
+        if qs.exists():
             raise forms.ValidationError("An employee with this email already exists.")
         # Check if there's a pending invitation
         if RegistrationInvitation.objects.filter(email=email, used=False).exists():
@@ -170,8 +184,11 @@ class EmployeeForm(forms.ModelForm):
         cleaned_data = super().clean()
         role = cleaned_data.get('role')
         supervisor = cleaned_data.get('supervisor')
+        custom_role_title = cleaned_data.get('custom_role_title')
 
         # Require supervisor for non-supervisor roles
         if role and role != 'Supervisor' and not supervisor:
             self.add_error('supervisor', 'A supervisor must be selected for non-supervisor roles.')
+        if role == 'Other' and not custom_role_title:
+            self.add_error('custom_role_title', 'Please specify a custom role title.')
 

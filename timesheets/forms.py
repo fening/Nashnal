@@ -1,5 +1,5 @@
 from django import forms
-from .models import TimeEntry, Job, JobDetails, LaborCode, TimeEntryApproval
+from .models import TimeEntry, Job, JobDetails, LaborCode, TimeEntryApproval, RateSettings
 from datetime import datetime, timedelta
 from django.core.validators import FileExtensionValidator
 
@@ -311,3 +311,24 @@ class TimeEntryReviewForm(forms.ModelForm):
             })
         
         return cleaned_data
+
+class RateSettingsForm(forms.ModelForm):
+    class Meta:
+        model = RateSettings
+        fields = ['mileage_rate', 'vehicle_allowance', 'effective_date']
+        widgets = {
+            'mileage_rate': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'step': '0.01',
+                'min': '0'
+            }),
+            'vehicle_allowance': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'step': '0.01',
+                'min': '0'
+            }),
+            'effective_date': forms.DateInput(attrs={
+                'class': 'form-control',
+                'type': 'date'
+            })
+        }

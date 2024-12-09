@@ -81,6 +81,7 @@
         const isDarkMode = document.documentElement.classList.contains('dark');
         localStorage.setItem('theme', isDarkMode ? 'dark' : 'light');
         
+        showAlert('Logging out...', 'info');
         const overlay = document.getElementById('loading-overlay');
         overlay.classList.remove('invisible', 'opacity-0');
     });

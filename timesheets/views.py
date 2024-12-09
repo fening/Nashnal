@@ -173,6 +173,8 @@ def time_entry_detail(request, pk):
     context.update({
         'next_entry': next_entry,
         'prev_entry': prev_entry,
+        'viewer_can_view_mileage': request.user.can_view_mileage,  # Viewer's permission
+        'can_view_mileage': time_entry.user.can_view_mileage,     # Entry owner's permission
     })
 
     return render(request, 'timesheets/time_entry_detail.html', context)
@@ -284,6 +286,10 @@ def time_entry_list(request):
             'selected_user_id': request.GET.get('user'),
         }
 
+        context.update({
+            'can_view_mileage': request.user.can_view_mileage,
+        })
+
         return render(request, 'timesheets/time_entry_list.html', context)
 
 @login_required
@@ -293,22 +299,39 @@ def time_entry_create(request):
         JobFormSet = formset_factory(JobForm, extra=1, can_delete=True)
         
         if request.method == 'POST':
-            form = TimeEntryForm(request.POST, request.FILES)  # Add request.FILES here
-            formset = JobFormSet(request.POST, prefix='jobs')  # Add prefix to match template
+            form = TimeEntryForm(request.POST, request.FILES)
+            formset = JobFormSet(request.POST, prefix='jobs')
+
+            # Skip mileage validation if user doesn't have permission
+            if not request.user.can_view_mileage:
+                # Remove mileage-related validation
+                for field in ['initial_mileage', 'final_mileage', 'company_vehicle_used']:
+                    if field in form.fields:
+                        form.fields[field].required = False
+                
+                # Remove mileage validation from formset
+                if formset.is_bound:
+                    for job_form in formset:
+                        if 'activity_start_mileage' in job_form.fields:
+                            job_form.fields['activity_start_mileage'].required = False
+                        if 'activity_end_mileage' in job_form.fields:
+                            job_form.fields['activity_end_mileage'].required = False
             
             print("POST data:", request.POST)
             print(f"Form is valid: {form.is_valid()}")
             print(f"Formset is valid: {formset.is_valid()}")
-            
-            logger.debug(f"POST data: {request.POST}")
-            logger.debug(f"Form is valid: {form.is_valid()}")
-            logger.debug(f"Formset is valid: {formset.is_valid()}")
             
             if form.is_valid() and formset.is_valid():
                 try:
                     with transaction.atomic():
                         time_entry = form.save(commit=False)
                         time_entry.user = request.user
+                        
+                        # Set default values for mileage fields if no permission
+                        if not request.user.can_view_mileage:
+                            time_entry.initial_mileage = 0
+                            time_entry.final_mileage = 0
+                            time_entry.company_vehicle_used = False  # or whatever your default value is
                         
                         # Handle file upload
                         if 'attachment' in request.FILES:
@@ -317,15 +340,17 @@ def time_entry_create(request):
                             
                         time_entry.save()
                         
-                        logger.debug(f"Number of forms in formset: {len(formset)}")
-                        
                         for job_form in formset:
-                            logger.debug(f"Job form cleaned data: {job_form.cleaned_data}")
                             if job_form.cleaned_data and not job_form.cleaned_data.get('DELETE', False):
                                 job = job_form.save(commit=False)
                                 job.time_entry = time_entry
+                                
+                                # Set default values for mileage fields if no permission
+                                if not request.user.can_view_mileage:
+                                    job.activity_start_mileage = 0
+                                    job.activity_end_mileage = 0
+                                
                                 job.save()
-                                logger.debug(f"Saved job: {job}")
                         
                         if not time_entry.jobs.exists():
                             raise ValueError("At least one job must be present.")
@@ -339,15 +364,18 @@ def time_entry_create(request):
                 logger.error(f"Form errors: {form.errors}")
                 logger.error(f"Formset errors: {formset.errors}")
                 messages.error(request, "Please correct the errors below.")
+
         else:
             form = TimeEntryForm()
-            formset = JobFormSet(prefix='jobs')  # Add prefix to match template
-            
+            formset = JobFormSet(prefix='jobs')
+        
         context = {
             'view_title': 'Create Time Entry',
             'form': form,
-            'job_formset': formset
+            'job_formset': formset,
+            'can_view_mileage': request.user.can_view_mileage,
         }
+
         return render(request, 'timesheets/time_entry_form.html', context)
     
 @login_required
@@ -387,11 +415,32 @@ def time_entry_edit(request, pk):
         form = TimeEntryForm(request.POST, request.FILES, instance=time_entry)
         formset = JobFormSet(request.POST, instance=time_entry, prefix='jobs')
 
+        # Skip mileage validation if user doesn't have permission
+        if not time_entry.user.can_view_mileage:
+            # Remove mileage-related validation
+            for field in ['initial_mileage', 'final_mileage', 'company_vehicle_used']:
+                if field in form.fields:
+                    form.fields[field].required = False
+            
+            # Remove mileage validation from formset
+            if formset.is_bound:
+                for job_form in formset:
+                    if 'activity_start_mileage' in job_form.fields:
+                        job_form.fields['activity_start_mileage'].required = False
+                    if 'activity_end_mileage' in job_form.fields:
+                        job_form.fields['activity_end_mileage'].required = False
+
         if form.is_valid() and formset.is_valid():
             try:
                 with transaction.atomic():
                     # Save the time entry
                     time_entry = form.save(commit=False)
+                    
+                    # Set default values for mileage fields if no permission
+                    if not time_entry.user.can_view_mileage:
+                        time_entry.initial_mileage = 0
+                        time_entry.final_mileage = 0
+                        time_entry.company_vehicle_used = False
                     
                     # Handle file upload
                     if 'attachment' in request.FILES:
@@ -404,6 +453,10 @@ def time_entry_edit(request, pk):
                     instances = formset.save(commit=False)
                     for instance in instances:
                         instance.time_entry = time_entry
+                        # Set default values for mileage fields if no permission
+                        if not time_entry.user.can_view_mileage:
+                            instance.activity_start_mileage = 0
+                            instance.activity_end_mileage = 0
                         instance.save()
                     formset.save_m2m()
                     
@@ -414,19 +467,13 @@ def time_entry_edit(request, pk):
                     # Only check for minimum jobs if not in overwrite mode
                     if not is_overwrite_mode and time_entry.jobs.count() == 0:
                         raise ValueError("At least one job must be present.")
-                    
-                    # Log the edit
-                    if is_overwrite_mode:
-                        logger.info(f"Time entry {pk} overwritten by {request.user} (supervisor/admin)")
-                    else:
-                        logger.info(f"Time entry {pk} edited by {request.user}")
 
-                messages.success(request, 
-                    "Time entry overwritten successfully." if is_overwrite_mode 
-                    else "Time entry updated successfully."
-                )
-                return redirect('timesheets:time_entry_detail', pk=time_entry.pk)
-                
+                    messages.success(request, 
+                        "Time entry overwritten successfully." if is_overwrite_mode 
+                        else "Time entry updated successfully."
+                    )
+                    return redirect('timesheets:time_entry_detail', pk=time_entry.pk)
+                    
             except ValueError as e:
                 messages.error(request, str(e))
             except Exception as e:
@@ -446,7 +493,8 @@ def time_entry_edit(request, pk):
         'job_formset': formset,
         'edit': True,
         'is_overwrite_mode': is_overwrite_mode,
-        'time_entry': time_entry
+        'time_entry': time_entry,
+        'can_view_mileage': time_entry.user.can_view_mileage,  # Add this line
     }
     
     return render(request, 'timesheets/time_entry_form.html', context)
@@ -713,6 +761,12 @@ def user_summary_report(request):
         date_range.append(current_date)
         current_date += timedelta(days=1)
 
+    # Get time entries for the selected user and date range
+    time_entries = TimeEntry.objects.filter(
+        user=selected_user,
+        date__range=[start_date, end_date]
+    ).prefetch_related('jobs__labor_code')
+
     # Initialize data structures with Decimal for precise calculations
     weekly_hours = {}
     daily_totals = {date: Decimal('0.00') for date in date_range}
@@ -721,70 +775,57 @@ def user_summary_report(request):
     
     total_rt_hours = Decimal('0.00')
     total_ot_hours = Decimal('0.00')
-    
-    # Get time entries with optimized queries
-    time_entries = TimeEntry.objects.filter(
-        user=selected_user,
-        date__range=[start_date, end_date]
-    ).prefetch_related(
-        'jobs',
-        'jobs__labor_code',
-        'approval'
-    ).select_related('user')
 
-    # Process time entries
+    # Process time entries - single loop for all calculations
     for entry in time_entries:
         entry_date = entry.date
+        daily_total = Decimal('0.00')
         
-        try:
-            if entry.hours_to_be_paid:
-                # Convert the hours value to Decimal
-                entry_hours = Decimal(str(entry.hours_to_be_paid))
-                
-                # Calculate RT and OT for this day
-                rt_hours = min(Decimal('8.00'), entry_hours)
-                ot_hours = max(Decimal('0.00'), entry_hours - Decimal('8.00'))
-                
-                # Update daily totals
-                daily_rt[entry_date] += rt_hours
-                daily_ot[entry_date] += ot_hours
-                
-                # Update running totals
-                total_rt_hours += rt_hours
-                total_ot_hours += ot_hours
+        # Process jobs for this entry
+        for job in entry.jobs.all():
+            labor_code = job.labor_code.laborcode
+            
+            # Initialize labor code data if needed
+            if labor_code not in weekly_hours:
+                weekly_hours[labor_code] = {
+                    "description": job.job_description,
+                    "labor_code_description": job.labor_code.labor_code_description,
+                    "job": job.job_number,
+                    "hours": {date: {
+                        'duration': Decimal('0.00'),
+                        'details': []
+                    } for date in date_range},
+                    "total_duration": Decimal('0.00')
+                }
+            
+            # Calculate job duration
+            job_duration = Decimal(str(job.calculate_duration()))
+            daily_total += job_duration
+            
+            # Update the hours for this job
+            weekly_hours[labor_code]['hours'][entry_date]['duration'] += job_duration
+            weekly_hours[labor_code]['total_duration'] += job_duration
+            
+            # Add job details
+            weekly_hours[labor_code]['hours'][entry_date]['details'].append({
+                'arrive_time': job.activity_arrive_time.strftime('%H:%M'),
+                'leave_time': job.activity_leave_time.strftime('%H:%M'),
+                'duration': str(job_duration)
+            })
 
-                # Process jobs for this entry
-                jobs_for_entry = entry.jobs.all()
-                job_count = len(jobs_for_entry)
-                
-                if job_count > 0:
-                    # Calculate hours per job
-                    hours_per_job = (entry_hours / Decimal(str(job_count))).quantize(
-                        Decimal('0.01'),
-                        rounding=ROUND_HALF_UP
-                    )
-                    
-                    # Distribute hours to labor codes
-                    for job in jobs_for_entry:
-                        labor_code = job.labor_code.laborcode
-                        
-                        # Initialize labor code data if needed
-                        if labor_code not in weekly_hours:
-                            weekly_hours[labor_code] = {
-                                "description": job.job_description,
-                                "labor_code_description": job.labor_code.labor_code_description,
-                                "job": job.job_number,
-                                "hours": {date: Decimal('0.00') for date in date_range},
-                                "total": Decimal('0.00')
-                            }
-                        
-                        # Update hours for this labor code
-                        weekly_hours[labor_code]["hours"][entry_date] += hours_per_job
-                        weekly_hours[labor_code]["total"] += hours_per_job
-
-        except (ValueError, TypeError, decimal.InvalidOperation) as e:
-            logger.error(f"Error processing entry {entry.id}: {str(e)}")
-            continue
+        # Calculate RT and OT for this day
+        if entry.hours_to_be_paid:
+            entry_hours = Decimal(str(entry.hours_to_be_paid))
+            rt_hours = min(Decimal('8.00'), entry_hours)
+            ot_hours = max(Decimal('0.00'), entry_hours - Decimal('8.00'))
+            
+            # Update daily totals
+            daily_rt[entry_date] = rt_hours
+            daily_ot[entry_date] = ot_hours
+            
+            # Update running totals
+            total_rt_hours += rt_hours
+            total_ot_hours += ot_hours
 
     # Round all daily totals
     for date in date_range:
@@ -812,9 +853,27 @@ def user_summary_report(request):
         rounding=ROUND_HALF_UP
     )
 
-    # Calculate miles and vehicle allowance
+    # Calculate mileage allowances
     total_miles_to_be_paid = sum(entry.miles_to_be_paid or 0 for entry in time_entries)
-    vehicle_allowance = total_miles_to_be_paid * Decimal('0.55')  # Assuming $0.55 per mile
+    
+    # Get current rates
+    try:
+        current_rates = RateSettings.get_current_rates()
+        mileage_rate = current_rates.mileage_rate
+        daily_vehicle_allowance = current_rates.vehicle_allowance
+    except RateSettings.DoesNotExist:
+        mileage_rate = Decimal('0.67')  # Default rate
+        daily_vehicle_allowance = Decimal('25.00')  # Default allowance
+
+    # Count days with personal vehicle usage
+    personal_vehicle_days = sum(
+        1 for entry in time_entries
+        if not entry.company_vehicle_used
+    )
+
+    # Calculate allowances
+    total_vehicle_allowance = daily_vehicle_allowance * Decimal(str(personal_vehicle_days))
+    total_mileage_allowance = mileage_rate * total_miles_to_be_paid
 
     # Get attachments
     attachments = []
@@ -826,13 +885,6 @@ def user_summary_report(request):
                 'url': entry.get_attachment_url(),
                 'entry_id': entry.id
             })
-
-    # Add new data to context
-    context.update({
-        'total_miles_to_be_paid': total_miles_to_be_paid,
-        'vehicle_allowance': vehicle_allowance,
-        'attachments': attachments,
-    })
 
     # Consolidate all context updates into a single update
     context.update({
@@ -852,6 +904,15 @@ def user_summary_report(request):
         'grand_total_hours': grand_total_hours,
         'is_superuser': is_superuser,
         'is_supervisor': is_supervisor,
+        'can_view_mileage': request.user.can_view_mileage,
+        'selected_user_can_view_mileage': selected_user.can_view_mileage if selected_user else False,
+        'total_miles_to_be_paid': total_miles_to_be_paid,
+        'personal_vehicle_usage': personal_vehicle_days,
+        'mileage_rate': mileage_rate,
+        'daily_vehicle_allowance': daily_vehicle_allowance,
+        'total_vehicle_allowance': total_vehicle_allowance,
+        'total_mileage_allowance': total_mileage_allowance,
+        'attachments': attachments,
     })
 
     return render(request, 'timesheets/summary_report.html', context)
@@ -1152,31 +1213,35 @@ def dashboard(request):
 @login_required
 @supervisor_or_superuser_required
 def job_details_create_or_edit(request, pk=None):
-    if pk:
-        job = get_object_or_404(JobDetails, pk=pk)
-    else:
-        job = None
+    if (request.user.is_superuser or (hasattr(request.user, 'role') and request.user.role == 'Supervisor')):
+        if pk:
+            job = get_object_or_404(JobDetails, pk=pk)
+        else:
+            job = None
 
-    if request.method == 'POST':
-        form = JobDetailsForm(request.POST, instance=job)
-        if form.is_valid():
-            new_job = form.save()
-            messages.success(request, 'Job details saved successfully.')
-            if pk:
-                return redirect('timesheets:job_details_edit', pk=new_job.pk)  # Redirect to edit the same job
-            else:
-                return redirect('timesheets:job_details_create')  # Redirect to the create page
+        if request.method == 'POST':
+            form = JobDetailsForm(request.POST, instance=job)
+            if form.is_valid():
+                new_job = form.save()
+                messages.success(request, 'Job details saved successfully.')
+                if pk:
+                    return redirect('timesheets:job_details_edit', pk=new_job.pk)  # Redirect to edit the same job
+                else:
+                    return redirect('timesheets:job_details_create')  # Redirect to the create page
+        else:
+            form = JobDetailsForm(instance=job)
+        
+        jobs = JobDetails.objects.all().order_by('-job_number')
+        context = {
+            'view_title': 'Create Job details',
+            'form': form,
+            'jobs': jobs,
+            'job': job
+        }
+        return render(request, 'timesheets/job_details_form.html', context)
     else:
-        form = JobDetailsForm(instance=job)
-    
-    jobs = JobDetails.objects.all().order_by('-job_number')
-    context = {
-        'view_title': 'Create Job details',
-        'form': form,
-        'jobs': jobs,
-        'job': job
-    }
-    return render(request, 'timesheets/job_details_form.html', context)
+        messages.error(request, "You don't have permission to access this page.")
+        return redirect('timesheets:dashboard')
 
 @login_required
 @supervisor_or_superuser_required
@@ -1440,6 +1505,8 @@ def review_time_entry(request, pk):
         'is_second_approval': approval.status == TimeEntryApproval.PENDING_SECOND,
         'is_supervisor': request.user.role == 'Supervisor' if hasattr(request.user, 'role') else False,
         'is_superuser': request.user.is_superuser,
+        'viewer_can_view_mileage': request.user.can_view_mileage,  # Add viewer's permission
+        'can_view_mileage': time_entry.user.can_view_mileage,      # Add entry owner's permission
     }
     
     return render(request, 'timesheets/review_time_entry.html', context)
@@ -1855,4 +1922,60 @@ import pytz
 def get_current_timezone():
     """Get the current timezone from settings or user preferences"""
     return pytz.timezone(settings.TIME_ZONE)
+
+from django.contrib.auth.decorators import login_required, user_passes_test
+from django.contrib import messages
+from .models import RateSettings
+from .forms import RateSettingsForm
+
+@login_required 
+@supervisor_or_superuser_required 
+def manage_rates(request):
+    # Get latest rates after saving new rates
+    try:
+        current_rates = RateSettings.get_current_rates()
+    except RateSettings.DoesNotExist:
+        current_rates = None
+        
+    if request.method == 'POST':
+        form = RateSettingsForm(request.POST)
+        if form.is_valid():
+            try:
+                new_rates = form.save(commit=False)
+                new_rates.created_by = request.user
+                new_rates.save()
+                messages.success(request, 'Rates updated successfully.')
+                # Refresh current_rates after saving
+                current_rates = RateSettings.get_current_rates()
+                return render(request, 'timesheets/manage_rates.html', {
+                    'form': RateSettingsForm(),
+                    'current_rates': current_rates
+                })
+            except Exception as e:
+                messages.error(request, f'Error updating rates: {str(e)}')
+                
+    else:
+        initial_data = {}
+        if current_rates:
+            initial_data = {
+                'mileage_rate': current_rates.mileage_rate,
+                'vehicle_allowance': current_rates.vehicle_allowance,
+                'effective_date': current_rates.effective_date
+            }
+        form = RateSettingsForm(initial=initial_data)
+    
+    return render(request, 'timesheets/manage_rates.html', {
+        'form': form,
+        'current_rates': current_rates
+    })
+    
+@login_required
+@supervisor_or_superuser_required
+def rate_history(request):
+    """View for displaying rate setting history"""
+    rates = RateSettings.objects.all().order_by('-created_at')
+    return render(request, 'timesheets/rate_history.html', {
+        'view_title': 'Rate History',
+        'rates': rates
+    })
 

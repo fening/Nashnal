@@ -5,6 +5,11 @@ Timesheet Entries - Detailed View
 {% endblock %}
 
 {% block content %}
+{% if messages %}
+    {% for message in messages %}
+        <div class="django-message hidden" data-type="{{ message.tags }}">{{ message }}</div>
+    {% endfor %}
+{% endif %}
 {% load custom_filters %}
 <style>
     @media print {
@@ -112,6 +117,34 @@ Timesheet Entries - Detailed View
         }
 
         /* Reset any other dark mode specific styles */
+        .shadow-xl,
+        .shadow-lg,
+        .shadow-sm,
+        .rounded-2xl,
+        .rounded-xl,
+        .rounded-lg,
+        .rounded-md {
+            box-shadow: none !important;
+            border-radius: 0 !important;
+        }
+
+        /* Ensure borders are visible */
+        .border,
+        .border-t,
+        .border-b,
+        .border-l,
+        .border-r,
+        .divide-y > * {
+            border-color: #000 !important;
+        }
+
+        /* Remove hover effects */
+        .hover\:bg-gray-50,
+        .hover\:bg-gray-100,
+        .hover\:shadow-lg {
+            background: white !important;
+            box-shadow: none !important;
+        }
     }
 
     /* Hide print-only elements when viewing on screen */
@@ -238,9 +271,11 @@ Timesheet Entries - Detailed View
                             <th scope="col" class="px-2 py-3 text-center text-sm font-semibold uppercase tracking-wider dark:text-gray-300" colspan="2">
                                 Time
                             </th>
+                            {% if viewer_can_view_mileage and can_view_mileage %}
                             <th scope="col" class="px-2 py-3 text-center text-sm font-semibold uppercase tracking-wider dark:text-gray-300" colspan="2">
                                 Mileage
                             </th>
+                            {% endif %}
                             <th scope="col" class="px-2 py-3 text-center text-sm font-semibold uppercase tracking-wider dark:text-gray-300" colspan="2">
                                 Services Performed
                             </th>
@@ -258,12 +293,14 @@ Timesheet Entries - Detailed View
                             <th scope="col" class="px-2 py-2 text-center text-xs font-semibold tracking-wider dark:text-gray-300">
                                 Leave
                             </th>
+                            {% if viewer_can_view_mileage and can_view_mileage %}
                             <th scope="col" class="px-2 py-2 text-center text-xs font-semibold tracking-wider dark:text-gray-300">
                                 Arrive
                             </th>
                             <th scope="col" class="px-2 py-2 text-center text-xs font-semibold tracking-wider dark:text-gray-300">
                                 Leave
                             </th>
+                            {% endif %}
                             <th scope="col" class="px-2 py-2 text-center text-xs font-semibold tracking-wider dark:text-gray-300">
                                 Labor Code
                             </th>
@@ -293,9 +330,11 @@ Timesheet Entries - Detailed View
                             <td class="px-2 py-3 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">
                                 <!-- Empty -->
                             </td>
+                            {% if viewer_can_view_mileage and can_view_mileage %}
                             <td class="px-2 py-3 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300 text-center">
                                 {{ time_entry.initial_mileage }}
                             </td>
+                            {% endif %}
                             <td class="px-2 py-3 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300" colspan="2">
                                 <!-- Empty -->
                             </td>
@@ -316,12 +355,14 @@ Timesheet Entries - Detailed View
                             <td class="px-2 py-3 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300 text-center">
                                 {{ job.activity_leave_time|date:"H:i" }}
                             </td>
+                            {% if viewer_can_view_mileage and can_view_mileage %}
                             <td class="px-2 py-3 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300 text-center">
                                 {{ job.activity_start_mileage }}
                             </td>
                             <td class="px-2 py-3 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300 text-center">
                                 {{ job.activity_end_mileage }}
                             </td>
+                            {% endif %}
                             <td class="px-2 py-3 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300 text-center">
                                 {{ job.labor_code }}
                             </td>
@@ -348,9 +389,11 @@ Timesheet Entries - Detailed View
                             <td class="px-2 py-3 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">
                                 <!-- Empty -->
                             </td>
-                            <td class="px-2 py-3 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300 text-center">
+                            {% if viewer_can_view_mileage and can_view_mileage %}
+                            <td class="px-2 py-3 whitespace-nowrap text-sm text-gray-900 dark:text-gray-10 text-center">
                                 {{ time_entry.final_mileage }}
                             </td>
+                            {% endif %}
                             <td class="px-2 py-3 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300" colspan="3">
                                 <!-- Empty -->
                             </td>
@@ -359,10 +402,11 @@ Timesheet Entries - Detailed View
                     <tfoot class="bg-gray-200 dark:bg-gray-800">
                         <!-- Summary Row -->
                         <tr>
-                            <td class="px-2 py-3 whitespace-nowrap text-base font-semibold text-gray-800 dark:text-gray-300 text-center">
+                            {% if viewer_can_view_mileage and can_view_mileage %}
+                            <td class="px-2 py-3 whitespace-nowrap text-base font-semibold text-gray-800 dark:text-gray-300 text-center" colspan="2">
                                 {{ time_entry.hours_on_site }}
                             </td>
-                            <td class="px-2 py-3 whitespace-nowrap text-base font-semibold text-gray-800 dark:text-gray-300 text-center">
+                            <td class="px-2 py-3 whitespace-nowrap text-base font-semibold text-gray-800 dark:text-gray-300 text-center"colspan="2">
                                 {{ time_entry.hours_for_the_day }}
                             </td>
                             <td class="px-2 py-3 whitespace-nowrap text-base font-semibold text-gray-800 dark:text-gray-300 text-center">
@@ -371,10 +415,7 @@ Timesheet Entries - Detailed View
                             <td class="px-2 py-3 whitespace-nowrap text-base font-semibold text-gray-800 dark:text-gray-300 text-center">
                                 {{ time_entry.hours_to_be_paid }}
                             </td>
-                            <td class="px-2 py-3 whitespace-nowrap text-base font-semibold text-gray-800 dark:text-gray-300" colspan="2">
-                                <!-- Empty for spacing -->
-                            </td>
-                            <td class="px-2 py-3 whitespace-nowrap text-base font-semibold text-gray-800 dark:text-gray-300 text-center">
+                            <td class="px-2 py-3 whitespace-nowrap text-base font-semibold text-gray-800 dark:text-gray-300 text-center" >
                                 {{ time_entry.total_miles }}
                             </td>
                             <td class="px-2 py-3 whitespace-nowrap text-base font-semibold text-gray-800 dark:text-gray-300 text-center">
@@ -383,13 +424,28 @@ Timesheet Entries - Detailed View
                             <td class="px-2 py-3 whitespace-nowrap text-base font-semibold text-gray-800 dark:text-gray-300 text-center">
                                 {{ time_entry.miles_to_be_paid }}
                             </td>
+                            {% else %}
+                            <td class="px-2 py-3 whitespace-nowrap text-base font-semibold text-gray-800 dark:text-gray-300 text-center" colspan="2">
+                                {{ time_entry.hours_on_site }}
+                            </td>
+                            <td class="px-2 py-3 whitespace-nowrap text-base font-semibold text-gray-800 dark:text-gray-300 text-center" colspan="2">
+                                {{ time_entry.hours_for_the_day }}
+                            </td>
+                            <td class="px-2 py-3 whitespace-nowrap text-base font-semibold text-gray-800 dark:text-gray-300 text-center" colspan="2">
+                                {{ time_entry.travel_time_subtract }}
+                            </td>
+                            <td class="px-2 py-3 whitespace-nowrap text-base font-semibold text-gray-800 dark:text-gray-300 text-center" colspan="2">
+                                {{ time_entry.hours_to_be_paid }}
+                            </td>
+                            {% endif %}
                         </tr>
                         <!-- Labels Row -->
                         <tr>
-                            <td class="px-2 py-3 whitespace-nowrap text-sm font-semibold text-gray-700 dark:text-gray-300 text-center">
+                            {% if can_view_mileage %}
+                            <td class="px-2 py-3 whitespace-nowrap text-sm font-semibold text-gray-700 dark:text-gray-300 text-center"colspan="2">
                                 Hours on Site:
                             </td>
-                            <td class="px-4 py-3 whitespace-nowrap text-sm font-semibold text-gray-700 dark:text-gray-300 text-center">
+                            <td class="px-4 py-3 whitespace-nowrap text-sm font-semibold text-gray-700 dark:text-gray-300 text-center"colspan="2">
                                 Hours for the Day:
                             </td>
                             <td class="px-2 py-3 whitespace-nowrap text-sm font-semibold text-gray-700 dark:text-gray-300 text-center">
@@ -398,9 +454,7 @@ Timesheet Entries - Detailed View
                             <td class="px-2 py-3 whitespace-nowrap text-sm font-semibold text-gray-700 dark:text-gray-300 text-center">
                                 Hours to be Paid:
                             </td>
-                            <td class="px-2 py-3 whitespace-nowrap text-sm font-semibold text-gray-700 dark:text-gray-300" colspan="2">
-                                Employee's Signature
-                            </td>
+
                             <td class="px-2 py-3 whitespace-nowrap text-sm font-semibold text-gray-700 dark:text-gray-300 text-center">
                                 Total Miles:
                             </td>
@@ -410,6 +464,20 @@ Timesheet Entries - Detailed View
                             <td class="px-2 py-3 whitespace-nowrap text-sm font-semibold text-gray-700 dark:text-gray-300 text-center">
                                 Miles to be Paid
                             </td>
+                            {% else %}
+                            <td class="px-2 py-3 whitespace-nowrap text-sm font-semibold text-gray-700 dark:text-gray-300 text-center" colspan="2">
+                                Hours on Site:
+                            </td>
+                            <td class="px-4 py-3 whitespace-nowrap text-sm font-semibold text-gray-700 dark:text-gray-300 text-center"  colspan="2">
+                                Hours for the Day:
+                            </td>
+                            <td class="px-2 py-3 whitespace-nowrap text-sm font-semibold text-gray-700 dark:text-gray-300 text-center"  colspan="2">
+                                Travel Time (subtract):
+                            </td>
+                            <td class="px-2 py-3 whitespace-nowrap text-sm font-semibold text-gray-700 dark:text-gray-300 text-center"  colspan="2">
+                                Hours to be Paid:
+                            </td>
+                            {% endif %}
                         </tr>
                     </tfoot>
                 </table>
@@ -420,11 +488,17 @@ Timesheet Entries - Detailed View
                 </div>
         <div class="workspace-section space-y-1">
             <div class="border-t border-gray-200 dark:border-gray-700 pt-6 print-only">
-                <div class="text-center">
-                    <p class="text-sm font-medium text-gray-700 dark:text-gray-300 dashes mb-0">------------------------</p>
-                    <p class="text-sm font-semibold text-gray-700 dark:text-gray-300 leading-none">Supervisor's Initials</p>
-                    <div class="border-b-2 border-gray-300 dark:border-gray-600 mt-1"></div>
+                <div class="flex justify-around items-center">
+                    <div class="text-center">
+                        <p class="text-sm font-medium text-gray-700 dark:text-gray-300 dashes mb-0">------------------------</p>
+                        <p class="text-sm font-semibold text-gray-700 dark:text-gray-300 leading-none">Employee's Signature</p>
+                    </div>
+                    <div class="text-center">
+                        <p class="text-sm font-medium text-gray-700 dark:text-gray-300 dashes mb-0">------------------------</p>
+                        <p class="text-sm font-semibold text-gray-700 dark:text-gray-300 leading-none">Supervisor's Initials</p>
+                    </div>
                 </div>
+                <div class="border-b-2 border-gray-300 dark:border-gray-600 mt-1"></div>
             </div>
             <div class="grid grid-cols-1 md:grid-cols-7 gap-4 mt-0">
                 <div class="md:col-span-4 print-only">
@@ -467,7 +541,7 @@ Timesheet Entries - Detailed View
            target="_blank">
             <svg class="w-5 h-5 mr-2 text-gray-700 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                      d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                      d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4-4V4"/>
             </svg>
             Download
         </a>
@@ -550,44 +624,50 @@ Timesheet Entries - Detailed View
             </summary>
             <div class="space-y-4 p-6">
                 {% for history in time_entry.approval.history.all %}
-                    <div class="p-4 {% if history.status == 'rejected' %}bg-red-50{% elif history.status == 'approved' %}bg-green-50{% else %}bg-gray-50{% endif %} dark:bg-gray-800 rounded-lg border">
-                        <div class="flex justify-between items-start">
-                            <div>
-                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
-                                    {% if history.status == 'rejected' %}
-                                        bg-red-100 text-red-800
-                                    {% elif history.status == 'approved' %}
-                                        bg-green-100 text-green-800
-                                    {% elif 'pending' in history.status %}
-                                        bg-yellow-100 text-yellow-800
-                                    {% else %}
-                                        bg-gray-100 text-gray-800
-                                    {% endif %}">
-                                    {{ history.get_status_display }}
-                                </span>
-                                {% if history.is_first_review %}
-                                    <span class="ml-2 text-xs text-gray-500 dark:text-gray-300">(First Review)</span>
-                                {% elif history.is_second_review %}
-                                    <span class="ml-2 text-xs text-gray-500 dark:text-gray-300">(Final Review)</span>
+                    {% if request.user.is_superuser or request.user.role == 'Supervisor' or history.is_second_review or history.status == 'rejected' or time_entry.user == request.user and history.is_second_review %}
+                        <div class="p-4 {% if history.status == 'rejected' %}bg-red-50{% elif history.status == 'approved' %}bg-green-50{% else %}bg-gray-50{% endif %} dark:bg-gray-800 rounded-lg border">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                                        {% if history.status == 'rejected' %}
+                                            bg-red-100 text-red-800
+                                        {% elif history.status == 'approved' %}
+                                            bg-green-100 text-green-800
+                                        {% elif 'pending' in history.status %}
+                                            bg-yellow-100 text-yellow-800
+                                        {% else %}
+                                            bg-gray-100 text-gray-800
+                                        {% endif %}">
+                                        {{ history.get_status_display }}
+                                    </span>
+                                    {% if request.user.is_superuser or request.user.role == 'Supervisor' %}
+                                        {% if history.is_first_review %}
+                                            <span class="ml-2 text-xs text-gray-500 dark:text-gray-300">(First Review)</span>
+                                        {% elif history.is_second_review %}
+                                            <span class="ml-2 text-xs text-gray-500 dark:text-gray-300">(Final Review)</span>
+                                        {% endif %}
+                                    {% endif %}
+                                </div>
+                                <div class="text-sm text-gray-500 dark:text-gray-300">
+                                    {{ history.reviewed_at|date:"M d, Y H:i" }}
+                                </div>
+                            </div>
+                            <div class="mt-2">
+                                {% if request.user.is_superuser or request.user.role == 'Supervisor' or history.is_second_review or history.status == 'rejected' %}
+                                    <p class="text-sm text-gray-600 dark:text-gray-300">
+                                        <span class="font-medium">Reviewed by:</span> 
+                                        {{ history.reviewed_by.get_full_name }}
+                                    </p>
+                                {% endif %}
+                                {% if history.comments %}
+                                    <div class="mt-2 text-sm">
+                                        <p class="font-medium text-gray-700 dark:text-gray-300">Comments:</p>
+                                        <p class="text-gray-600 dark:text-gray-300 mt-1">{{ history.comments }}</p>
+                                    </div>
                                 {% endif %}
                             </div>
-                            <div class="text-sm text-gray-500 dark:text-gray-300">
-                                {{ history.reviewed_at|date:"M d, Y H:i" }}
-                            </div>
                         </div>
-                        <div class="mt-2">
-                            <p class="text-sm text-gray-600 dark:text-gray-300">
-                                <span class="font-medium">Reviewed by:</span> 
-                                {{ history.reviewed_by.get_full_name }}
-                            </p>
-                            {% if history.comments %}
-                                <div class="mt-2 text-sm">
-                                    <p class="font-medium text-gray-700 dark:text-gray-300">Comments:</p>
-                                    <p class="text-gray-600 dark:text-gray-300 mt-1">{{ history.comments }}</p>
-                                </div>
-                            {% endif %}
-                        </div>
-                    </div>
+                    {% endif %}
                 {% endfor %}
             </div>
         </details>

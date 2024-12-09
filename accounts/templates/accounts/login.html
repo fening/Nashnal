@@ -83,16 +83,7 @@
         </div>
     <h3 class="text-2xl mb-8 text-center text-gray-800 dark:text-gray-100">Login to Timesheets</h3>
 
-    {% if messages %}
-    <div class="mb-6">
-        {% for message in messages %}
-        <div class="p-4 rounded-xl {% if message.tags == 'error' %}bg-red-100 dark:bg-red-900/50 border-l-4 border-red-500{% endif %}">
-            <p class="dark:text-gray-100">{{ message }}</p>
-        </div>
-        {% endfor %}
-    </div>
-    {% endif %}
-
+    <!-- Remove the old messages block -->
     <form method="post" class="space-y-6" id="loginForm" onsubmit="return showLoading()">
         {% csrf_token %}
         
@@ -170,6 +161,13 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
+        // Show Django messages using the new alert system
+        {% if messages %}
+            {% for message in messages %}
+                showAlert('{{ message|escapejs }}', '{{ message.tags }}');
+            {% endfor %}
+        {% endif %}
+        
         // Initially disable the login button
         document.getElementById('loginButton').disabled = true;
         
