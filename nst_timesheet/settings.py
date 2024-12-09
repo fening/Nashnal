@@ -318,7 +318,9 @@ STATIC_ROOT =os.path.join(BASE_DIR, 'staticfiles')
 
 STATIC_URL = '/static/'
 
-MEDIA_URL = '/media/'
+# Media Files (uploaded from users)
+MEDIA_URL = "media/"
+MEDIA_ROOT = os.path.join(BASE_DIR, MEDIA_URL)
 
 STORAGES = {
     "default": {
@@ -332,13 +334,6 @@ STORAGES = {
         "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
     },
 }
-
-# Media files configuration
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
-
-# Create media directory if it doesn't exist
-if not os.path.exists(MEDIA_ROOT):
-    os.makedirs(MEDIA_ROOT)
 
 # File upload settings
 FILE_UPLOAD_MAX_MEMORY_SIZE = 5 * 1024 * 1024  # 5MB
