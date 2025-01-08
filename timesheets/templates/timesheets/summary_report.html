@@ -98,7 +98,7 @@
             <form method="GET" action="{% url 'timesheets:user_summary_report' %}" class="mb-1">
                 <div class="bg-white dark:bg-gray-800 p-4">
                     <!-- Grid -->
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                         {% if is_superuser or is_supervisor %}
                         <div class="space-y-0.5">
                             <label for="user-select" class="text-sm font-medium text-gray-600 dark:text-gray-300">Select User</label>
@@ -111,11 +111,12 @@
                                                focus:bg-white dark:focus:bg-gray-800
                                                cursor-pointer
                                                transition-all duration-200">
-                                    <option value="">All Users</option>
                                     {% for user in all_users %}
-                                        <option value="{{ user.id }}" {% if selected_user and user.id == selected_user.id %}selected{% endif %}>
-                                            {{ user.first_name }} {{ user.last_name }}
-                                        </option>
+                                        {% if not user.is_superuser and not user.is_supervisor %}
+                                            <option value="{{ user.id }}" {% if selected_user and user.id == selected_user.id %}selected{% endif %}>
+                                                {{ user.first_name }} {{ user.last_name }}
+                                            </option>
+                                        {% endif %}
                                     {% endfor %}
                                 </select>
                                 <div class="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
@@ -198,8 +199,24 @@
         Report for {{ selected_user.first_name }} {{ selected_user.last_name }} 
         ( {{ start_date|date:'Y-m-d' }} to {{ end_date|date:'Y-m-d' }})
     </h2>
+    
+    <!-- Info notices -->
+    <div class="mb-4 px-2 space-y-2">
+        <div class="text-sm text-gray-600 dark:text-gray-400">
+            <svg class="inline w-4 h-4 mr-1 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            Showing approved time entries only
+        </div>
+        <div class="text-sm text-gray-600 dark:text-gray-400">
+            <svg class="inline w-4 h-4 mr-1 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            A 30-minute lunch break (0.50 hours) has been automatically deducted from daily totals
+        </div>
+    </div>
 
-<!-- Weekly Hours Table -->
+    <!-- Weekly Hours Table -->
 <div class="mb-8 overflow-x-auto bg-white dark:bg-gray-800 shadow-xl dark:shadow-lg rounded-2xl">
     <table class="min-w-full divide-y divide-gray-100 dark:divide-gray-700">
         <thead class="bg-gray-50/75 dark:bg-gray-700/75">

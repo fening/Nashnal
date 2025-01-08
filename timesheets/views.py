@@ -761,11 +761,12 @@ def user_summary_report(request):
         date_range.append(current_date)
         current_date += timedelta(days=1)
 
-    # Get time entries for the selected user and date range
-    time_entries = TimeEntry.objects.filter(
+    # Get time entries for the selected user and date range - now filtered for approved only
+    user_entries = TimeEntry.objects.filter(
         user=selected_user,
-        date__range=[start_date, end_date]
-    ).prefetch_related('jobs__labor_code')
+        date__range=[start_date, end_date],
+        approval__status='approved'  # Add this filter
+    ).select_related('approval')
 
     # Initialize data structures with Decimal for precise calculations
     weekly_hours = {}
@@ -777,7 +778,7 @@ def user_summary_report(request):
     total_ot_hours = Decimal('0.00')
 
     # Process time entries - single loop for all calculations
-    for entry in time_entries:
+    for entry in user_entries:  # Changed from time_entries to user_entries
         entry_date = entry.date
         daily_total = Decimal('0.00')
         
@@ -854,7 +855,7 @@ def user_summary_report(request):
     )
 
     # Calculate mileage allowances
-    total_miles_to_be_paid = sum(entry.miles_to_be_paid or 0 for entry in time_entries)
+    total_miles_to_be_paid = sum(entry.miles_to_be_paid or 0 for entry in user_entries)  # Changed from time_entries
     
     # Get current rates
     try:
@@ -867,7 +868,7 @@ def user_summary_report(request):
 
     # Count days with personal vehicle usage
     personal_vehicle_days = sum(
-        1 for entry in time_entries
+        1 for entry in user_entries  # Changed from time_entries
         if not entry.company_vehicle_used
     )
 
@@ -877,7 +878,7 @@ def user_summary_report(request):
 
     # Get attachments
     attachments = []
-    for entry in time_entries:
+    for entry in user_entries:  # Changed from time_entries
         if entry.attachment and entry.attachment_name:
             attachments.append({
                 'date': entry.date,
